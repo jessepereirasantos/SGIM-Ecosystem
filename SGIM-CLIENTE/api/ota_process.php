@@ -5,9 +5,15 @@
 header('Content-Type: application/json');
 session_start();
 
-require_once '../config/db.php';
-require_once '../src/Updater/UpdaterCore.php';
-require_once '../includes/ota_helper.php';
+// Tenta localizar o banco de dados do Master (Unificado)
+if (file_exists(__DIR__ . '/../config/database.php')) {
+    require_once __DIR__ . '/../config/database.php';
+} else {
+    require_once __DIR__ . '/../../config/database.php';
+}
+
+require_once __DIR__ . '/../src/Updater/UpdaterCore.php';
+require_once __DIR__ . '/../includes/ota_helper.php';
 use App\Updater\UpdaterCore;
 
 // 1. IDENTIDADE LOCAL
