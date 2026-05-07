@@ -1,28 +1,29 @@
 ---
 deployment:
   tasks:
-    # 1. Garantir que os diretórios base existem (USUÁRIO: hg9a3205)
+    # 1. Garantir que os diretórios base existem
     - /bin/mkdir -p /home1/hg9a3205/public_html/api/update/v2
     - /bin/mkdir -p /home1/hg9a3205/public_html/config
     - /bin/mkdir -p /home1/hg9a3205/public_html/includes
     - /bin/mkdir -p /home1/hg9a3205/public_html/templates
     - /bin/mkdir -p /home1/hg9a3205/public_html/assets
     - /bin/mkdir -p /home1/hg9a3205/public_html/updates
-    - /bin/mkdir -p /home1/hg9a3205/public_html/downloads
-    - /bin/mkdir -p /home1/hg9a3205/public_html/cliente-atualizacao
 
-    # 2. Deploy do Master OTA (SGIM-VENDAS)
+    # 2. Deploy do Master (SGIM-VENDAS)
     - /bin/cp -R /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/api/* /home1/hg9a3205/public_html/api/
     - /bin/cp -R /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/config/* /home1/hg9a3205/public_html/config/
     - /bin/cp -R /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/includes/* /home1/hg9a3205/public_html/includes/
     - /bin/cp -R /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/templates/* /home1/hg9a3205/public_html/templates/
     - /bin/cp -R /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/assets/* /home1/hg9a3205/public_html/assets/
-    - /bin/cp -R /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/cliente-atualizacao/* /home1/hg9a3205/public_html/cliente-atualizacao/
-    
-    # 3. Deploy dos arquivos raiz do Master
     - /bin/cp /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/*.php /home1/hg9a3205/public_html/
+
+    # 3. UNIFICAÇÃO DO CLIENTE (Mover motor OTA para a raiz de /api)
+    # Aqui resolvemos o 404: o motor do cliente agora vive no mesmo lugar que o master espera.
+    - /bin/cp /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-CLIENTE/api/ota_process.php /home1/hg9a3205/public_html/api/
+    - /bin/cp /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-CLIENTE/atualizacoes.php /home1/hg9a3205/public_html/
+    - /bin/cp /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-CLIENTE/version.json /home1/hg9a3205/public_html/ || true
 
     # 4. Ajuste de Permissões
     - /bin/chmod 755 /home1/hg9a3205/public_html/api
-    - /bin/chmod 644 /home1/hg9a3205/public_html/api/publish_update.php
-    - /bin/chmod 644 /home1/hg9a3205/public_html/api/update/latest.json || true
+    - /bin/chmod 644 /home1/hg9a3205/public_html/api/ota_process.php
+    - /bin/chmod 644 /home1/hg9a3205/public_html/version.json || true
