@@ -3,7 +3,6 @@
  * SGIM MASTER - GLOBAL HEADER (Obsidian Amber v7.6 - SOURCE OF TRUTH)
  */
 require_once 'config/database.php';
-require_once 'includes/ota_helper.php';
 $current_page = $current_page ?? '';
 ?>
 <!DOCTYPE html>
@@ -92,11 +91,6 @@ $current_page = $current_page ?? '';
             </a>
         </div>
         <div>
-            <span class="px-4 text-label-caps font-label-caps text-on-surface-variant/50 block mb-2 uppercase">Infraestrutura</span>
-            <a class="flex items-center gap-3 px-4 py-3 rounded-lg <?= ($current_page == 'publish') ? 'sidebar-item-active text-primary font-bold border-r-2 border-primary' : 'text-on-surface-variant opacity-70 hover:bg-surface-variant/10 hover:text-on-surface' ?> transition-all" href="publish_master.php">
-                <span class="material-symbols-outlined">dns</span>
-                <span class="text-body-md font-body-md">Publicador OTA</span>
-            </a>
         </div>
     </nav>
     <div class="px-4 mt-auto pt-8 border-t border-outline-variant/10">
@@ -120,7 +114,7 @@ $current_page = $current_page ?? '';
         <div class="flex items-center gap-6">
             <div class="text-right">
                 <p class="text-body-sm font-bold text-on-surface">Admin SGIM</p>
-                <p class="text-[10px] uppercase tracking-widest text-primary font-bold">v<?= get_system_version() ?></p>
+                <p class="text-[10px] uppercase tracking-widest text-primary font-bold">PRODUCTION STABLE</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center text-primary font-black">A</div>
         </div>

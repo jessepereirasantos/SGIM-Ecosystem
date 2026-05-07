@@ -1,2 +1,0 @@
-ESTA É A PASTA FONTE PARA AS ATUALIZAÇÕES DO CLIENTE.
-Tudo o que estiver aqui dentro será compactado e enviado pelo publish_master.php.

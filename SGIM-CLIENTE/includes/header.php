@@ -2,12 +2,7 @@
 /**
  * SGIM CLIENT - GLOBAL HEADER (v4.6 - IDENTITY SYNC)
  */
-require_once __DIR__ . '/../src/bootstrap.php';
-require_once __DIR__ . '/../src/Updater/UpdaterCore.php';
-require_once __DIR__ . '/ota_helper.php'; // HELPER DE IDENTIDADE UNIFICADA
-
 use App\Models\ThemeModel;
-use App\Updater\UpdaterCore;
 
 $themeModel = new ThemeModel($pdo);
 $theme = $themeModel->getTheme();
@@ -22,19 +17,10 @@ if (!$theme) {
 
 $theme_json = json_encode($theme);
 
-// 1. DESCOBERTA DE VERSÃO (IDENTIDADE REAL)
-$currentVersion = get_local_version();
-
-// 2. LOGICA DE NOTIFICAÇÃO (SININHO)
+// 1. LOGICA DE NOTIFICAÇÃO (SININHO)
 $unreadCount = 0;
 $notificacoes = [];
 try {
-    // Sincroniza notificações: marca como lidas as da versão atual
-    $pdo->prepare("UPDATE sistema_novidades SET visto = 1 WHERE visto = 0 AND titulo LIKE ?")->execute(['%v' . $currentVersion . '%']);
-    
-    // Busca informações de update na sessão (alimentadas via AJAX na Central de Atualizações)
-    $otaInfo = $_SESSION['ota_available'] ?? null;
-
     $stmtNotif = $pdo->query("SELECT * FROM sistema_novidades ORDER BY id DESC LIMIT 10");
     $notificacoes = $stmtNotif->fetchAll(PDO::FETCH_ASSOC);
     
@@ -159,7 +145,6 @@ $notificacoes_json = json_encode($notificacoes);
                     </div>
                     <div>
                         <h1 class="text-xl font-bold text-brand tracking-tighter leading-none">SGIM</h1>
-                        <span class="text-[10px] text-gray-500 font-medium uppercase tracking-widest">v<?= $currentVersion ?></span>
                     </div>
                 <?php endif; ?>
             </div>
@@ -193,7 +178,6 @@ $notificacoes_json = json_encode($notificacoes);
             <div class="flex items-center gap-6">
                 <div class="text-right hidden sm:block">
                     <p class="text-sm font-semibold text-white leading-none">Administrador</p>
-                    <p class="text-[10px] text-brand uppercase font-bold mt-1">v<?= $currentVersion ?></p>
                 </div>
                 <div class="size-10 rounded-full bg-darkborder overflow-hidden border-2 border-brand/20 flex items-center justify-center">
                     <span class="material-symbols-outlined">person</span>

@@ -1,9 +1,0 @@
-# Bloqueia acesso direto a arquivos ZIP no repositório de atualizações
-# Força o uso do gateway download.php para validação de licença
-
-<Files "*.zip">
-    Order Deny,Allow
-    Deny from all
-</Files>
-
-Options -Indexes
