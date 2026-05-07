@@ -1,115 +1,134 @@
 <?php
 /**
- * SGIM MASTER - MOTOR DE DISTRIBUIÇÃO UNIFICADA V5.0
- * Fonte Única: cliente-atualizacao/
+ * SGIM MASTER - MOTOR DE PUBLICAÇÃO INDUSTRIAL V6.0
+ * Fonte Única: latest.json (Atômico)
  */
 header('Content-Type: application/json');
-require_once '../config/database.php';
-require_once '../includes/EmailService.php';
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: 0');
 
-// Sessão desativada temporariamente para evitar bloqueios de redirecionamento no servidor
-session_start();
+require_once '../config/database.php';
+
+// 1. LOCK GLOBAL DE PUBLICAÇÃO (Evita race conditions)
+$lock_file = sys_get_temp_dir() . '/sgim_publish.lock';
+$lock_handle = fopen($lock_file, 'w');
+if (!flock($lock_handle, LOCK_EX | LOCK_NB)) {
+    die(json_encode(['success' => false, 'message' => 'ERRO: Outra publicação já está em andamento.']));
+}
 
 $v = trim($_POST['versao'] ?? '');
 $novidades = trim($_POST['novidades'] ?? '');
-$enviar_email = ($_POST['notificar_email'] ?? '0') == '1';
 
-if (empty($v)) die(json_encode(['success' => false, 'message' => 'Versão é obrigatória.']));
-
-$changelog = [
-    'novidades' => array_filter(explode("\n", str_replace("\r", "", $novidades))),
-    'data' => date('Y-m-d')
-];
-
-// 1. CONFIGURAÇÃO DE FONTES E DESTINOS
-$base = realpath(__DIR__ . '/../');
-$fonte = realpath($base . '/cliente-atualizacao'); // FONTE ÚNICA OFICIAL
-
-if (!$fonte || !is_dir($fonte)) {
-    die(json_encode(['success' => false, 'message' => 'Erro Crítico: Pasta fonte cliente-atualizacao não encontrada.']));
+if (empty($v)) {
+    flock($lock_handle, LOCK_UN);
+    die(json_encode(['success' => false, 'message' => 'Versão é obrigatória.']));
 }
 
-// 2. ATUALIZAR VERSION.JSON NA FONTE (Sincronização Atômica)
-$version_file = $fonte . '/version.json';
-$v_data = ['version' => $v, 'channel' => 'stable', 'date' => date('Y-m-d H:i:s')];
-if (file_exists($version_file)) {
-    $existing = json_decode(file_get_contents($version_file), true);
-    $v_data = array_merge($existing, $v_data);
+// Logger Estruturado (NDJSON)
+function logEvent($step, $level, $msg, $ctx = []) {
+    $log_path = __DIR__ . '/../ota_pipeline.log';
+    $entry = json_encode(array_merge([
+        'ts' => date('c'),
+        'step' => $step,
+        'level' => $level,
+        'msg' => $msg
+    ], $ctx));
+    file_put_contents($log_path, $entry . "\n", FILE_APPEND);
 }
-file_put_contents($version_file, json_encode($v_data, JSON_PRETTY_PRINT));
 
-// 3. GERAÇÃO DOS PACOTES (OTA e INSTALAÇÃO NOVA)
-$ota_zip_name = "sgim_ota_v" . str_replace('.', '_', $v) . ".zip";
-$ota_zip_path = $base . '/updates/' . $ota_zip_name;
-$install_zip_path = $base . '/downloads/sgim_master.zip'; // ZIP DE ATIVAÇÃO
+logEvent('START', 'info', "Iniciando publicação da versão $v");
 
-@mkdir($base . '/updates', 0755, true);
-@mkdir($base . '/downloads', 0755, true);
+try {
+    $base = realpath(__DIR__ . '/../');
+    $fonte = realpath($base . '/cliente-atualizacao');
+    $ota_dir = $base . '/updates';
+    $update_api_dir = $base . '/api/update';
+    $latest_path = $update_api_dir . '/latest.json';
 
-function generateZip($source, $destination) {
+    if (!$fonte || !is_dir($fonte)) {
+        throw new Exception("Pasta fonte cliente-atualizacao não encontrada.");
+    }
+
+    if (!is_dir($update_api_dir)) {
+        mkdir($update_api_dir, 0755, true);
+    }
+
+    // 2. GERAÇÃO DO PACOTE ZIP
+    $ota_zip_name = "sgim_ota_v" . str_replace('.', '_', $v) . ".zip";
+    $ota_zip_path = $ota_dir . '/' . $ota_zip_name;
+    @mkdir($ota_dir, 0755, true);
+
     $zip = new ZipArchive();
-    if ($zip->open($destination, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== TRUE) return false;
+    if ($zip->open($ota_zip_path, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== TRUE) {
+        throw new Exception("Falha ao criar ZIP em $ota_zip_path");
+    }
 
-    $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($source, RecursiveDirectoryIterator::SKIP_DOTS), RecursiveIteratorIterator::LEAVES_ONLY);
+    $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($fonte, RecursiveDirectoryIterator::SKIP_DOTS), RecursiveIteratorIterator::LEAVES_ONLY);
     foreach ($files as $name => $file) {
         if (!$file->isDir()) {
             $filePath = $file->getRealPath();
-            $relativePath = substr($filePath, strlen($source) + 1);
-            // Ignorar arquivos sensíveis
-            if (strpos($relativePath, 'config/db.php') === false && strpos($relativePath, 'db_config.php') === false && strpos($relativePath, '.git') === false) {
+            $relativePath = substr($filePath, strlen($fonte) + 1);
+            // Filtros de segurança
+            if (!str_contains($relativePath, 'db_config.php') && !str_contains($relativePath, '.git')) {
                 $zip->addFile($filePath, $relativePath);
             }
         }
     }
-    return $zip->close();
-}
+    $zip->close();
+    
+    // 3. HEALTHCHECK DO PACOTE (Integridade)
+    if (!file_exists($ota_zip_path) || filesize($ota_zip_path) < 1000) {
+        throw new Exception("Falha no Healthcheck: ZIP inexistente ou corrompido.");
+    }
+    $sha256 = hash_file('sha256', $ota_zip_path);
 
-// Gerar OTA
-if (!generateZip($fonte, $ota_zip_path)) {
-    die(json_encode(['success' => false, 'message' => 'Falha ao gerar pacote OTA.']));
-}
+    // 4. GERAÇÃO ATÔMICA DO LATEST.JSON (Source of Truth)
+    $latest_data = [
+        'version' => $v,
+        'release_id' => date('Ymd_His'),
+        'package' => $ota_zip_name,
+        'sha256' => $sha256,
+        'published_at' => date('c'),
+        'changelog' => array_filter(explode("\n", str_replace("\r", "", $novidades))),
+        'health' => 'ok'
+    ];
 
-// Gerar ZIP de Ativação (IDÊNTICO AO OTA)
-if (!copy($ota_zip_path, $install_zip_path)) {
-    // Se falhar o copy, tenta gerar do zero para garantir
-    generateZip($fonte, $install_zip_path);
-}
+    $tmp_latest = $latest_path . '.tmp';
+    file_put_contents($tmp_latest, json_encode($latest_data, JSON_PRETTY_PRINT));
+    
+    // O RENAME é atômico no sistema de arquivos
+    if (!rename($tmp_latest, $latest_path)) {
+        throw new Exception("Falha ao atualizar latest.json atomicamente.");
+    }
 
-$checksum_md5 = md5_file($ota_zip_path);
-
-// 4. ATUALIZAR BANCO DE DADOS MASTER
-try {
-    $pdo->beginTransaction();
-
-    // Registrar Versão para OTA
+    // 5. ATUALIZAÇÃO DO BANCO (Legado/Dashboard)
     $stmt = $pdo->prepare("INSERT INTO sistema_updates (versao, changelog_json, arquivo_zip, checksum_md5, data_publicacao) 
                            VALUES (?, ?, ?, ?, NOW()) 
-                           ON DUPLICATE KEY UPDATE changelog_json=VALUES(changelog_json), arquivo_zip=VALUES(arquivo_zip), checksum_md5=VALUES(checksum_md5)");
-    $stmt->execute([$v, json_encode($changelog), $ota_zip_name, $checksum_md5]);
+                           ON DUPLICATE KEY UPDATE changelog_json=VALUES(changelog_json), arquivo_zip=VALUES(arquivo_zip)");
+    $stmt->execute([$v, json_encode(['novidades' => $latest_data['changelog']]), $ota_zip_name, md5_file($ota_zip_path)]);
 
-    // Registrar Versão no Sistema Versões (v4.0)
-    $stmt2 = $pdo->prepare("INSERT INTO sistema_versoes (versao, canal, path_zip, checksum_sha256, changelog, data_lancamento) 
-                            VALUES (?, 'stable', ?, ?, ?, NOW()) 
-                            ON DUPLICATE KEY UPDATE path_zip=VALUES(path_zip)");
-    $stmt2->execute([$v, "updates/$ota_zip_name", hash_file('sha256', $ota_zip_path), json_encode($changelog)]);
+    // 6. INVALIDAÇÃO AGRESSIVA DE CACHE
+    if (function_exists('opcache_reset')) {
+        @opcache_reset();
+    }
+    clearstatcache(true);
+    // Tocar nos arquivos da API para forçar re-check do servidor
+    @touch(__DIR__ . '/update/v2/check.php');
+    @touch($latest_path);
 
-    // Atualizar Versão Global
-    $pdo->prepare("UPDATE configuracoes SET valor = ? WHERE chave = 'system_version'")->execute([$v]);
+    logEvent('SUCCESS', 'info', "Versão $v publicada com sucesso.", ['sha256' => $sha256]);
 
-    $pdo->commit();
+    echo json_encode([
+        'success' => true,
+        'version' => $v,
+        'latest_json' => $latest_data
+    ]);
+
 } catch (Exception $e) {
-    $pdo->rollBack();
-    die(json_encode(['success' => false, 'message' => 'Erro no banco: ' . $e->getMessage()]));
+    logEvent('ERROR', 'error', $e->getMessage());
+    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+} finally {
+    flock($lock_handle, LOCK_UN);
+    fclose($lock_handle);
 }
-
-// 5. NOTIFICAÇÃO (Simples)
-if ($enviar_email) {
-    // Lógica de e-mail aqui (Opcional para o teste)
-}
-
-echo json_encode([
-    'success' => true, 
-    'message' => "SUCESSO: Versão $v publicada. OTA e ZIP de Ativação sincronizados!",
-    'ota' => $ota_zip_name,
-    'install' => 'sgim_master.zip'
-]);

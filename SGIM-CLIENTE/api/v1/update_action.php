@@ -71,10 +71,22 @@ try {
     }
 
     // 4. Executar Atualização
+    // ATENÇÃO: A API Master retorna 'latest', 'url', 'hash'
+    // O código anterior usava 'latest_version', 'update_url', 'checksum' incorretamente.
+    $latestVersion = $ota['latest_version'] ?? $ota['latest'] ?? null;
+    $updateUrl     = $ota['update_url']     ?? $ota['url']    ?? null;
+    $checksum      = $ota['checksum']       ?? $ota['hash']   ?? '';
+
+    error_log("[SGIM-OTA] [UPDATE] Iniciando: version=$latestVersion | url=$updateUrl");
+
+    if (!$latestVersion || !$updateUrl) {
+        throw new Exception("Dados de atualização incompletos. version=$latestVersion | url=$updateUrl");
+    }
+
     $res = $updater->update(
-        $ota['latest_version'],
-        $ota['update_url'],
-        $ota['checksum'] ?? '',
+        $latestVersion,
+        $updateUrl,
+        $checksum,
         $ota['migrations'] ?? []
     );
 

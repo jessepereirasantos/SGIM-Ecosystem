@@ -1,92 +1,75 @@
 <?php
 /**
- * SGIM MASTER - CHECK UPDATE V2.2 (SaaS Professional Edition)
- * DIAGNOSTICO: FIX-1064-DEFENSIVO-V3
- * Este arquivo unifica a validação de licença e entrega de versão.
+ * SGIM MASTER - CHECK UPDATE V3.0 (Industrial Edition)
+ * Fonte Única de Verdade: latest.json
  */
 header('Content-Type: application/json');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
-header('Cache-Control: post-check=0, pre-check=0', false);
 header('Pragma: no-cache');
+header('Expires: 0');
 header('X-SGIM-Timestamp: ' . time());
 
-if (ob_get_level()) ob_end_clean();
+// 1. NONCE / TIMESTAMP VALIDATION
+$nonce = $_GET['t'] ?? $_GET['nonce'] ?? null;
 
 try {
     require_once __DIR__ . '/../../../config/database.php';
 
-    /**
-     * Função Universal de Migração Defensiva (SGIM v5.1 - Standalone)
-     */
-    if (!function_exists('ensureColumnExists')) {
-        function ensureColumnExists($pdo, $table, $column, $definition) {
-            try {
-                if (!($pdo instanceof PDO)) return false;
-                $check = $pdo->query("SHOW COLUMNS FROM `$table` LIKE '$column'");
-                if ($check->rowCount() == 0) {
-                    $pdo->exec("ALTER TABLE `$table` ADD COLUMN $column $definition");
-                    return true;
-                }
-            } catch (Exception $e) {
-                error_log("Erro de Migração Master ($table.$column): " . $e->getMessage());
-            }
-            return false;
+    $latest_path = __DIR__ . '/../latest.json';
+    
+    // 2. LEITURA DETERMINÍSTICA DO LATEST.JSON
+    if (!file_exists($latest_path)) {
+        // Fallback para o banco caso o latest.json ainda não tenha sido gerado na primeira vez
+        $stmtVer = $pdo->query("SELECT * FROM sistema_updates ORDER BY data_publicacao DESC, id DESC LIMIT 1");
+        $latest_db = $stmtVer->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$latest_db) {
+            die(json_encode(['success' => false, 'message' => 'Nenhuma versão disponível no Master.']));
         }
+        
+        $latest_data = [
+            'version' => $latest_db['versao'],
+            'package' => $latest_db['arquivo_zip'],
+            'sha256' => hash_file('sha256', __DIR__ . '/../../../updates/' . $latest_db['arquivo_zip']),
+            'changelog' => json_decode($latest_db['changelog_json'] ?? '[]', true)['novidades'] ?? []
+        ];
+    } else {
+        $latest_data = json_decode(file_get_contents($latest_path), true);
     }
-
-    // 1. MIGRAÇÃO DE SEGURANÇA UNIFICADA (Compatível com HostGator)
-    ensureColumnExists($pdo, 'licencas', 'data_vencimento', 'DATE NULL AFTER status');
-
-    $pdo->exec("CREATE TABLE IF NOT EXISTS sistema_updates (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        versao VARCHAR(20) NOT NULL UNIQUE,
-        changelog_json TEXT,
-        sql_migration TEXT,
-        arquivo_zip VARCHAR(255),
-        checksum_md5 VARCHAR(32),
-        data_publicacao DATETIME DEFAULT CURRENT_TIMESTAMP
-    )");
 
     $license_key = trim($_GET['license_key'] ?? '');
     $client_version = trim($_GET['version'] ?? '1.1.0');
     $domain = trim($_GET['domain'] ?? '');
 
     if (empty($license_key)) {
-        die(json_encode(['success' => false, 'message' => 'Licença não fornecida.']));
+        die(json_encode(['success' => false, 'message' => 'Licença obrigatória.']));
     }
 
-    // 2. VALIDAR LICENÇA
-    $stmt = $pdo->prepare("SELECT status, data_vencimento FROM licencas WHERE chave_licenca = ?");
+    // 3. VALIDAÇÃO DE LICENÇA (Cacheada no banco)
+    $stmt = $pdo->prepare("SELECT status FROM licencas WHERE chave_licenca = ?");
     $stmt->execute([$license_key]);
     $lic = $stmt->fetch(PDO::FETCH_ASSOC);
 
     $status_ativos = ['approved', 'pago', 'ativa', 'active', 'aprovado', 'paid', 'concluido', 'finalizado', 'ativo'];
-    $status_atual = strtolower($lic['status'] ?? 'nao_encontrado');
+    $status_atual = strtolower($lic['status'] ?? 'inativo');
 
     if (!$lic || !in_array($status_atual, $status_ativos)) {
-        die(json_encode(['success' => false, 'message' => "Licença Inativa ou Não Encontrada (Status: $status_atual)"]));
+        die(json_encode(['success' => false, 'message' => "Licença Inválida ($status_atual)"]));
     }
 
-    // 3. BUSCAR ÚLTIMA VERSÃO (Ordenação Cronológica e por ID para desempate)
-    $stmtVer = $pdo->query("SELECT * FROM sistema_updates ORDER BY data_publicacao DESC, id DESC LIMIT 1");
-    $latest = $stmtVer->fetch(PDO::FETCH_ASSOC);
-
-    $v_master = $latest['versao'] ?? '1.1.0';
+    // 4. RESPOSTA DETERMINÍSTICA
+    $v_master = $latest_data['version'];
     $has_update = version_compare($v_master, $client_version, '>');
-
-    // Log para auditoria
-    $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
-    $log = "[" . date('Y-m-d H:i:s') . "] [CHECK v2] $ip | Key: $license_key | $client_version -> $v_master\n";
-    file_put_contents(__DIR__ . '/../../../ota_v2.log', $log, FILE_APPEND);
 
     echo json_encode([
         'success' => true,
         'current' => $client_version,
         'latest' => $v_master,
         'has_update' => $has_update,
-        'hash' => $latest['checksum_md5'] ?? '',
-        'url' => "https://escolateologicaeloha.com.br/api/update/v2/download.php?version=$v_master&license_key=$license_key",
-        'changelog' => json_decode($latest['changelog_json'] ?? '[]', true)['novidades'] ?? ['Melhorias gerais de estabilidade.']
+        'hash' => $latest_data['sha256'] ?? '',
+        'url' => "https://escolateologicaeloha.com.br/api/update/v2/download.php?version=$v_master&license_key=$license_key&t=" . time(),
+        'changelog' => $latest_data['changelog'] ?? [],
+        'release_id' => $latest_data['release_id'] ?? 'legacy'
     ]);
 
 } catch (Exception $e) {
