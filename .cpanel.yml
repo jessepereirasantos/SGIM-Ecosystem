@@ -1,24 +1,9 @@
 ---
 deployment:
   tasks:
-    # 1. Preparação de Diretórios
-    - /bin/mkdir -p /home1/hg9a3205/public_html/api/update/v2
-    - /bin/mkdir -p /home1/hg9a3205/public_html/config
-    - /bin/mkdir -p /home1/hg9a3205/public_html/includes
-    - /bin/mkdir -p /home1/hg9a3205/public_html/templates
-    - /bin/mkdir -p /home1/hg9a3205/public_html/assets
-    - /bin/mkdir -p /home1/hg9a3205/public_html/updates
-
-    # 2. Deploy Unificado - Prioridade MASTER (VENDAS)
-    - /bin/cp -rf /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/* /home1/hg9a3205/public_html/
+    # 1. Deploy Direto do Master (SGIM-VENDAS)
+    - /bin/cp -R SGIM-VENDAS/* /home1/hg9a3205/public_html/
     
-    # 3. Deploy Unificado - Injeção do Motor CLIENTE no local esperado
-    - /bin/cp -f /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-CLIENTE/api/ota_process.php /home1/hg9a3205/public_html/api/
-    - /bin/cp -f /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-CLIENTE/atualizacoes.php /home1/hg9a3205/public_html/
-    - /bin/cp -f /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-CLIENTE/version.json /home1/hg9a3205/public_html/
-    - /bin/cp -rf /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-CLIENTE/src /home1/hg9a3205/public_html/
-
-    # 4. Saneamento de Permissões
-    - /bin/chmod 755 /home1/hg9a3205/public_html/api
-    - /bin/chmod 644 /home1/hg9a3205/public_html/api/ota_process.php
-    - /bin/chmod 644 /home1/hg9a3205/public_html/version.json
+    # 2. Deploy Direto do Cliente (SGIM-CLIENTE)
+    - /bin/cp SGIM-CLIENTE/atualizacoes.php /home1/hg9a3205/public_html/
+    - /bin/cp SGIM-CLIENTE/includes/header.php /home1/hg9a3205/public_html/includes/
