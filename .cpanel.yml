@@ -1,0 +1,6 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home1/ng9a3205/public_html/
+    - /bin/cp -R SGIM-VENDAS/* $DEPLOYPATH
+    - /bin/cp -R SGIM-CLIENTE $DEPLOYPATH/SGIM-CLIENTE_BACKUP
