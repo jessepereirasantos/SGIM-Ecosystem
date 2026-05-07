@@ -1,11 +1,12 @@
 <?php
 /**
- * SGIM MASTER - PUBLICADOR OTA v8.0 (DESIGN FINAL PADRONIZADO)
+ * SGIM MASTER - PUBLICADOR OTA v8.2 (IDENTITY SYNC)
  */
 $current_page = 'publish';
 require_once 'templates/header.php';
 
-$ultima_versao = $pdo->query("SELECT valor FROM configuracoes WHERE chave = 'system_version'")->fetchColumn() ?: '1.1.0';
+// LEITURA DA FONTE ÚNICA DE VERDADE (via Helper)
+$ultima_versao = get_system_version(true); // Força refresh do cache de arquivo
 ?>
 
 <div class="flex justify-between items-end mb-10">
@@ -31,6 +32,9 @@ $ultima_versao = $pdo->query("SELECT valor FROM configuracoes WHERE chave = 'sys
                 <div class="flex items-center gap-3 text-sm text-zinc-400">
                     <span class="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> Geração de pacote OTA
                 </div>
+                <div class="flex items-center gap-3 text-xs text-primary font-bold">
+                    <span class="material-symbols-outlined text-sm">verified</span> Source of Truth: LATEST.JSON ACTIVE
+                </div>
             </div>
         </div>
 
@@ -46,7 +50,7 @@ $ultima_versao = $pdo->query("SELECT valor FROM configuracoes WHERE chave = 'sys
     </div>
 </div>
 
-<!-- 1. MODAL DE CONFIGURAÇÃO (PADRÃO IMAGEM) -->
+<!-- MODAL DE CONFIGURAÇÃO -->
 <div id="modalConfig" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
     <div class="bg-[#121212] border border-white/5 rounded-[32px] w-full max-w-md p-10 shadow-2xl relative">
         <div class="flex justify-between items-center mb-10">
@@ -72,14 +76,14 @@ $ultima_versao = $pdo->query("SELECT valor FROM configuracoes WHERE chave = 'sys
     </div>
 </div>
 
-<!-- 2. MODAL DE STATUS (RESTAURADO E ESTÁVEL) -->
+<!-- MODAL DE STATUS -->
 <div id="modalUpdate" class="fixed inset-0 z-[110] hidden flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
     <div class="bg-[#121212] border border-white/5 rounded-[32px] w-full max-w-md p-12 text-center shadow-2xl">
         <div id="updateIcon" class="size-20 bg-primary/10 rounded-full flex items-center justify-center text-primary mx-auto mb-6 animate-spin">
             <span class="material-symbols-outlined text-4xl">sync</span>
         </div>
         <h3 id="updateTitle" class="text-2xl font-bold text-white mb-2 italic tracking-tight">Publicando Atualização...</h3>
-        <p id="updateSub" class="text-zinc-500 text-sm">Aguarde, o sistema está gerando o pacote OTA e notificando os clientes.</p>
+        <p id="updateSub" class="text-zinc-500 text-sm">Gerando manifesto e invalidando caches do servidor.</p>
     </div>
 </div>
 

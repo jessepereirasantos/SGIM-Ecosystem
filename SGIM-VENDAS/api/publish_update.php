@@ -103,10 +103,18 @@ try {
     }
 
     // 5. ATUALIZAÇÃO DO BANCO (Legado/Dashboard)
+    // Atualiza a tabela de histórico
     $stmt = $pdo->prepare("INSERT INTO sistema_updates (versao, changelog_json, arquivo_zip, checksum_md5, data_publicacao) 
                            VALUES (?, ?, ?, ?, NOW()) 
                            ON DUPLICATE KEY UPDATE changelog_json=VALUES(changelog_json), arquivo_zip=VALUES(arquivo_zip)");
     $stmt->execute([$v, json_encode(['novidades' => $latest_data['changelog']]), $ota_zip_name, md5_file($ota_zip_path)]);
+
+    // ATUALIZAÇÃO CRÍTICA: Sincroniza a tabela de configurações para o Painel do Master
+    $stmtCfg = $pdo->prepare("UPDATE configuracoes SET valor = ? WHERE chave = 'system_version'");
+    $stmtCfg->execute([$v]);
+    
+    // Prova de limpeza: resetar cache de estatísticas
+    clearstatcache(true);
 
     // 6. INVALIDAÇÃO AGRESSIVA DE CACHE
     if (function_exists('opcache_reset')) {
