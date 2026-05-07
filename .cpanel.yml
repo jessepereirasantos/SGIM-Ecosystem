@@ -1,6 +1,19 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home1/ng9a3205/public_html/
-    - /bin/cp -R SGIM-VENDAS/* $DEPLOYPATH
-    - /bin/cp -R SGIM-CLIENTE $DEPLOYPATH/SGIM-CLIENTE_BACKUP
+    # DEPLOY MÍNIMO DE VALIDAÇÃO — 2026-05-07-REV-CURL-A
+    # Objetivo: provar que o pipeline GitHub → cPanel → servidor funciona.
+    # Copia APENAS o endpoint de diagnóstico (1 arquivo, ~2KB por destino).
+    # Após validação via /api/build_info.php, este arquivo será expandido.
+
+    # Garantir que os diretórios de destino existem (mkdir -p é seguro se já existir)
+    - mkdir -p /home1/ng9a3205/public_html/api
+    - mkdir -p /home1/ng9a3205/public_html/cliente-atualizacao/api
+
+    # Copiar o arquivo de diagnóstico de build
+    - /bin/cp /home1/ng9a3205/repositories/SGIM-Ecosystem/SGIM-CLIENTE/api/build_info.php /home1/ng9a3205/public_html/api/build_info.php
+    - /bin/cp /home1/ng9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/cliente-atualizacao/api/build_info.php /home1/ng9a3205/public_html/cliente-atualizacao/api/build_info.php
+
+    # Garantir permissões de leitura normais
+    - chmod 644 /home1/ng9a3205/public_html/api/build_info.php
+    - chmod 644 /home1/ng9a3205/public_html/cliente-atualizacao/api/build_info.php
