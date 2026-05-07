@@ -1,9 +1,14 @@
 <?php
 /**
- * SGIM CLIENT - CONTROLADOR OTA V4.2 (PRODUÇÃO)
- * Correções: parâmetro 'version' correto, URL de download autenticada
+ * SGIM CLIENT - CONTROLADOR OTA V4.3
+ * BUILD: 2026-05-07-REV-CURL-A
+ * Correção: file_get_contents → cURL (fix HostGator allow_url_fopen)
  */
 header('Content-Type: application/json');
+
+// RASTREABILIDADE OBRIGATÓRIA DE BUILD
+// Este log prova que o servidor está executando ESTE arquivo, desta revisão.
+error_log('[SGIM-BUILD] OTA_PROCESS BUILD 2026-05-07-REV-CURL-A | arquivo ativo e executando');
 
 // 1. CARREGAR CONFIGS DO CLIENTE
 if (!file_exists('../config/db.php')) {
