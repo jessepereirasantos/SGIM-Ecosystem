@@ -1,25 +1,24 @@
 ---
 deployment:
   tasks:
-    # 1. Garantir que os diretórios base existem
-    - /bin/mkdir -p /home1/ng9a3205/public_html/api/update/v2
-    - /bin/mkdir -p /home1/ng9a3205/public_html/config
-    - /bin/mkdir -p /home1/ng9a3205/public_html/includes
-    - /bin/mkdir -p /home1/ng9a3205/public_html/updates
-    - /bin/mkdir -p /home1/ng9a3205/public_html/downloads
-    - /bin/mkdir -p /home1/ng9a3205/public_html/cliente-atualizacao
+    # 1. Garantir que os diretórios base existem (USUÁRIO CORRIGIDO: hg9a3205)
+    - /bin/mkdir -p /home1/hg9a3205/public_html/api/update/v2
+    - /bin/mkdir -p /home1/hg9a3205/public_html/config
+    - /bin/mkdir -p /home1/hg9a3205/public_html/includes
+    - /bin/mkdir -p /home1/hg9a3205/public_html/updates
+    - /bin/mkdir -p /home1/hg9a3205/public_html/downloads
+    - /bin/mkdir -p /home1/hg9a3205/public_html/cliente-atualizacao
 
     # 2. Deploy do Master OTA (SGIM-VENDAS)
-    # Copia a lógica de API e Configurações
-    - /bin/cp -R /home1/ng9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/api/* /home1/ng9a3205/public_html/api/
-    - /bin/cp -R /home1/ng9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/config/* /home1/ng9a3205/public_html/config/
-    - /bin/cp -R /home1/ng9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/includes/* /home1/ng9a3205/public_html/includes/
-    - /bin/cp -R /home1/ng9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/cliente-atualizacao/* /home1/ng9a3205/public_html/cliente-atualizacao/
+    - /bin/cp -R /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/api/* /home1/hg9a3205/public_html/api/
+    - /bin/cp -R /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/config/* /home1/hg9a3205/public_html/config/
+    - /bin/cp -R /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/includes/* /home1/hg9a3205/public_html/includes/
+    - /bin/cp -R /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/cliente-atualizacao/* /home1/hg9a3205/public_html/cliente-atualizacao/
     
-    # 3. Deploy dos arquivos raiz do Master (index, venda, etc)
-    - /bin/cp /home1/ng9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/*.php /home1/ng9a3205/public_html/
+    # 3. Deploy dos arquivos raiz do Master
+    - /bin/cp /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/*.php /home1/hg9a3205/public_html/
 
     # 4. Ajuste de Permissões
-    - /bin/chmod 755 /home1/ng9a3205/public_html/api
-    - /bin/chmod 644 /home1/ng9a3205/public_html/api/publish_update.php
-    - /bin/chmod 644 /home1/ng9a3205/public_html/api/update/latest.json || true
+    - /bin/chmod 755 /home1/hg9a3205/public_html/api
+    - /bin/chmod 644 /home1/hg9a3205/public_html/api/publish_update.php
+    - /bin/chmod 644 /home1/hg9a3205/public_html/api/update/latest.json || true
