@@ -30,7 +30,11 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 curl_setopt($ch, CURLOPT_TIMEOUT, 15);
 $master_json = curl_exec($ch);
+$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
+
+error_log("[TRACE-CLIENT] Chamando Master: $master_url");
+error_log("[TRACE-CLIENT] Resposta do Master (HTTP $http_code): $master_json");
 
 $master_data = json_decode($master_json, true);
 

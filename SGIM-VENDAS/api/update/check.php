@@ -4,6 +4,7 @@
  * Rota: GET /api/update/check.php
  */
 header('Content-Type: application/json');
+error_log("[TRACE-ORPHAN] ACESSO DETECTADO NO SCRIPT ÓRFÃO. Payload: " . json_encode($_GET));
 
 try {
     require_once '../../config/database.php';
@@ -46,6 +47,7 @@ try {
     $release_date = $raw_date ? date('Y-m-d', strtotime($raw_date)) : date('Y-m-d');
 
     $has_update = version_compare($latest_version, $current_version, '>');
+    error_log("[TRACE-ORPHAN-DECISION] Latest=$latest_version | Current=$current_version | has_update=" . ($has_update ? 'TRUE' : 'FALSE'));
 
     echo json_encode([
         'success' => true,

@@ -4,6 +4,7 @@
  * Retorna os dados da última versão disponível baseada no banco de dados.
  */
 header('Content-Type: application/json');
+error_log("[TRACE-LEGADO-V1] ACESSO DETECTADO NA ROTA V1. Payload: " . json_encode($_GET));
 header('Access-Control-Allow-Origin: *');
 
 try {
@@ -74,6 +75,7 @@ try {
     }
 
     $has_update = version_compare($latest['versao'], $current_version, '>');
+    error_log("[TRACE-V1-DECISION] Latest={$latest['versao']} | Current=$current_version | has_update=" . ($has_update ? 'TRUE' : 'FALSE'));
 
     // Decodificar migrations (Se for JSON estruturado v3.1)
     $migrations = [];

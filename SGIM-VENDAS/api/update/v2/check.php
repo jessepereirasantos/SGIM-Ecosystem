@@ -4,6 +4,7 @@
  */
 header('Content-Type: application/json');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+error_log("[TRACE-MASTER-V2] Requisição recebida. Payload: " . json_encode($_GET));
 
 try {
     require_once __DIR__ . '/../../../config/database.php';
@@ -43,6 +44,7 @@ try {
     }
 
     $has_update = version_compare($v_master, $client_version, '>');
+    error_log("[TRACE-V2-DECISION] Master=$v_master | Client=$client_version | has_update=" . ($has_update ? 'TRUE' : 'FALSE'));
 
     echo json_encode([
         'success' => true,
