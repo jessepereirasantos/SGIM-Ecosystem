@@ -1,24 +1,40 @@
 <?php
 /**
- * SGIM MASTER - DASHBOARD v7.6 (FIDELIDADE TOTAL AO DESIGN ORIGINAL)
+ * SGIM MASTER - DASHBOARD v7.7 (REPARO DE ERRO 500)
  */
 $current_page = 'dashboard';
 require_once 'templates/header.php';
+
+// Inicialização segura para evitar Erro 500 caso o banco falhe
+$total_clientes = 0;
+$licencas_ativas = 0;
+$vendas_mes = 0;
+$receita_total = 0;
+$ultimos_clientes = [];
+$error_sql = null;
 
 try {
     $total_clientes = $pdo->query("SELECT COUNT(*) FROM clientes")->fetchColumn() ?: 0;
     $licencas_ativas = $pdo->query("SELECT COUNT(*) FROM licencas WHERE status = 'ativa'")->fetchColumn() ?: 0;
     $vendas_mes = $pdo->query("SELECT COUNT(*) FROM pedidos WHERE MONTH(data_venda) = MONTH(CURRENT_DATE()) AND YEAR(data_venda) = YEAR(CURRENT_DATE())")->fetchColumn() ?: 0;
+    
     try {
         $receita_total = $pdo->query("SELECT SUM(valor) FROM pedidos WHERE status IN ('approved', 'pago', 'APROVADO')")->fetchColumn() ?: 0;
     } catch (Exception $e) {
         $receita_total = 0;
     }
+    
     $ultimos_clientes = $pdo->query("SELECT * FROM clientes ORDER BY id DESC LIMIT 4")->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
     $error_sql = $e->getMessage();
 }
-?>
+
+// Alerta de Erro SQL (Apenas para diagnóstico)
+if ($error_sql): ?>
+    <div style="background: #fff5f5; border: 1px solid #feb2b2; color: #c53030; padding: 1rem; border-radius: 0.5rem; margin-bottom: 2rem;">
+        <strong>🚨 Erro de Sincronização:</strong> <?= htmlspecialchars($error_sql) ?>
+    </div>
+<?php endif; ?>
 
 <!-- Header Section ORIGINAL -->
 <div class="flex justify-between items-end mb-10">
@@ -141,36 +157,42 @@ try {
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-outline-variant/10">
-                    <?php foreach ($ultimos_clientes as $c): ?>
-                        <tr class="hover:bg-surface-variant/5 transition-colors">
-                            <td class="px-8 py-5">
-                                <div class="flex items-center gap-3">
-                                    <div
-                                        class="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center font-bold text-primary">
-                                        <?= substr($c['nome'], 0, 2) ?>
+                    <?php if (!empty($ultimos_clientes)): ?>
+                        <?php foreach ($ultimos_clientes as $c): ?>
+                            <tr class="hover:bg-surface-variant/5 transition-colors">
+                                <td class="px-8 py-5">
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center font-bold text-primary">
+                                            <?= substr($c['nome'], 0, 2) ?>
+                                        </div>
+                                        <div>
+                                            <p class="text-body-md font-bold text-on-surface">
+                                                <?= htmlspecialchars($c['nome']) ?></p>
+                                            <p class="text-xs text-on-surface-variant">
+                                                <?= htmlspecialchars($c['dominio'] ?? 'pendente.com') ?></p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p class="text-body-md font-bold text-on-surface">
-                                            <?= htmlspecialchars($c['nome']) ?></p>
-                                        <p class="text-xs text-on-surface-variant">
-                                            <?= htmlspecialchars($c['dominio'] ?? 'pendente.com') ?></p>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-8 py-5">
-                                <span
-                                    class="px-3 py-1 rounded-full bg-tertiary-container/10 text-tertiary text-xs font-bold uppercase tracking-wider">Enterprise</span>
-                            </td>
-                            <td class="px-8 py-5 text-body-sm text-on-surface-variant">
-                                <?= date('d M, Y', strtotime($c['data_cadastro'])) ?></td>
-                            <td class="px-8 py-5 text-right">
-                                <span
-                                    class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-container/20 text-secondary text-xs font-bold">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Ativo
-                                </span>
-                            </td>
+                                </td>
+                                <td class="px-8 py-5">
+                                    <span
+                                        class="px-3 py-1 rounded-full bg-tertiary-container/10 text-tertiary text-xs font-bold uppercase tracking-wider">Enterprise</span>
+                                </td>
+                                <td class="px-8 py-5 text-body-sm text-on-surface-variant">
+                                    <?= date('d M, Y', strtotime($c['data_cadastro'])) ?></td>
+                                <td class="px-8 py-5 text-right">
+                                    <span
+                                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-container/20 text-secondary text-xs font-bold">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Ativo
+                                    </span>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="4" class="px-8 py-10 text-center text-on-surface-variant opacity-50">Nenhum cliente encontrado.</td>
                         </tr>
-                    <?php endforeach; ?>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>

@@ -18,7 +18,12 @@ try {
     if (!defined('PRODUCT_NAME')) define('PRODUCT_NAME', 'SGIM Master');
 
 } catch (PDOException $e) {
-    error_log("Erro Crítico no Master (database.php): " . $e->getMessage());
+    die("<div style='padding:20px; background:#fff5f5; color:#c53030; border:1px solid #feb2b2; border-radius:8px; font-family:sans-serif;'>
+        <h3>🚨 Erro de Conexão com o Banco de Dados</h3>
+        <p>Não foi possível conectar ao banco de dados do Master.</p>
+        <p><b>Detalhe técnico:</b> " . $e->getMessage() . "</p>
+        <p>Verifique as credenciais no arquivo <code>config/database.php</code>.</p>
+    </div>");
 }
 
 /**
@@ -27,6 +32,7 @@ try {
  */
 function ensureColumnExists($pdo, $table, $column, $definition) {
     try {
+        if (!($pdo instanceof PDO)) return false;
         $check = $pdo->query("SHOW COLUMNS FROM `$table` LIKE '$column'");
         if ($check->rowCount() == 0) {
             $pdo->exec("ALTER TABLE `$table` ADD COLUMN $column $definition");
