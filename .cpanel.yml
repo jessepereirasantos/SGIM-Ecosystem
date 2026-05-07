@@ -1,19 +1,25 @@
 ---
 deployment:
   tasks:
-    # DEPLOY MÍNIMO DE VALIDAÇÃO — 2026-05-07-REV-CURL-A
-    # Objetivo: provar que o pipeline GitHub → cPanel → servidor funciona.
-    # Copia APENAS o endpoint de diagnóstico (1 arquivo, ~2KB por destino).
-    # Após validação via /api/build_info.php, este arquivo será expandido.
+    # 1. Garantir que os diretórios base existem
+    - /bin/mkdir -p /home1/ng9a3205/public_html/api/update/v2
+    - /bin/mkdir -p /home1/ng9a3205/public_html/config
+    - /bin/mkdir -p /home1/ng9a3205/public_html/includes
+    - /bin/mkdir -p /home1/ng9a3205/public_html/updates
+    - /bin/mkdir -p /home1/ng9a3205/public_html/downloads
+    - /bin/mkdir -p /home1/ng9a3205/public_html/cliente-atualizacao
 
-    # Garantir que os diretórios de destino existem (mkdir -p é seguro se já existir)
-    - mkdir -p /home1/ng9a3205/public_html/api
-    - mkdir -p /home1/ng9a3205/public_html/cliente-atualizacao/api
+    # 2. Deploy do Master OTA (SGIM-VENDAS)
+    # Copia a lógica de API e Configurações
+    - /bin/cp -R /home1/ng9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/api/* /home1/ng9a3205/public_html/api/
+    - /bin/cp -R /home1/ng9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/config/* /home1/ng9a3205/public_html/config/
+    - /bin/cp -R /home1/ng9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/includes/* /home1/ng9a3205/public_html/includes/
+    - /bin/cp -R /home1/ng9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/cliente-atualizacao/* /home1/ng9a3205/public_html/cliente-atualizacao/
+    
+    # 3. Deploy dos arquivos raiz do Master (index, venda, etc)
+    - /bin/cp /home1/ng9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/*.php /home1/ng9a3205/public_html/
 
-    # Copiar o arquivo de diagnóstico de build
-    - /bin/cp /home1/ng9a3205/repositories/SGIM-Ecosystem/SGIM-CLIENTE/api/build_info.php /home1/ng9a3205/public_html/api/build_info.php
-    - /bin/cp /home1/ng9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/cliente-atualizacao/api/build_info.php /home1/ng9a3205/public_html/cliente-atualizacao/api/build_info.php
-
-    # Garantir permissões de leitura normais
-    - chmod 644 /home1/ng9a3205/public_html/api/build_info.php
-    - chmod 644 /home1/ng9a3205/public_html/cliente-atualizacao/api/build_info.php
+    # 4. Ajuste de Permissões
+    - /bin/chmod 755 /home1/ng9a3205/public_html/api
+    - /bin/chmod 644 /home1/ng9a3205/public_html/api/publish_update.php
+    - /bin/chmod 644 /home1/ng9a3205/public_html/api/update/latest.json || true
