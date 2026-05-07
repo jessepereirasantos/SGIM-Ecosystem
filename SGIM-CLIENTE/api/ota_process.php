@@ -24,20 +24,45 @@ try {
     $stmtLic->execute();
     $licenseKey = $stmtLic->fetchColumn() ?: '';
 
-    // 3. CONSULTAR MASTER (parâmetro correto: 'version')
+    // 3. CONSULTAR MASTER via cURL (evita bloqueio de allow_url_fopen na HostGator)
     $domain     = $_SERVER['HTTP_HOST'] ?? '';
     $master_url = "https://escolateologicaeloha.com.br/api/update/v2/check.php"
                 . "?version=" . urlencode($current_v)
                 . "&license_key=" . urlencode($licenseKey)
-                . "&domain=" . urlencode($domain);
+                . "&domain=" . urlencode($domain)
+                . "&t=" . time();
 
-    $master_json = @file_get_contents($master_url);
-    error_log("[SGIM-OTA] [OTA EXEC] Resposta API Master: $master_json");
+    $ch = curl_init($master_url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+    $master_json = curl_exec($ch);
+    $curl_errno  = curl_errno($ch);
+    $curl_error  = curl_error($ch);
+    $http_code   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    // LOG OBRIGATÓRIO: Toda resposta ou falha deve ser registrada
+    error_log("[SGIM-OTA] [OTA EXEC] HTTP: $http_code | cURL errno: $curl_errno | Resposta: $master_json");
+
+    if ($curl_errno > 0) {
+        error_log("[SGIM-OTA] [OTA EXEC] Falha cURL: $curl_error");
+        echo json_encode(['success' => false, 'message' => "Falha de conexão com Master: $curl_error"]);
+        exit;
+    }
 
     $master_data = json_decode($master_json, true);
 
-    if (!$master_data || !isset($master_data['has_update']) || !$master_data['has_update']) {
-        echo json_encode(['success' => true, 'updated' => false, 'message' => 'Sistema já está na versão mais recente.']);
+    if (!$master_data || !isset($master_data['has_update'])) {
+        error_log("[SGIM-OTA] [OTA EXEC] Resposta inválida do Master. JSON bruto: $master_json");
+        echo json_encode(['success' => false, 'message' => 'Resposta inválida do servidor Master.']);
+        exit;
+    }
+
+    if (!$master_data['has_update']) {
+        error_log("[SGIM-OTA] [OTA EXEC] Sem atualização. current={$master_data['current']} latest={$master_data['latest']}");
+        echo json_encode(['success' => true, 'updated' => false, 'message' => 'Sistema já está na versão mais recente.', 'current' => $master_data['current'], 'latest' => $master_data['latest']]);
         exit;
     }
 
