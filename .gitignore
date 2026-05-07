@@ -1,0 +1,22 @@
+# SGIM Ecosystem Git Ignore
+.idea/
+.vscode/
+node_modules/
+vendor/
+*.log
+*.zip
+*.rar
+tmp/
+temp/
+cache/
+
+# Configurações sensíveis (Não subir para o GitHub por segurança)
+db_config.php
+config/db_config.php
+SGIM-CLIENTE/config/db_config.php
+SGIM-VENDAS/config/db_config.php
+SGIM-VENDAS/cliente-atualizacao/config/db_config.php
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db

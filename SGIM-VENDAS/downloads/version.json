@@ -1,0 +1,7 @@
+{
+    "version": "1.5.2",
+    "release_date": "2026-03-21",
+    "description": "Persistência de Licença por Domínio (Lookup Autoritativo).",
+    "changelog": "- Refatoração do SGIM-Master-Key para consulta na tabela 'licencas' (autoritativa)\n- Higienização de domínios (remoção de www.) para evitar duplicidade e falha na detecção\n- Sincronização automática entre Ativação e Setup via API de Vendas\n- Restauração automática de licença ativa em novas instalações no mesmo domínio",
+    "download_url": "api/update/download.php"
+}

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SGIM - Configurações</title>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            DEFAULT: '#FFC107',
+                            dark: '#D4AF37',
+                            light: '#FFD54F'
+                        },
+                        darkbg: '#050505',
+                        darkcard: '#121212',
+                        darkborder: '#1E1E1E'
+                    },
+                    borderRadius: {
+                        'twelve': '12px',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .color-swatch { width: 32px; height: 32px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #ffd900; }
+    </style>
+</head>
+<body class="bg-darkbg text-gray-100 min-h-screen flex">
+<!-- Sidebar Navigation -->
+<aside class="w-64 fixed inset-y-0 left-0 bg-darkcard border-r border-darkborder flex flex-col z-50">
+<div class="p-6 flex flex-col border-b border-darkborder">
+<h1 class="text-2xl font-bold text-brand tracking-tighter">SGIM</h1>
+<span class="text-xs text-gray-500 font-medium uppercase tracking-widest mt-1">Admin Master</span>
+</div>
+<nav class="flex-1 p-4 space-y-2 mt-2">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-twelve text-gray-400 hover:text-brand hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined text-xl">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-twelve text-gray-400 hover:text-brand hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined text-xl">analytics</span>
+<span class="text-sm font-medium">Relatórios</span>
+</a>
+<div class="h-px bg-darkborder my-4"></div>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-twelve bg-brand/10 text-brand font-medium transition-all" href="#">
+<span class="material-symbols-outlined text-xl">settings</span>
+<span class="text-sm font-medium">Configurações</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-twelve text-gray-400 hover:text-brand hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined text-xl">palette</span>
+<span class="text-sm font-medium">Customização</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-twelve text-gray-400 hover:text-brand hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined text-xl">group</span>
+<span class="text-sm font-medium">Usuários</span>
+</a>
+</nav>
+<div class="p-4 border-t border-darkborder">
+<div class="flex items-center gap-3 p-3 rounded-twelve bg-darkbg/50">
+<div class="size-10 rounded-full bg-cover bg-center ring-1 ring-darkborder" data-alt="Avatar do usuário administrador" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAzlrNb6rfgFPu-pmhOidWUbdfuAL69x1rH2L8CyU8RXraMtgyS8n1lHl12OcVGVToJp1-IAKluowGuk1q7ukOLZq7jiLu6_-DZCpMNMYVMw9uABUknOYu7UjWyGaxzuH5OZMdLaTu27_ALhqpTzt_UChpF3LcpDKrVvHXZFtPbs-NhkxB4hplkjnXRv1Pm8mePBv3qrYWtAh7Vyf5qrtEM0zxV1hdODy203N-xwdJjlaDXEYVyNuhZ-TG1ON1HcJRzuLJ8_yOTkGY')"></div>
+<div class="overflow-hidden">
+<p class="text-xs font-bold truncate text-white">Admin Master</p>
+<p class="text-[10px] text-gray-500 truncate">admin@sgim.com.br</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 flex-1 flex flex-col min-h-screen">
+<!-- Top Navbar -->
+<header class="h-20 border-b border-darkborder bg-darkbg flex items-center justify-between px-8 sticky top-0 z-40">
+<div class="flex items-center gap-2">
+<span class="text-gray-500 text-sm">Sistema</span>
+<span class="material-symbols-outlined text-gray-700 text-sm">chevron_right</span>
+<span class="text-sm font-medium text-white">Configurações Gerais</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative group">
+<button class="bg-darkcard border border-darkborder p-2 rounded-twelve text-gray-400 hover:text-brand transition-all relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2.5 size-2 bg-brand rounded-full ring-2 ring-darkcard"></span>
+</button>
+</div>
+<button class="bg-brand hover:bg-brand-dark text-black px-6 py-2.5 rounded-twelve text-sm font-bold transition-all shadow-lg shadow-brand/10">
+                    Salvar Alterações
+                </button>
+</div>
+</header>
+<div class="p-8 max-w-5xl mx-auto w-full space-y-8">
+<div class="mb-4">
+<h1 class="text-3xl font-bold text-white tracking-tight">Configurações do Sistema</h1>
+<p class="text-gray-500 mt-1">Gerencie a identidade visual, parâmetros de cores e informações da plataforma.</p>
+</div>
+<div class="space-y-6">
+<!-- Section: Identidade Visual -->
+<section class="bg-darkcard rounded-twelve border border-darkborder p-8 shadow-sm">
+<div class="flex items-center gap-3 mb-8 border-b border-darkborder pb-4">
+<span class="material-symbols-outlined text-brand">brush</span>
+<h2 class="text-xl font-bold text-white">Identidade Visual</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="space-y-4">
+<label class="block text-sm font-medium text-gray-400 uppercase tracking-wider">Logo Principal (Horizontal)</label>
+<div class="border-2 border-dashed border-darkborder rounded-twelve p-8 flex flex-col items-center justify-center bg-darkbg hover:border-brand/40 transition-colors group cursor-pointer relative overflow-hidden">
+<div class="size-48 bg-contain bg-no-repeat bg-center mb-4 opacity-90 filter brightness-110" data-alt="Visualização do logo principal horizontal" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD-ivz0wxvhuBPIOC5SybVUa3Iq1kwYFl9ZgAuvG6Tae_C13u9-lkoBK1EPVNXQ9BTg7tPPUm3VaQ8aaV11TfpqvuC4dBGdLubNXMYhQ5ss0fG3zV6UVNvD4fmFAZhkdWzepabfktSU9Lb_nD0ZMmJvqxa7byJoWxR0PBlkgqlwbLDrXCkDN83pBTuVax46QbyZN4YWdrI2CTo5Sx7Wq8lvFW6vH-g400Ejqjf2Ro0npTtHX2udfOi1RTCP_Dto_neaFggvLyJZWkk')"></div>
+<span class="text-[10px] text-gray-500 font-medium text-center uppercase tracking-widest">Recomendado: SVG ou PNG Transparente (400x120px)</span>
+<button class="mt-4 text-sm font-semibold text-brand flex items-center gap-2 hover:underline">
+<span class="material-symbols-outlined text-base">upload</span>
+                                    Alterar Logo
+                                </button>
+</div>
+</div>
+<div class="space-y-4">
+<label class="block text-sm font-medium text-gray-400 uppercase tracking-wider">Favicon &amp; Símbolo</label>
+<div class="border-2 border-dashed border-darkborder rounded-twelve p-8 flex flex-col items-center justify-center bg-darkbg hover:border-brand/40 transition-colors group cursor-pointer h-full relative overflow-hidden">
+<div class="size-16 bg-contain bg-no-repeat bg-center mb-4 rounded-lg shadow-2xl filter brightness-110" data-alt="Visualização do favicon do sistema" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDgTJTztCOSrCPiF7Ix3FsqRn15Fu2q3ciAe1PZXpDWrvLRZPTjSANkcdNkQ-3ug6HmO0IXIMXimvFXuTxdnMX8uZhk4LWJzHrJZCQXxf2rYrrMYv6rOLBKZLlM80R5Kv2TdMBgyjNXGadQCy8ibowSOFxjyZnW8HO49JrwWm-57vC7Vl211SGb8pXHR0gooJdbS3qI6_5Q09NbxXi2zqwJZwkEkG7E4Xd-p_PDl-xOFZYVsupA4fvNiR7pV7fjKTYqm_eY13frm0U')"></div>
+<span class="text-[10px] text-gray-500 font-medium text-center uppercase tracking-widest">Recomendado: ICO ou PNG (32x32px ou 64x64px)</span>
+<button class="mt-4 text-sm font-semibold text-brand flex items-center gap-2 hover:underline">
+<span class="material-symbols-outlined text-base">upload</span>
+                                    Alterar Ícone
+                                </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Section: Paleta de Cores -->
+<section class="bg-darkcard rounded-twelve border border-darkborder p-8 shadow-sm">
+<div class="flex items-center gap-3 mb-8 border-b border-darkborder pb-4">
+<span class="material-symbols-outlined text-brand">palette</span>
+<h2 class="text-xl font-bold text-white">Paleta de Cores</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<div class="space-y-3">
+<label class="text-xs font-bold text-gray-400 uppercase tracking-widest flex justify-between">
+<span>Cor Primária</span>
+<span class="text-brand">#FFC107</span>
+</label>
+<div class="flex items-center gap-3 bg-darkbg p-3 rounded-twelve border border-darkborder group hover:border-brand/30 transition-all">
+<div class="color-swatch bg-[#FFC107] shadow-lg shadow-brand/20"></div>
+<input class="bg-transparent border-none text-sm font-mono focus:ring-0 p-0 w-full text-gray-200" type="text" value="#FFC107"/>
+</div>
+</div>
+<div class="space-y-3">
+<label class="text-xs font-bold text-gray-400 uppercase tracking-widest flex justify-between">
+<span>Secundária</span>
+<span class="text-brand">#D4AF37</span>
+</label>
+<div class="flex items-center gap-3 bg-darkbg p-3 rounded-twelve border border-darkborder group hover:border-brand/30 transition-all">
+<div class="color-swatch bg-[#D4AF37] shadow-lg"></div>
+<input class="bg-transparent border-none text-sm font-mono focus:ring-0 p-0 w-full text-gray-200" type="text" value="#D4AF37"/>
+</div>
+</div>
+<div class="space-y-3">
+<label class="text-xs font-bold text-gray-400 uppercase tracking-widest flex justify-between">
+<span>Background</span>
+<span class="text-brand">#050505</span>
+</label>
+<div class="flex items-center gap-3 bg-darkbg p-3 rounded-twelve border border-darkborder group hover:border-brand/30 transition-all">
+<div class="color-swatch bg-[#050505] shadow-lg ring-1 ring-white/10"></div>
+<input class="bg-transparent border-none text-sm font-mono focus:ring-0 p-0 w-full text-gray-200" type="text" value="#050505"/>
+</div>
+</div>
+</div>
+<div class="mt-8 p-4 bg-white/[0.02] rounded-twelve border border-white/5">
+<p class="text-xs text-gray-500 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">info</span>
+                            As alterações de cores são aplicadas em tempo real na prévia do painel. Lembre-se de salvar para persistir.
+                        </p>
+</div>
+</section>
+<!-- Section: Informações Gerais -->
+<section class="bg-darkcard rounded-twelve border border-darkborder p-8 shadow-sm">
+<div class="flex items-center gap-3 mb-8 border-b border-darkborder pb-4">
+<span class="material-symbols-outlined text-brand">info</span>
+<h2 class="text-xl font-bold text-white">Informações Gerais</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="space-y-2">
+<label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Nome da Plataforma</label>
+<input class="w-full bg-darkbg border-darkborder rounded-twelve text-sm text-gray-200 px-4 py-3 focus:border-brand focus:ring-brand transition-all" type="text" value="SGIM Cliente - Portal Administrativo"/>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-bold text-gray-400 uppercase tracking-widest">E-mail de Suporte</label>
+<input class="w-full bg-darkbg border-darkborder rounded-twelve text-sm text-gray-200 px-4 py-3 focus:border-brand focus:ring-brand transition-all" type="email" value="suporte@sgim.com.br"/>
+</div>
+<div class="space-y-2 md:col-span-2">
+<label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Mensagem do Rodapé (Copyright)</label>
+<input class="w-full bg-darkbg border-darkborder rounded-twelve text-sm text-gray-200 px-4 py-3 focus:border-brand focus:ring-brand transition-all" type="text" value="© 2024 SGIM Cliente. Todos os direitos reservados. Desenvolvido por SGIM Tech."/>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Fuso Horário Padrão</label>
+<select class="w-full bg-darkbg border-darkborder rounded-twelve text-sm text-gray-200 px-4 py-3 focus:border-brand focus:ring-brand transition-all appearance-none">
+<option>(GMT-03:00) Brasília, Brasil</option>
+<option>(GMT-04:00) Manaus, Brasil</option>
+<option>(GMT-00:00) UTC</option>
+</select>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Idioma Principal</label>
+<div class="flex gap-6 mt-2">
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="size-4 text-brand focus:ring-brand bg-darkbg border-darkborder" name="lang" type="radio"/>
+<span class="text-sm text-gray-300 group-hover:text-white transition-colors">Português (BR)</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="size-4 text-brand focus:ring-brand bg-darkbg border-darkborder" name="lang" type="radio"/>
+<span class="text-sm text-gray-300 group-hover:text-white transition-colors">English (US)</span>
+</label>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer Actions -->
+<div class="flex justify-end gap-4 py-8">
+<button class="px-8 py-3 rounded-twelve border border-darkborder text-gray-400 hover:text-white hover:bg-white/5 transition-all text-sm font-semibold uppercase tracking-widest">
+                        Descartar
+                    </button>
+<button class="px-10 py-3 rounded-twelve bg-brand hover:bg-brand-dark text-black transition-all text-sm font-bold uppercase tracking-widest shadow-lg shadow-brand/10">
+                        Publicar Mudanças
+                    </button>
+</div>
+</div>
+</div>
+</main>
+</body></html>

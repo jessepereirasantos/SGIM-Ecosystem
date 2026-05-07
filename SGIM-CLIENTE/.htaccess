@@ -1,0 +1,4 @@
+# SGIM - Isolamento Total
+# Desativa o motor de reescrita para esta pasta, garantindo que arquivos físicos 
+# como executar_update.php sejam acessíveis sem interferência do site principal.
+RewriteEngine Off

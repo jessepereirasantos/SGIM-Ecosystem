@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#d4af37", // Dourado
+                "background-light": "#f8f6f6",
+                "background-dark": "#0a0a0a", // Preto profundo
+                "surface-dark": "#1a1a1a", // Cinza escuro para cards
+              },
+              fontFamily: {
+                "display": ["Public Sans", "sans-serif"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+      </script>
+<style>
+        body {
+            font-family: 'Public Sans', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="relative flex min-h-screen flex-col">
+<!-- Header / Nav -->
+<header class="sticky top-0 z-50 flex items-center justify-between border-b border-white/10 bg-background-dark/80 backdrop-blur-md px-6 py-4 lg:px-40">
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center rounded-lg bg-primary/10 p-2 text-primary">
+<span class="material-symbols-outlined">verified_user</span>
+</div>
+<h2 class="text-xl font-bold tracking-tight">SGIM <span class="text-primary">Cliente</span></h2>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center justify-center rounded-xl h-10 w-10 bg-surface-dark border border-white/10 hover:bg-white/5 transition-colors">
+<span class="material-symbols-outlined text-xl">notifications</span>
+</button>
+<button class="flex items-center justify-center rounded-xl h-10 w-10 bg-surface-dark border border-white/10 hover:bg-white/5 transition-colors">
+<span class="material-symbols-outlined text-xl">account_circle</span>
+</button>
+</div>
+</header>
+<main class="flex-1 px-6 py-8 lg:px-40 max-w-5xl mx-auto w-full pb-32">
+<!-- Profile Hero Section -->
+<div class="flex flex-col items-center mb-10">
+<div class="relative group">
+<div class="h-36 w-36 rounded-full border-4 border-primary/30 p-1">
+<div class="h-full w-full rounded-full bg-surface-dark bg-cover bg-center overflow-hidden" data-alt="Portrait photo of a male church member for profile review" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBOYFZFJAhSyigRvVBKa-YvB2JoPOV4PoxQfQVlTRCDZlcDNC0crz3590PNb2sKQQAOpsh048BY6kbV6ehQuBCsYEkO9b0EjMP-X7k96NtvXZu8nulRoBA8zSUtv4StK5h57XpzFCliCTH9WY9HZlNT6dcrC_XWofo9db2yFLwICaSCt5BVwL_HOj7wh9P8JYOFT2ThVfeqi6ZBEouMYp5G4l1w7MEmLuRsV0IOCoWc6dxsnRnP5M6aL2LABXL2x76RlicwrgMQvgI')">
+</div>
+</div>
+<div class="absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap bg-purple-600 px-3 py-1 rounded-full text-[10px] font-bold tracking-wider text-white shadow-lg">
+                        AGUARDANDO APROVAÇÃO
+                    </div>
+</div>
+<div class="mt-8 text-center">
+<h1 class="text-3xl font-bold text-white">João Silva Oliveira</h1>
+<div class="flex items-center justify-center gap-2 mt-1 text-slate-400">
+<span class="material-symbols-outlined text-sm">calendar_today</span>
+<p class="text-sm">Solicitado em 15 de Outubro, 2023</p>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+<!-- Personal Data Card -->
+<div class="bg-surface-dark border border-white/5 rounded-xl p-6">
+<div class="flex items-center gap-2 mb-6 text-primary">
+<span class="material-symbols-outlined">person</span>
+<h3 class="text-lg font-bold">Dados Pessoais</h3>
+</div>
+<div class="space-y-4">
+<div class="border-b border-white/5 pb-3">
+<p class="text-xs uppercase tracking-wider text-slate-500 font-medium">Telefone</p>
+<p class="text-slate-200 mt-1">(11) 98765-4321</p>
+</div>
+<div class="border-b border-white/5 pb-3">
+<p class="text-xs uppercase tracking-wider text-slate-500 font-medium">E-mail</p>
+<p class="text-slate-200 mt-1">joao.silva@email.com</p>
+</div>
+<div class="border-b border-white/5 pb-3">
+<p class="text-xs uppercase tracking-wider text-slate-500 font-medium">Endereço</p>
+<p class="text-slate-200 mt-1">Rua das Flores, 123 - São Paulo, SP</p>
+</div>
+<div>
+<p class="text-xs uppercase tracking-wider text-slate-500 font-medium">CPF</p>
+<p class="text-slate-200 mt-1">123.456.789-00</p>
+</div>
+</div>
+</div>
+<!-- Ministry Data Card -->
+<div class="bg-surface-dark border border-white/5 rounded-xl p-6">
+<div class="flex items-center gap-2 mb-6 text-primary">
+<span class="material-symbols-outlined">church</span>
+<h3 class="text-lg font-bold">Vida Ministerial</h3>
+</div>
+<div class="space-y-4">
+<div class="border-b border-white/5 pb-3">
+<p class="text-xs uppercase tracking-wider text-slate-500 font-medium">Data de Batismo</p>
+<p class="text-slate-200 mt-1">12/05/2015</p>
+</div>
+<div class="border-b border-white/5 pb-3">
+<p class="text-xs uppercase tracking-wider text-slate-500 font-medium">Congregação</p>
+<p class="text-slate-200 mt-1">Sede Central - Setor 01</p>
+</div>
+<div class="border-b border-white/5 pb-3">
+<p class="text-xs uppercase tracking-wider text-slate-500 font-medium">Departamento</p>
+<p class="text-slate-200 mt-1">Louvor e Adoração</p>
+</div>
+<div>
+<p class="text-xs uppercase tracking-wider text-slate-500 font-medium">Cargo Pretendido</p>
+<p class="text-slate-200 mt-1">Membro Efetivo</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Documents Preview -->
+<div class="bg-surface-dark border border-white/5 rounded-xl p-6">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined">attachment</span>
+<h3 class="text-lg font-bold">Documentos &amp; Fotos</h3>
+</div>
+<span class="text-xs text-slate-500">1 de 1 arquivo</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+<div class="group relative overflow-hidden rounded-lg bg-black aspect-video border border-white/10 hover:border-primary/50 transition-all cursor-pointer">
+<div class="absolute inset-0 bg-cover bg-center opacity-80 group-hover:opacity-100 transition-opacity" data-alt="Digital scan of identity document for member verification" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBnyUVvPIMRaiviud2SYNfHhaWngBXYNlwqr9lIQTaAMO8OacHO2hcjCSx70xkljKZy2LMZorg8_R2yVIdk9Y2wX2vPtenbFHkM7aHPhP4Ei9mIDcgZcZSeBd5jdihaKLx3XFi2uEjAi7ywY1oqTlwAZcZY_Zll10DHGmutTMQbjGg9RWZTfZOkb8n8dAYHZ0KXDjlbZJJDOlXa0o4V9c-Wx7uvJiSJNOXvNB0A29_3-DgiKM5zIfC-uLYM5Rs0LCAkpV0qHBnTGjo')">
+</div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-3">
+<p class="text-xs font-medium text-white">Documento de Identidade.jpg</p>
+<p class="text-[10px] text-slate-400">Enviado em 15/10/2023</p>
+</div>
+</div>
+<!-- Empty state/placeholder for more docs if needed -->
+<div class="border-2 border-dashed border-white/5 rounded-lg flex items-center justify-center p-6 text-slate-600">
+<span class="material-symbols-outlined text-4xl">add_a_photo</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Action Bar -->
+<footer class="fixed bottom-0 w-full border-t border-white/10 bg-background-dark/90 backdrop-blur-xl px-6 py-4 lg:px-40 z-50">
+<div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+<div class="hidden md:flex flex-col">
+<p class="text-xs text-slate-500 font-medium">AÇÃO REQUERIDA</p>
+<p class="text-sm text-slate-300 font-semibold">Revisar solicitação de João Silva</p>
+</div>
+<div class="flex flex-wrap items-center justify-center gap-3 w-full sm:w-auto">
+<button class="flex-1 sm:flex-none px-6 h-11 rounded-xl border border-red-500/50 text-red-500 text-sm font-bold hover:bg-red-500/10 transition-colors uppercase tracking-tight">
+                        Reprovar
+                    </button>
+<button class="flex-1 sm:flex-none px-6 h-11 rounded-xl border border-primary text-primary text-sm font-bold hover:bg-primary/10 transition-colors uppercase tracking-tight">
+                        Ajustes
+                    </button>
+<button class="flex-[2] sm:flex-none px-8 h-11 rounded-xl bg-primary text-black text-sm font-bold hover:bg-primary/90 transition-all shadow-[0_0_20px_rgba(212,175,55,0.3)] uppercase tracking-tight flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-lg">check_circle</span>
+                        Aprovar Membro
+                    </button>
+</div>
+</div>
+</footer>
+</div>
+</body></html>

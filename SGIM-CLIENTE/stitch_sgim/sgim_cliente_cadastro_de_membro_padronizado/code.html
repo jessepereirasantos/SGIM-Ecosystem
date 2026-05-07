@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Cadastro de Membro - SGIM</title>
+<!-- Google Fonts: Inter (matching SCREEN_35) -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            DEFAULT: '#FFC107',
+                            dark: '#D4AF37',
+                            light: '#FFD54F'
+                        },
+                        darkbg: '#050505',
+                        darkcard: '#121212',
+                        darkborder: '#1E1E1E'
+                    },
+                    borderRadius: {
+                        'twelve': '12px',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+<style data-purpose="custom-scrollbars">
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0a0a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2a2a2a;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ffd900;
+        }
+    </style>
+</head>
+<body class="bg-darkbg text-gray-100 font-sans antialiased min-h-screen">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-64 bg-darkcard border-r border-darkborder hidden md:flex flex-col z-50">
+<div class="p-6 flex flex-col border-b border-darkborder">
+<h1 class="text-2xl font-bold text-brand tracking-tighter">SGIM</h1>
+<span class="text-xs text-gray-500 font-medium uppercase tracking-widest mt-1">Gestão de Membros</span>
+</div>
+<nav class="flex-1 px-4 space-y-1 mt-4">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-twelve text-gray-400 hover:text-brand hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined text-xl">dashboard</span>
+<span class="text-sm font-medium">Início</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-twelve bg-brand/10 text-brand font-medium transition-all" href="#">
+<span class="material-symbols-outlined text-xl">person_add</span>
+<span class="text-sm font-medium">Novo Membro</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-twelve text-gray-400 hover:text-brand hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined text-xl">group</span>
+<span class="text-sm font-medium">Membros</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-twelve text-gray-400 hover:text-brand hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined text-xl">description</span>
+<span class="text-sm font-medium">Relatórios</span>
+</a>
+<div class="pt-4 mt-4 border-t border-darkborder">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-twelve text-gray-400 hover:text-brand hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined text-xl">settings</span>
+<span class="text-sm font-medium">Configurações</span>
+</a>
+</div>
+</nav>
+<div class="p-4 border-t border-darkborder">
+<div class="flex items-center gap-3 p-2">
+<div class="size-10 rounded-full bg-darkbg border border-darkborder overflow-hidden" data-alt="User profile avatar placeholder" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAc68I1CUv95dQae9RRjZmsYR9ZABujQm6mgVgGXY0tfO06GLVFRaIdZ6Pxp1PBY7sSpg1BPDkFw_X7mIbvqctFbBXX47CVeAG1p38ccCeFlI014FDQ-GH51gRZkNIKfIyRJD1957PUAdcbR1UO1E-v56c5Bg4y-tovib020llH29oVwDtq9jg6HgETbhuBRbmGPfDhSFbKKc6aojBRbCPEeFsB5WBbEJX3Q1Fq8gVeHwhDuPuaj6s1jkY8Om1WIIFEn2MCVToZlLU')"></div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-bold truncate text-white">Admin Pastor</p>
+<p class="text-[10px] text-gray-500 uppercase tracking-wider truncate">Sede Central</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto flex flex-col bg-darkbg">
+<!-- Top Header -->
+<header class="h-20 flex items-center justify-between px-8 bg-darkbg border-b border-darkborder sticky top-0 z-40">
+<div class="flex items-center gap-4">
+<button class="md:hidden text-gray-400">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div>
+<h2 class="text-xl font-semibold text-white">Cadastro de Membro</h2>
+<p class="text-xs text-gray-500">Adicione novos membros à congregação</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="bg-darkcard border border-darkborder p-2 rounded-twelve text-gray-400 hover:text-brand hover:border-brand transition-all relative">
+<span class="material-symbols-outlined text-xl">notifications</span>
+<span class="absolute top-2 right-2.5 w-2 h-2 bg-brand rounded-full border-2 border-darkcard"></span>
+</button>
+<button class="flex items-center gap-2 bg-brand hover:bg-brand-dark text-black px-4 py-2.5 rounded-twelve font-semibold text-sm transition-all shadow-lg shadow-brand/10">
+<span class="material-symbols-outlined text-lg">save</span>
+                    Finalizar
+                </button>
+</div>
+</header>
+<div class="p-8 max-w-5xl mx-auto w-full space-y-8">
+<!-- Registration Form Card -->
+<div class="bg-darkcard rounded-twelve border border-darkborder shadow-sm overflow-hidden">
+<div class="p-6 border-b border-darkborder bg-white/[0.02]">
+<h2 class="text-lg font-bold text-white">Informações do Novo Membro</h2>
+<p class="text-sm text-gray-500">Preencha os dados abaixo com atenção para registrar o novo membro no sistema.</p>
+</div>
+<form class="p-8 space-y-10">
+<!-- Photo Upload Section -->
+<div class="flex flex-col items-center sm:flex-row sm:items-start gap-10">
+<div class="flex flex-col items-center gap-3">
+<label class="text-[10px] font-bold uppercase tracking-widest text-gray-500">Foto do Membro</label>
+<div class="relative group cursor-pointer">
+<div class="size-32 md:size-40 rounded-full border-2 border-dashed border-darkborder overflow-hidden bg-darkbg flex items-center justify-center transition-all group-hover:border-brand/50">
+<span class="material-symbols-outlined text-4xl text-gray-600 group-hover:text-brand transition-colors">add_a_photo</span>
+<div class="absolute inset-0 bg-brand/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<span class="text-brand text-[10px] font-bold uppercase tracking-widest">Alterar</span>
+</div>
+</div>
+<input class="hidden" id="photo-upload" type="file"/>
+</div>
+<p class="text-[10px] text-gray-500 text-center max-w-[150px]">Formatos: JPG, PNG. Máx: 2MB.</p>
+</div>
+<!-- Basic Info Fields -->
+<div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+<div class="col-span-1 md:col-span-2 space-y-2">
+<label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider">Nome Completo</label>
+<input class="w-full px-4 py-3 rounded-twelve border border-darkborder bg-darkbg text-gray-300 focus:ring-1 focus:ring-brand focus:border-brand outline-none transition-all placeholder:text-gray-600" placeholder="Digite o nome completo" type="text"/>
+</div>
+<div class="space-y-2">
+<label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider">Telefone / WhatsApp</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-3 text-gray-600 text-xl">call</span>
+<input class="w-full pl-10 pr-4 py-3 rounded-twelve border border-darkborder bg-darkbg text-gray-300 focus:ring-1 focus:ring-brand outline-none placeholder:text-gray-600" placeholder="(00) 00000-0000" type="tel"/>
+</div>
+</div>
+<div class="space-y-2">
+<label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider">E-mail</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-3 text-gray-600 text-xl">mail</span>
+<input class="w-full pl-10 pr-4 py-3 rounded-twelve border border-darkborder bg-darkbg text-gray-300 focus:ring-1 focus:ring-brand outline-none placeholder:text-gray-600" placeholder="membro@exemplo.com" type="email"/>
+</div>
+</div>
+</div>
+</div>
+<div class="h-px bg-darkborder"></div>
+<!-- Personal and Church Info -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="space-y-2">
+<label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider">Data de Nascimento</label>
+<input class="w-full px-4 py-3 rounded-twelve border border-darkborder bg-darkbg text-gray-300 focus:ring-1 focus:ring-brand outline-none [color-scheme:dark]" type="date"/>
+</div>
+<div class="space-y-2">
+<label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider">Data de Batismo</label>
+<input class="w-full px-4 py-3 rounded-twelve border border-darkborder bg-darkbg text-gray-300 focus:ring-1 focus:ring-brand outline-none [color-scheme:dark]" type="date"/>
+</div>
+<div class="space-y-2">
+<label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider">Cargo Ministerial</label>
+<select class="w-full px-4 py-3 rounded-twelve border border-darkborder bg-darkbg text-gray-300 focus:ring-1 focus:ring-brand outline-none appearance-none">
+<option value="">Selecione um cargo</option>
+<option>Membro</option>
+<option>Obreiro</option>
+<option>Diácono</option>
+<option>Presbítero</option>
+<option>Evangelista</option>
+<option>Pastor</option>
+</select>
+</div>
+<div class="space-y-2">
+<label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider">Congregação</label>
+<select class="w-full px-4 py-3 rounded-twelve border border-darkborder bg-darkbg text-gray-300 focus:ring-1 focus:ring-brand outline-none appearance-none">
+<option value="">Selecione a congregação</option>
+<option>Sede Central</option>
+<option>Bairro Primavera</option>
+<option>Vila Esperança</option>
+<option>Jardim Glória</option>
+</select>
+</div>
+<div class="space-y-2">
+<label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider">Departamento</label>
+<select class="w-full px-4 py-3 rounded-twelve border border-darkborder bg-darkbg text-gray-300 focus:ring-1 focus:ring-brand outline-none appearance-none">
+<option value="">Selecione o departamento</option>
+<option>Infantil</option>
+<option>Jovens (UMAD)</option>
+<option>Senhoras (Círculo de Oração)</option>
+<option>Missões</option>
+<option>Louvor / Música</option>
+</select>
+</div>
+<div class="space-y-2">
+<label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider">Endereço Residencial</label>
+<input class="w-full px-4 py-3 rounded-twelve border border-darkborder bg-darkbg text-gray-300 focus:ring-1 focus:ring-brand outline-none placeholder:text-gray-600" placeholder="Rua, Número, Bairro" type="text"/>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="pt-6 flex flex-col sm:flex-row items-center justify-end gap-4 border-t border-darkborder">
+<button class="w-full sm:w-auto px-8 py-3 rounded-twelve border border-darkborder text-gray-400 font-semibold hover:bg-white/5 transition-colors" type="button">
+                            Cancelar
+                        </button>
+<button class="w-full sm:w-auto px-12 py-3 rounded-twelve bg-brand hover:bg-brand-dark text-black font-bold shadow-lg shadow-brand/10 flex items-center justify-center gap-2 transition-all active:scale-95" type="submit">
+<span class="material-symbols-outlined">save</span>
+                            Finalizar Cadastro
+                        </button>
+</div>
+</form>
+</div>
+<!-- Footer/Status Info -->
+<div class="flex flex-wrap gap-4 justify-center md:justify-start">
+<div class="flex items-center gap-2 px-4 py-2 rounded-full bg-darkcard border border-darkborder text-gray-500 text-[10px] font-bold uppercase tracking-widest">
+<span class="material-symbols-outlined text-sm text-green-500">verified_user</span>
+                    Dados Criptografados
+                </div>
+<div class="flex items-center gap-2 px-4 py-2 rounded-full bg-darkcard border border-darkborder text-gray-500 text-[10px] font-bold uppercase tracking-widest">
+<span class="material-symbols-outlined text-sm text-brand">cloud_done</span>
+                    Backup Habilitado
+                </div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

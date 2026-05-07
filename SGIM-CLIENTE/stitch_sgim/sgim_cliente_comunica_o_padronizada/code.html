@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SGIM Cliente - Mass Communication</title>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            DEFAULT: '#FFC107',
+                            dark: '#D4AF37',
+                            light: '#FFD54F'
+                        },
+                        darkbg: '#050505',
+                        darkcard: '#121212',
+                        darkborder: '#1E1E1E'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "twelve": "12px",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style data-purpose="custom-scrollbars">
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #050505;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e1e1e;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #FFC107;
+        }
+    </style>
+</head>
+<body class="bg-darkbg text-gray-100 font-sans antialiased">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<header class="flex items-center justify-between border-b border-darkborder bg-darkbg px-8 py-4 sticky top-0 z-50 h-20">
+<div class="flex items-center gap-8">
+<div class="flex flex-col">
+<h1 class="text-2xl font-bold text-brand tracking-tighter leading-none">SGIM</h1>
+<span class="text-[10px] text-gray-500 font-medium uppercase tracking-widest mt-1">Cliente</span>
+</div>
+<nav class="hidden md:flex items-center gap-8 ml-4">
+<a class="text-gray-400 hover:text-brand text-sm font-medium transition-colors" href="#">Dashboard</a>
+<a class="text-brand text-sm font-bold border-b-2 border-brand pb-1" href="#">Messages</a>
+<a class="text-gray-400 hover:text-brand text-sm font-medium transition-colors" href="#">Contacts</a>
+<a class="text-gray-400 hover:text-brand text-sm font-medium transition-colors" href="#">Reports</a>
+</nav>
+</div>
+<div class="flex flex-1 justify-end gap-6 items-center">
+<label class="hidden lg:flex flex-col min-w-40 h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-twelve h-full border border-darkborder bg-darkcard">
+<div class="text-gray-500 flex items-center justify-center pl-4">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="w-full border-none bg-transparent focus:ring-0 text-sm placeholder:text-gray-500 text-gray-300" placeholder="Search contacts..." value=""/>
+</div>
+</label>
+<button class="relative text-gray-400 hover:text-brand bg-darkcard border border-darkborder p-2 rounded-twelve transition-all">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+<span class="absolute top-2 right-2.5 block h-2 w-2 rounded-full bg-brand ring-2 ring-darkcard"></span>
+</button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-brand/20" data-alt="User profile avatar portrait" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDPYt77DXk0LKtT8lp4fta89qDIZPUGWSOdh92vYlVWNonZtZ15I1rE2w5mfeGiKFOFo39t2Nv1ydaC4e6CDp4PBIxN3M2Vtd5jo1FykpoiLcVx0QyLI4Kz0lKOMH94J5-Bff8CkecpEayW_Hnmu5HWj6s7CGWc-h09wKrIenWzlPgxYiHO2Sfcpidb_JMou4WvHNcTYIUsKTYU1HrX7f-lNVjs22m8ukTRk0et5Q8M2z-ZQTz5fbHjA5yyjVM-S_0Nr9Pu8nVhNRk");'></div>
+</div>
+</header>
+<main class="flex flex-1 overflow-hidden">
+<!-- Left Sidebar: Filters -->
+<aside class="w-72 border-r border-darkborder bg-darkcard flex flex-col p-6 gap-6">
+<div>
+<h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">Audience Filters</h3>
+<div class="flex flex-col gap-1">
+<button class="flex items-center gap-3 px-3 py-2.5 rounded-twelve bg-brand/10 text-brand font-medium transition-all">
+<span class="material-symbols-outlined text-[20px]">group</span>
+<span class="text-sm">All Contacts</span>
+</button>
+<div class="mt-4 mb-2 px-3">
+<span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">By Role</span>
+</div>
+<button class="flex items-center gap-3 px-3 py-2.5 rounded-twelve text-gray-400 hover:text-brand hover:bg-white/5 transition-all">
+<span class="material-symbols-outlined text-[20px]">person_outline</span>
+<span class="text-sm">Pastor</span>
+</button>
+<button class="flex items-center gap-3 px-3 py-2.5 rounded-twelve text-gray-400 hover:text-brand hover:bg-white/5 transition-all">
+<span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
+<span class="text-sm">Diácono</span>
+</button>
+<div class="mt-4 mb-2 px-3">
+<span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">By Department</span>
+</div>
+<button class="flex items-center gap-3 px-3 py-2.5 rounded-twelve text-gray-400 hover:text-brand hover:bg-white/5 transition-all">
+<span class="material-symbols-outlined text-[20px]">diversity_3</span>
+<span class="text-sm">Jovens</span>
+</button>
+<button class="flex items-center gap-3 px-3 py-2.5 rounded-twelve text-gray-400 hover:text-brand hover:bg-white/5 transition-all">
+<span class="material-symbols-outlined text-[20px]">music_note</span>
+<span class="text-sm">Música</span>
+</button>
+<div class="mt-4 mb-2 px-3">
+<span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">By Congregation</span>
+</div>
+<button class="flex items-center gap-3 px-3 py-2.5 rounded-twelve text-gray-400 hover:text-brand hover:bg-white/5 transition-all">
+<span class="material-symbols-outlined text-[20px]">church</span>
+<span class="text-sm">Main Campus</span>
+</button>
+<button class="flex items-center gap-3 px-3 py-2.5 rounded-twelve text-gray-400 hover:text-brand hover:bg-white/5 transition-all">
+<span class="material-symbols-outlined text-[20px]">location_on</span>
+<span class="text-sm">North Branch</span>
+</button>
+</div>
+</div>
+<div class="mt-auto bg-darkbg p-4 rounded-twelve border border-darkborder">
+<p class="text-[11px] text-gray-500 uppercase font-medium mb-1">Estimated Reach</p>
+<p class="text-2xl font-bold text-brand">1,248 <span class="text-xs font-normal text-gray-500 lowercase">people</span></p>
+</div>
+</aside>
+<!-- Main Content: Message Composer -->
+<section class="flex-1 flex flex-col bg-darkbg overflow-y-auto">
+<div class="p-8 max-w-5xl mx-auto w-full">
+<div class="flex items-center justify-between mb-8">
+<div>
+<h1 class="text-2xl font-bold text-white tracking-tight">Compose Mass Message</h1>
+<p class="text-xs text-gray-500">Communicate with your congregation efficiently.</p>
+</div>
+<div class="flex gap-3">
+<button class="px-5 py-2.5 text-sm font-semibold border border-darkborder bg-darkcard text-gray-400 rounded-twelve hover:text-brand hover:border-brand transition-all">Save Draft</button>
+<button class="px-6 py-2.5 text-sm font-bold bg-brand hover:bg-brand-dark text-darkbg rounded-twelve transition-all shadow-lg shadow-brand/10 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">send</span>
+                                Review &amp; Send
+                            </button>
+</div>
+</div>
+<!-- Channel Selector -->
+<div class="flex bg-darkcard p-1 rounded-twelve border border-darkborder mb-8 w-fit">
+<button class="flex items-center gap-2 px-6 py-2 rounded-lg bg-brand text-darkbg font-bold shadow-md transition-all">
+<span class="material-symbols-outlined text-[20px]">mail</span>
+<span class="text-sm">Email Campaign</span>
+</button>
+<button class="flex items-center gap-2 px-6 py-2 rounded-lg text-gray-500 hover:text-gray-300 transition-all">
+<span class="material-symbols-outlined text-[20px]">chat</span>
+<span class="text-sm font-semibold">WhatsApp Message</span>
+</button>
+</div>
+<!-- Email Composer (Rich Text) -->
+<div class="bg-darkcard rounded-twelve border border-darkborder shadow-sm overflow-hidden mb-12">
+<div class="p-6 border-b border-darkborder space-y-4">
+<div class="grid grid-cols-1 md:grid-cols-[100px_1fr] items-center gap-2">
+<span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">To:</span>
+<div class="flex flex-wrap gap-2">
+<span class="bg-brand/10 text-brand text-[10px] font-bold px-3 py-1 rounded-full flex items-center gap-1 border border-brand/20">
+                                        ALL CONTACTS <span class="material-symbols-outlined text-[14px]">close</span>
+</span>
+<span class="bg-brand/10 text-brand text-[10px] font-bold px-3 py-1 rounded-full flex items-center gap-1 border border-brand/20">
+                                        ROLE: PASTOR <span class="material-symbols-outlined text-[14px]">close</span>
+</span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-[100px_1fr] items-center gap-2 border-t border-darkborder pt-4">
+<span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Subject:</span>
+<input class="w-full border-none focus:ring-0 text-white font-medium placeholder:text-gray-600 bg-transparent text-sm" placeholder="Enter campaign subject..." type="text"/>
+</div>
+</div>
+<!-- Editor Toolbar -->
+<div class="bg-white/5 border-b border-darkborder px-4 py-2 flex items-center gap-1 flex-wrap">
+<button class="p-2 rounded hover:bg-white/10 text-gray-400 hover:text-brand transition-colors"><span class="material-symbols-outlined text-[20px]">format_bold</span></button>
+<button class="p-2 rounded hover:bg-white/10 text-gray-400 hover:text-brand transition-colors"><span class="material-symbols-outlined text-[20px]">format_italic</span></button>
+<button class="p-2 rounded hover:bg-white/10 text-gray-400 hover:text-brand transition-colors"><span class="material-symbols-outlined text-[20px]">format_underlined</span></button>
+<div class="w-px h-6 bg-darkborder mx-2"></div>
+<button class="p-2 rounded hover:bg-white/10 text-gray-400 hover:text-brand transition-colors"><span class="material-symbols-outlined text-[20px]">format_list_bulleted</span></button>
+<button class="p-2 rounded hover:bg-white/10 text-gray-400 hover:text-brand transition-colors"><span class="material-symbols-outlined text-[20px]">format_list_numbered</span></button>
+<div class="w-px h-6 bg-darkborder mx-2"></div>
+<button class="p-2 rounded hover:bg-white/10 text-gray-400 hover:text-brand transition-colors"><span class="material-symbols-outlined text-[20px]">link</span></button>
+<button class="p-2 rounded hover:bg-white/10 text-gray-400 hover:text-brand transition-colors"><span class="material-symbols-outlined text-[20px]">image</span></button>
+<button class="p-2 rounded hover:bg-white/10 text-gray-400 hover:text-brand transition-colors"><span class="material-symbols-outlined text-[20px]">attachment</span></button>
+<div class="ml-auto flex items-center gap-2">
+<button class="flex items-center gap-1 px-3 py-1.5 text-[10px] font-bold uppercase text-brand hover:bg-brand/10 border border-brand/20 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-[16px]">pattern</span>
+                                    Use Template
+                                </button>
+</div>
+</div>
+<!-- Editor Area -->
+<div class="min-h-[400px] p-8">
+<textarea class="w-full h-full min-h-[350px] border-none focus:ring-0 bg-transparent text-gray-300 leading-relaxed resize-none text-sm" placeholder="Write your email content here... Use {{name}} to personalize."></textarea>
+</div>
+</div>
+<!-- WhatsApp Section (Simplified) -->
+<div class="opacity-40 grayscale">
+<div class="flex items-center gap-2 mb-4">
+<h2 class="text-lg font-bold text-white">WhatsApp Preview</h2>
+<span class="text-[9px] font-bold bg-darkborder text-gray-500 px-2 py-0.5 rounded uppercase tracking-widest border border-darkborder">Inactive Channel</span>
+</div>
+<div class="bg-darkcard rounded-twelve border border-dashed border-darkborder p-12 flex flex-col items-center justify-center text-center">
+<div class="size-16 rounded-full bg-white/5 border border-darkborder flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-gray-600 text-3xl">chat_bubble</span>
+</div>
+<h3 class="font-bold text-gray-400 mb-1">Switch to WhatsApp Channel</h3>
+<p class="text-xs text-gray-600 max-w-xs">To compose a WhatsApp message, select the WhatsApp tab above. This will load the simplified text-only editor.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Right Sidebar: Helpers -->
+<aside class="hidden xl:flex w-80 border-l border-darkborder bg-darkcard flex-col p-6 gap-8 overflow-y-auto">
+<div class="space-y-4">
+<h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
+<span class="material-symbols-outlined text-brand text-[20px]">lightbulb</span>
+                        Smart Suggestions
+                    </h3>
+<div class="p-4 bg-brand/5 rounded-twelve border border-brand/10">
+<p class="text-xs text-gray-400 leading-relaxed">Consider sending emails on <span class="font-bold text-brand">Tuesday mornings</span> for higher open rates.</p>
+</div>
+</div>
+<div class="space-y-4">
+<h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
+<span class="material-symbols-outlined text-brand text-[20px]">variable_insert</span>
+                        Personalization
+                    </h3>
+<div class="grid grid-cols-2 gap-2">
+<button class="text-[10px] font-bold bg-darkbg p-2 rounded border border-darkborder text-gray-500 hover:border-brand hover:text-brand transition-all uppercase tracking-tight">{{first_name}}</button>
+<button class="text-[10px] font-bold bg-darkbg p-2 rounded border border-darkborder text-gray-500 hover:border-brand hover:text-brand transition-all uppercase tracking-tight">{{last_name}}</button>
+<button class="text-[10px] font-bold bg-darkbg p-2 rounded border border-darkborder text-gray-500 hover:border-brand hover:text-brand transition-all uppercase tracking-tight">{{congregation}}</button>
+<button class="text-[10px] font-bold bg-darkbg p-2 rounded border border-darkborder text-gray-500 hover:border-brand hover:text-brand transition-all uppercase tracking-tight">{{role}}</button>
+</div>
+</div>
+<div class="space-y-4">
+<h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Recent Campaigns</h3>
+<div class="space-y-3">
+<div class="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition-colors border border-transparent hover:border-darkborder group">
+<div class="size-8 rounded bg-green-500/10 flex items-center justify-center text-green-500">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-xs font-bold text-white truncate group-hover:text-brand transition-colors">Youth Camp Reminder</p>
+<p class="text-[10px] text-gray-500 uppercase tracking-tighter">Sent 2 days ago • 84% open</p>
+</div>
+</div>
+<div class="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition-colors border border-transparent hover:border-darkborder group">
+<div class="size-8 rounded bg-brand/10 flex items-center justify-center text-brand">
+<span class="material-symbols-outlined text-[18px]">mail</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-xs font-bold text-white truncate group-hover:text-brand transition-colors">Sunday Service Program</p>
+<p class="text-[10px] text-gray-500 uppercase tracking-tighter">Sent 5 days ago • 92% open</p>
+</div>
+</div>
+</div>
+</div>
+</aside>
+</main>
+</div>
+</body></html>

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Central de Relatórios - SGIM Cliente</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#D4AF37", // Gold as primary highlight/buttons
+                        "gold-accent": "#D4AF37",
+                        "deep-black": "#050505",
+                        "sidebar-black": "#0f0f0f",
+                        "card-bg": "#121212",
+                        "background-dark": "#050505",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Public Sans', sans-serif;
+            background-color: #050505;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .sidebar-item-active {
+            background: linear-gradient(90deg, rgba(212, 175, 55, 0.15) 0%, rgba(212, 175, 55, 0) 100%);
+            border-left: 3px solid #D4AF37;
+        }
+    </style>
+</head>
+<body class="bg-background-dark font-display text-slate-100">
+<div class="flex min-h-screen overflow-x-hidden">
+<!-- Sidebar -->
+<aside class="w-64 bg-sidebar-black border-r border-white/5 flex flex-col fixed h-full z-50">
+<div class="p-6">
+<div class="flex items-center gap-3 mb-10">
+<div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 overflow-hidden">
+<img alt="SGIM Logo" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCSi2vkmHFKEK1PtxBzVB_H0NYyOwc57sbhSH1I3bvNm57lndRlJFAdrfpsCWp8dDoSQXZUuNCGBlLow-ZHaOCbCHQWlbUQ4EmI6I0mq8lz40i6ZWZWGKcAgYtN0YssYdEY3jjDwzI3x5H5UsfbhnWNAWu_n8PX75u2Y-gc8KaLD_7PFMX3LGc1Nro0YOV8yRhgGe617nc_uF1ButKxERVvQ7XvM-NV2Z0pkftWSKZTyEumu2R3HDpuTYVLn2Cyy36CxpYaaE84pUk"/>
+</div>
+<div class="flex flex-col">
+<h1 class="text-slate-100 text-base font-bold leading-tight uppercase tracking-wider">SGIM Cliente</h1>
+<p class="text-slate-500 text-xs font-normal">Painel Administrativo</p>
+</div>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 text-slate-400 hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined text-gold-accent">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 text-slate-400 hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined text-gold-accent">group</span>
+<span class="text-sm font-medium">Membros</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 text-slate-400 hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined text-gold-accent">payments</span>
+<span class="text-sm font-medium">Financeiro</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 text-slate-400 hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined text-gold-accent">calendar_month</span>
+<span class="text-sm font-medium">Eventos</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg sidebar-item-active text-gold-accent transition-all" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="text-sm font-bold">Relatórios</span>
+</a>
+</nav>
+</div>
+<div class="mt-auto p-6 border-t border-white/5">
+<button class="flex w-full items-center justify-center gap-2 rounded-xl bg-white/5 hover:bg-white/10 text-white py-3 text-sm font-bold transition-all">
+<span class="material-symbols-outlined text-sm">logout</span>
+                    Sair
+                </button>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 ml-64 p-8">
+<header class="mb-10">
+<div class="flex flex-col gap-1 mb-8">
+<h2 class="text-white text-3xl font-black tracking-tight">Central de Relatórios</h2>
+<p class="text-slate-500 text-base">Gerenciamento e exportação de dados analíticos.</p>
+</div>
+<!-- Filters -->
+<div class="bg-card-bg p-6 rounded-2xl border border-white/5 flex flex-wrap gap-6 items-end">
+<div class="flex flex-col gap-2 min-w-[240px] flex-1">
+<label class="text-slate-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-gold-accent">church</span>
+                            Congregação
+                        </label>
+<select class="bg-deep-black border border-white/10 rounded-xl text-slate-100 p-3 focus:border-gold-accent focus:ring-1 focus:ring-gold-accent outline-none transition-all cursor-pointer">
+<option>Todas as Congregações</option>
+<option>Sede Central</option>
+<option>Bairro Jardim</option>
+<option>Bairro Novo Horizonte</option>
+</select>
+</div>
+<div class="flex flex-col gap-2 min-w-[240px] flex-1">
+<label class="text-slate-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-gold-accent">date_range</span>
+                            Período
+                        </label>
+<input class="bg-deep-black border border-white/10 rounded-xl text-slate-100 p-3 focus:border-gold-accent focus:ring-1 focus:ring-gold-accent outline-none transition-all placeholder:text-slate-600" placeholder="01/01/2024 - 31/12/2024" type="text"/>
+</div>
+<button class="bg-gold-accent hover:brightness-110 text-deep-black font-black py-3.5 px-8 rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-gold-accent/10 uppercase text-xs tracking-widest">
+<span class="material-symbols-outlined text-[20px]">filter_alt</span>
+                        Filtrar Dados
+                    </button>
+</div>
+</header>
+<!-- Report Cards Grid -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Membros por Congregação -->
+<div class="group bg-card-bg p-8 rounded-2xl border border-white/5 hover:border-gold-accent/40 transition-all cursor-pointer flex flex-col gap-4 relative overflow-hidden">
+<div class="absolute -right-6 -top-6 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
+<span class="material-symbols-outlined text-[140px] text-gold-accent">groups</span>
+</div>
+<div class="w-12 h-12 rounded-xl bg-gold-accent/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-gold-accent text-2xl">groups</span>
+</div>
+<div>
+<h3 class="text-white text-lg font-bold mb-2">Membros por Congregação</h3>
+<p class="text-slate-500 text-sm leading-relaxed">Lista detalhada de membros ativos, inativos e novos convertidos por unidade.</p>
+</div>
+<div class="mt-4 flex items-center text-gold-accent font-bold text-xs uppercase tracking-widest gap-2 group-hover:translate-x-1 transition-transform">
+                        Gerar Relatório <span class="material-symbols-outlined text-sm">chevron_right</span>
+</div>
+</div>
+<!-- Crescimento da Igreja -->
+<div class="group bg-card-bg p-8 rounded-2xl border border-white/5 hover:border-gold-accent/40 transition-all cursor-pointer flex flex-col gap-4 relative overflow-hidden">
+<div class="absolute -right-6 -top-6 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
+<span class="material-symbols-outlined text-[140px] text-gold-accent">trending_up</span>
+</div>
+<div class="w-12 h-12 rounded-xl bg-gold-accent/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-gold-accent text-2xl">trending_up</span>
+</div>
+<div>
+<h3 class="text-white text-lg font-bold mb-2">Crescimento da Igreja</h3>
+<p class="text-slate-500 text-sm leading-relaxed">Estatísticas de crescimento mensal, batismos e transferências no período selecionado.</p>
+</div>
+<div class="mt-4 flex items-center text-gold-accent font-bold text-xs uppercase tracking-widest gap-2 group-hover:translate-x-1 transition-transform">
+                        Ver Gráficos <span class="material-symbols-outlined text-sm">chevron_right</span>
+</div>
+</div>
+<!-- Aniversariantes -->
+<div class="group bg-card-bg p-8 rounded-2xl border border-white/5 hover:border-gold-accent/40 transition-all cursor-pointer flex flex-col gap-4 relative overflow-hidden">
+<div class="absolute -right-6 -top-6 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
+<span class="material-symbols-outlined text-[140px] text-gold-accent">cake</span>
+</div>
+<div class="w-12 h-12 rounded-xl bg-gold-accent/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-gold-accent text-2xl">cake</span>
+</div>
+<div>
+<h3 class="text-white text-lg font-bold mb-2">Aniversariantes</h3>
+<p class="text-slate-500 text-sm leading-relaxed">Lista de membros que fazem aniversário, facilitando o planejamento de congratulações.</p>
+</div>
+<div class="mt-4 flex items-center text-gold-accent font-bold text-xs uppercase tracking-widest gap-2 group-hover:translate-x-1 transition-transform">
+                        Gerar Lista <span class="material-symbols-outlined text-sm">chevron_right</span>
+</div>
+</div>
+<!-- Relatórios Financeiros -->
+<div class="group bg-card-bg p-8 rounded-2xl border border-white/5 hover:border-gold-accent/40 transition-all cursor-pointer flex flex-col gap-4 relative overflow-hidden">
+<div class="absolute -right-6 -top-6 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
+<span class="material-symbols-outlined text-[140px] text-gold-accent">account_balance_wallet</span>
+</div>
+<div class="w-12 h-12 rounded-xl bg-gold-accent/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-gold-accent text-2xl">account_balance_wallet</span>
+</div>
+<div>
+<h3 class="text-white text-lg font-bold mb-2">Relatórios Financeiros</h3>
+<p class="text-slate-500 text-sm leading-relaxed">Balanço detalhado de dízimos, ofertas, despesas fixas e fundo de reserva.</p>
+</div>
+<div class="mt-4 flex items-center text-gold-accent font-bold text-xs uppercase tracking-widest gap-2 group-hover:translate-x-1 transition-transform">
+                        Auditoria Completa <span class="material-symbols-outlined text-sm">chevron_right</span>
+</div>
+</div>
+<!-- Relatórios de Eventos -->
+<div class="group bg-card-bg p-8 rounded-2xl border border-white/5 hover:border-gold-accent/40 transition-all cursor-pointer flex flex-col gap-4 relative overflow-hidden">
+<div class="absolute -right-6 -top-6 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
+<span class="material-symbols-outlined text-[140px] text-gold-accent">event_available</span>
+</div>
+<div class="w-12 h-12 rounded-xl bg-gold-accent/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-gold-accent text-2xl">event_available</span>
+</div>
+<div>
+<h3 class="text-white text-lg font-bold mb-2">Relatórios de Eventos</h3>
+<p class="text-slate-500 text-sm leading-relaxed">Análise de participação em cultos especiais, conferências e eventos externos.</p>
+</div>
+<div class="mt-4 flex items-center text-gold-accent font-bold text-xs uppercase tracking-widest gap-2 group-hover:translate-x-1 transition-transform">
+                        Histórico <span class="material-symbols-outlined text-sm">chevron_right</span>
+</div>
+</div>
+<!-- Exportação em Lote -->
+<div class="bg-gold-accent/5 p-8 rounded-2xl border border-gold-accent/20 flex flex-col justify-center items-center text-center gap-4 border-dashed">
+<div class="w-14 h-14 rounded-full bg-gold-accent flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-deep-black text-2xl font-bold">download_for_offline</span>
+</div>
+<h3 class="text-white text-lg font-bold">Exportar Pacote</h3>
+<p class="text-slate-500 text-sm leading-relaxed">Gere um consolidado com todos os relatórios em formato PDF ou Excel.</p>
+<button class="mt-2 text-gold-accent font-bold text-xs uppercase tracking-widest hover:underline transition-all">Iniciar Exportação</button>
+</div>
+</section>
+<!-- Bottom Table Summary -->
+<section class="mt-12 bg-card-bg rounded-2xl border border-white/5 overflow-hidden">
+<div class="p-6 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
+<h3 class="text-white font-bold text-base flex items-center gap-2">
+<span class="material-symbols-outlined text-gold-accent">history</span>
+                        Atividades Recentes
+                    </h3>
+<button class="text-gold-accent text-xs font-bold uppercase tracking-wider hover:brightness-110">Ver Histórico</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-white/[0.01]">
+<tr>
+<th class="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Tipo de Relatório</th>
+<th class="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Congregação</th>
+<th class="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Data de Geração</th>
+<th class="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Formato</th>
+<th class="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] text-right">Download</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-white/5">
+<tr class="hover:bg-white/[0.03] transition-colors">
+<td class="px-6 py-4 text-sm text-slate-200 font-semibold">Financeiro Mensal</td>
+<td class="px-6 py-4 text-sm text-slate-400">Sede Central</td>
+<td class="px-6 py-4 text-sm text-slate-500">12/10/2023 14:35</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-red-500/10 text-red-500 text-[10px] font-bold rounded uppercase">PDF</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-gold-accent hover:bg-gold-accent/10 p-2 rounded-lg transition-all material-symbols-outlined text-xl">download</button>
+</td>
+</tr>
+<tr class="hover:bg-white/[0.03] transition-colors">
+<td class="px-6 py-4 text-sm text-slate-200 font-semibold">Lista de Membros Ativos</td>
+<td class="px-6 py-4 text-sm text-slate-400">Bairro Jardim</td>
+<td class="px-6 py-4 text-sm text-slate-500">10/10/2023 09:20</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-green-500/10 text-green-500 text-[10px] font-bold rounded uppercase">Excel</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-gold-accent hover:bg-gold-accent/10 p-2 rounded-lg transition-all material-symbols-outlined text-xl">download</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</main>
+</div>
+</body></html>
