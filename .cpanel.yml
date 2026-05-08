@@ -1,26 +1,33 @@
 ---
 deployment:
   tasks:
-    # 1. Garantir que os diretórios base existem (Integridade do Checkout)
-    - /bin/mkdir -p /home1/hg9a3205/public_html/api/checkout
-    - /bin/mkdir -p /home1/hg9a3205/public_html/config
-    - /bin/mkdir -p /home1/hg9a3205/public_html/includes
-    - /bin/mkdir -p /home1/hg9a3205/public_html/templates
-    - /bin/ls -la /home1/hg9a3205/public_html/
-    - /bin/ls -la /home1/hg9a3205/public_html/releases/
+    # 1. Limpeza de Resíduos Técnicos na Raiz Pública
+    - /bin/rm -f /home1/hg9a3205/public_html/ota_env_audit.php
+    - /bin/rm -f /home1/hg9a3205/public_html/check_server.php
+    - /bin/rm -f /home1/hg9a3205/public_html/init_foundation.php
+    - /bin/rm -f /home1/hg9a3205/public_html/foundation_audit.log
 
-    # 2. Deploy do Master (SGIM-VENDAS) - Cópia pasta por pasta garante que nada fique para trás
-    - /bin/cp -R SGIM-VENDAS/api/* /home1/hg9a3205/public_html/api/
-    - /bin/cp -R SGIM-VENDAS/config/* /home1/hg9a3205/public_html/config/
-    - /bin/cp -R SGIM-VENDAS/includes/* /home1/hg9a3205/public_html/includes/
-    - /bin/cp -R SGIM-VENDAS/templates/* /home1/hg9a3205/public_html/templates/
-    - /bin/cp -R SGIM-VENDAS/assets/* /home1/hg9a3205/public_html/assets/
+    # 2. Criação da Estrutura Segura (ZONA PROTEGIDA)
+    - /bin/mkdir -p /home1/hg9a3205/public_html/releases
+    - /bin/mkdir -p /home1/hg9a3205/public_html/shared/system/audit
+    - /bin/mkdir -p /home1/hg9a3205/public_html/shared/system/logs
+    - /bin/mkdir -p /home1/hg9a3205/public_html/updates/workspace
+
+    # 3. Proteção Atômica (.htaccess deny from all)
+    - /bin/echo "Order Deny,Allow\nDeny from all" > /home1/hg9a3205/public_html/releases/.htaccess
+    - /bin/echo "Order Deny,Allow\nDeny from all" > /home1/hg9a3205/public_html/shared/.htaccess
+    - /bin/echo "Order Deny,Allow\nDeny from all" > /home1/hg9a3205/public_html/updates/.htaccess
+
+    # 4. Deploy do Código Operacional (Somente o necessário)
+    - /bin/cp -rf SGIM-VENDAS/api /home1/hg9a3205/public_html/
+    - /bin/cp -rf SGIM-VENDAS/config /home1/hg9a3205/public_html/
+    - /bin/cp -rf SGIM-VENDAS/includes /home1/hg9a3205/public_html/
+    - /bin/cp -rf SGIM-VENDAS/templates /home1/hg9a3205/public_html/
+    - /bin/cp -rf SGIM-VENDAS/assets /home1/hg9a3205/public_html/
     - /bin/cp SGIM-VENDAS/*.php /home1/hg9a3205/public_html/
-
-    # 3. Deploy do Cliente
     - /bin/cp SGIM-CLIENTE/atualizacoes.php /home1/hg9a3205/public_html/
-    - /bin/cp SGIM-CLIENTE/init_foundation.php /home1/hg9a3205/public_html/
 
-    # 4. Ajuste de Permissões Críticas
-    - /bin/chmod 755 /home1/hg9a3205/public_html/api
-    - /bin/chmod 755 /home1/hg9a3205/public_html/config
+    # 5. Ajuste de Permissões
+    - /bin/chmod 755 /home1/hg9a3205/public_html/releases
+    - /bin/chmod 755 /home1/hg9a3205/public_html/shared
+    - /bin/chmod 755 /home1/hg9a3205/public_html/updates
