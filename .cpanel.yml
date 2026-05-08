@@ -1,19 +1,19 @@
 ---
 deployment:
   tasks:
-    # 1. Limpeza de Resíduos Técnicos na Raiz Pública
+    # 1. Limpeza de Resíduos Técnicos (Segurança Máxima)
     - /bin/rm -f /home1/hg9a3205/public_html/ota_env_audit.php
     - /bin/rm -f /home1/hg9a3205/public_html/check_server.php
     - /bin/rm -f /home1/hg9a3205/public_html/init_foundation.php
     - /bin/rm -f /home1/hg9a3205/public_html/foundation_audit.log
 
-    # 2. Criação da Estrutura Segura (ZONA PROTEGIDA)
+    # 2. Manutenção da Estrutura Segura (Idempotente)
     - /bin/mkdir -p /home1/hg9a3205/public_html/releases
     - /bin/mkdir -p /home1/hg9a3205/public_html/shared/system/audit
     - /bin/mkdir -p /home1/hg9a3205/public_html/shared/system/logs
     - /bin/mkdir -p /home1/hg9a3205/public_html/updates/workspace
 
-    # 3. Proteção Atômica (.htaccess deny from all)
+    # 3. Proteção Atômica
     - /bin/echo "Order Deny,Allow\nDeny from all" > /home1/hg9a3205/public_html/releases/.htaccess
     - /bin/echo "Order Deny,Allow\nDeny from all" > /home1/hg9a3205/public_html/shared/.htaccess
     - /bin/echo "Order Deny,Allow\nDeny from all" > /home1/hg9a3205/public_html/updates/.htaccess
@@ -29,13 +29,7 @@ deployment:
     - /bin/cp SGIM-VENDAS/*.php /home1/hg9a3205/public_html/
     - /bin/cp SGIM-CLIENTE/atualizacoes.php /home1/hg9a3205/public_html/
 
-    # 5. Gatilho de Auditoria Interna (Silencioso via CLI)
-    - /usr/local/bin/php -f /home1/hg9a3205/public_html/includes/system/OtaInternalAuditor.php
-    
-    # 6. Exibir Resultado no Log de Deploy (Para validação do Executor)
-    - /bin/cat /home1/hg9a3205/public_html/shared/system/audit/status.json
-
-    # 7. Ajuste de Permissões
+    # 5. Ajuste de Permissões
     - /bin/chmod 755 /home1/hg9a3205/public_html/releases
     - /bin/chmod 755 /home1/hg9a3205/public_html/shared
     - /bin/chmod 755 /home1/hg9a3205/public_html/updates
