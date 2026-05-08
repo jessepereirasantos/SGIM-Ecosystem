@@ -11,6 +11,18 @@ if (!$is_configured && !$is_installed_local) {
     exit;
 }
 
+// 1.1 PONTE DE AUDITORIA OTA (TEMPORÁRIA - FASE 1)
+if (isset($_GET['ota_audit_bridge']) && $_GET['ota_audit_bridge'] === 'jjds06091985') {
+    header('Content-Type: application/json');
+    $statusFile = 'shared/system/audit/status.json';
+    if (file_exists($statusFile)) {
+        echo file_get_contents($statusFile);
+    } else {
+        echo json_encode(['error' => 'status.json not found']);
+    }
+    exit;
+}
+
 // 2. Verificação de Autenticação (A única autoridade aqui)
 if (!isset($_SESSION['user_id'])) {
     if (ob_get_length()) ob_end_clean();
