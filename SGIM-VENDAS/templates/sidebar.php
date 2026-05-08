@@ -40,6 +40,12 @@ $current_page = $current_page ?? '';
                         <span class="text-sm">Relatórios & Auditoria</span>
                     </a>
                 </li>
+                <li>
+                    <a href="ota.php" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all <?= ($current_page == 'ota') ? 'bg-amber-500 text-black font-bold' : 'text-zinc-400 hover:bg-white/5 hover:text-white' ?>">
+                        <span class="material-symbols-outlined text-[20px]">cloud_sync</span>
+                        <span class="text-sm">Engenharia OTA</span>
+                    </a>
+                </li>
             </ul>
         </div>
 

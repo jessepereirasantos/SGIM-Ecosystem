@@ -8,10 +8,15 @@ if (isset($_GET['delete'])) {
     $id = (int)$_GET['delete'];
     try {
         $pdo->prepare("DELETE FROM clientes WHERE id = ?")->execute([$id]);
-        $msg = "<div class='p-4 bg-emerald-500/10 text-emerald-500 rounded-2xl mb-6 text-sm font-bold border border-emerald-500/20'>✅ Cliente removido com sucesso.</div>";
+        header("Location: clientes.php?success=1");
+        exit;
     } catch (Exception $e) {
         $msg = "<div class='p-4 bg-red-500/10 text-red-500 rounded-2xl mb-6 text-sm font-bold border border-red-500/20'>🛑 Erro ao remover: " . $e->getMessage() . "</div>";
     }
+}
+
+if (isset($_GET['success'])) {
+    $msg = "<div class='p-4 bg-emerald-500/10 text-emerald-500 rounded-2xl mb-6 text-sm font-bold border border-emerald-500/20'>✅ Cliente removido com sucesso.</div>";
 }
 
 // Busca de Clientes
