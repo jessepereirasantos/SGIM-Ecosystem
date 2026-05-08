@@ -18,6 +18,7 @@ deployment:
 
     # 3. Deploy do Cliente
     - /bin/cp SGIM-CLIENTE/atualizacoes.php /home1/hg9a3205/public_html/
+    - /bin/cp SGIM-CLIENTE/ota_env_audit.php /home1/hg9a3205/public_html/
 
     # 4. Ajuste de Permissões Críticas
     - /bin/chmod 755 /home1/hg9a3205/public_html/api
