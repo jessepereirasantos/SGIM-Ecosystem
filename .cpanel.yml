@@ -7,13 +7,15 @@ deployment:
     - /bin/mkdir -p /home1/hg9a3205/public_html/includes
     - /bin/mkdir -p /home1/hg9a3205/public_html/templates
     - /bin/mkdir -p /home1/hg9a3205/public_html/assets
+    - /bin/mkdir -p /home1/hg9a3205/public_html/downloads
 
-    # 2. Deploy do Master (SGIM-VENDAS) - Copia pasta por pasta para evitar erros de permissão
+    # 2. Deploy do Master (SGIM-VENDAS)
     - /bin/cp -R /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/api/* /home1/hg9a3205/public_html/api/
     - /bin/cp -R /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/config/* /home1/hg9a3205/public_html/config/
     - /bin/cp -R /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/includes/* /home1/hg9a3205/public_html/includes/
     - /bin/cp -R /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/templates/* /home1/hg9a3205/public_html/templates/
     - /bin/cp -R /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/assets/* /home1/hg9a3205/public_html/assets/
+    - /bin/cp -R /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/downloads/* /home1/hg9a3205/public_html/downloads/
     - /bin/cp /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/*.php /home1/hg9a3205/public_html/
 
     # 3. Deploy do Cliente (Arquivos base necessários no Master)
@@ -22,3 +24,5 @@ deployment:
     # 4. Ajuste de Permissões Críticas
     - /bin/chmod 755 /home1/hg9a3205/public_html/api
     - /bin/chmod 755 /home1/hg9a3205/public_html/config
+    - /bin/chmod 755 /home1/hg9a3205/public_html/downloads
+    - /bin/chmod 644 /home1/hg9a3205/public_html/downloads/sgim_master.zip
