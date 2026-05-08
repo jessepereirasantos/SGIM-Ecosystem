@@ -6,7 +6,8 @@ deployment:
     - /bin/mkdir -p /home1/hg9a3205/public_html/config
     - /bin/mkdir -p /home1/hg9a3205/public_html/includes
     - /bin/mkdir -p /home1/hg9a3205/public_html/templates
-    - /bin/mkdir -p /home1/hg9a3205/public_html/assets
+    - /bin/ls -la /home1/hg9a3205/public_html/
+    - /bin/ls -la /home1/hg9a3205/public_html/releases/
 
     # 2. Deploy do Master (SGIM-VENDAS) - Cópia pasta por pasta garante que nada fique para trás
     - /bin/cp -R SGIM-VENDAS/api/* /home1/hg9a3205/public_html/api/
