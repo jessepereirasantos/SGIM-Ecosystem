@@ -7,16 +7,21 @@ deployment:
     - /bin/rm -f /home1/hg9a3205/public_html/init_foundation.php
     - /bin/rm -f /home1/hg9a3205/public_html/foundation_audit.log
 
-    # 2. Manutenção da Estrutura Segura (Idempotente)
+    # 2. Criação da Estrutura Segura (ZONA PROTEGIDA)
     - /bin/mkdir -p /home1/hg9a3205/public_html/releases
     - /bin/mkdir -p /home1/hg9a3205/public_html/shared/system/audit
+    - /bin/mkdir -p /home1/hg9a3205/public_html/shared/system/releases
+    - /bin/mkdir -p /home1/hg9a3205/public_html/shared/system/manifests
+    - /bin/mkdir -p /home1/hg9a3205/public_html/shared/system/workspace
     - /bin/mkdir -p /home1/hg9a3205/public_html/shared/system/logs
     - /bin/mkdir -p /home1/hg9a3205/public_html/updates/workspace
+    - /bin/mkdir -p /home1/hg9a3205/public_html/api/update/packages
 
-    # 3. Proteção Atômica
+    # 3. Proteção Atômica (.htaccess deny from all)
     - /bin/echo "Order Deny,Allow\nDeny from all" > /home1/hg9a3205/public_html/releases/.htaccess
     - /bin/echo "Order Deny,Allow\nDeny from all" > /home1/hg9a3205/public_html/shared/.htaccess
     - /bin/echo "Order Deny,Allow\nDeny from all" > /home1/hg9a3205/public_html/updates/.htaccess
+    - /bin/echo "Order Deny,Allow\nDeny from all" > /home1/hg9a3205/public_html/api/update/packages/.htaccess
 
     # 4. Deploy do Código Operacional
     - /bin/mkdir -p /home1/hg9a3205/public_html/includes/system
