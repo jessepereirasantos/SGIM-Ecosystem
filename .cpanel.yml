@@ -31,11 +31,12 @@ deployment:
     - /bin/cp -rf SGIM-CLIENTE/includes/system/* /home1/hg9a3205/public_html/includes/system/
     - /bin/cp -rf SGIM-VENDAS/templates /home1/hg9a3205/public_html/
     - /bin/cp -rf SGIM-VENDAS/assets /home1/hg9a3205/public_html/
-    # 5. Gatilhos de Auditoria Industrial (Somente Auditoria de Integração)
-    - /usr/local/bin/php -f /home1/hg9a3205/public_html/publish_test_audit.php
+    # 5. Gatilhos de Auditoria Industrial (Matriz de Caos e Integração)
+    - /usr/local/bin/php -f /home1/hg9a3205/public_html/includes/system/OtaChaosTester.php
     - /usr/local/bin/php -f /home1/hg9a3205/public_html/includes/system/OtaIntegrationAudit.php
     
-    # 6. Exibir Resultado da Auditoria de Integração
+    # 6. Exibir Resultados de Auditoria
+    - /bin/cat /home1/hg9a3205/public_html/shared/system/audit/chaos_report.json
     - /bin/cat /home1/hg9a3205/public_html/shared/system/audit/integration_audit.json
 
     # 7. Ajuste de Permissões
