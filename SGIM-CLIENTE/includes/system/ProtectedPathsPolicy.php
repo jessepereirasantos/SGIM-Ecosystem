@@ -24,7 +24,7 @@ class ProtectedPathsPolicy {
      * Verifica se um caminho está protegido.
      */
     public static function isProtected($path) {
-        $path = ltrim($path, '/');
+        $path = self::normalizePath($path);
         foreach (self::$protectedPaths as $protected) {
             $pattern = str_replace(['*', '/'], ['.*', '\/'], $protected);
             if (preg_match('/^' . $pattern . '$/i', $path)) {
@@ -32,6 +32,14 @@ class ProtectedPathsPolicy {
             }
         }
         return false;
+    }
+
+    /**
+     * Normaliza caminhos para evitar evasão (Path Traversal)
+     */
+    private static function normalizePath($path) {
+        $path = str_replace(['\\', '//'], '/', $path);
+        return ltrim($path, '/');
     }
 
     public static function getProtectedPaths() {
