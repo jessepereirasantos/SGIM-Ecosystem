@@ -195,7 +195,9 @@ try {
         "metadata" => ["pedido_id" => $pedido_id]
     ];
 
-    if ($payment_method === 'card') {
+    if ($payment_method === 'pix') {
+        $payment_data['payment_type_id'] = 'bank_transfer';
+    } elseif ($payment_method === 'card') {
         $payment_data['token'] = $input['token'] ?? '';
         $payment_data['installments'] = (int)($input['installments'] ?? 1);
         $payment_data['issuer_id'] = (int)($input['issuer_id'] ?? 0);
@@ -264,7 +266,23 @@ try {
         ]);
     } else {
         if ($pdo->inTransaction()) $pdo->rollBack();
-        echo json_encode(['success' => false, 'message' => $payment['message'] ?? 'Erro no Mercado Pago', 'debug' => $payment]);
+        
+        // Extrair causa específica do Mercado Pago
+        $mp_message = $payment['message'] ?? 'Erro ao processar pagamento';
+        $mp_causes = $payment['cause'] ?? [];
+        $cause_msgs = [];
+        foreach ($mp_causes as $cause) {
+            if (!empty($cause['description'])) $cause_msgs[] = $cause['description'];
+        }
+        $user_message = !empty($cause_msgs)
+            ? implode('. ', $cause_msgs)
+            : 'Verifique seus dados e tente novamente. Se o erro persistir, contate o suporte.';
+        
+        // Log para diagnóstico no servidor
+        $log_file = __DIR__ . '/../../mp_error.log';
+        file_put_contents($log_file, '[' . date('Y-m-d H:i:s') . '] MP Error (' . ($result['status_code'] ?? '?') . '): ' . json_encode($payment) . "\n", FILE_APPEND);
+        
+        echo json_encode(['success' => false, 'message' => $user_message]);
     }
 
 } catch (Exception $e) {
