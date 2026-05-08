@@ -458,14 +458,31 @@ require_once 'config/database.php';
         });
     }
 
+    function showCheckoutError(msg) {
+        let errBox = document.getElementById('checkout-error-box');
+        if (!errBox) {
+            errBox = document.createElement('div');
+            errBox.id = 'checkout-error-box';
+            errBox.style.cssText = 'background:#2d0a0a;border:1px solid #7f1d1d;color:#fca5a5;padding:1rem 1.25rem;border-radius:1rem;font-size:12px;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:0.75rem;';
+            document.getElementById('checkoutForm').prepend(errBox);
+        }
+        errBox.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:#ef4444;flex-shrink:0;"></i><span>' + msg + '</span>';
+        errBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
     async function processPayment(cardData) {
         const s1 = document.getElementById('senhaInput').value;
         const s2 = document.getElementById('confSenhaInput').value;
-        if (s1 !== s2) { alert('As senhas não coincidem!'); return; }
+        if (s1 !== s2) { showCheckoutError('As senhas não coincidem. Por favor, verifique.'); return; }
+
+        // Validação básica de documento
+        const docRaw = document.getElementById('cpfInput').value.replace(/\D/g, '');
+        if (docRaw.length < 11) { showCheckoutError('Informe um CPF ou CNPJ válido antes de prosseguir.'); return; }
 
         const btn = document.getElementById('btnSubmit');
+        const currentMethod = document.getElementById('payment_method').value;
         const formData = new FormData(document.getElementById('checkoutForm'));
-        formData.set('documento', document.getElementById('cpfInput').value.replace(/\D/g, ''));
+        formData.set('documento', docRaw);
         formData.set('telefone', document.getElementById('telInput').value.replace(/\D/g, ''));
         if (cardData) {
             formData.append('token', cardData.token);
@@ -474,6 +491,10 @@ require_once 'config/database.php';
             formData.append('issuer_id', cardData.issuer_id);
         }
         
+        // Remover erro anterior
+        const prevErr = document.getElementById('checkout-error-box');
+        if (prevErr) prevErr.remove();
+
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> PROCESSANDO...';
         try {
@@ -491,12 +512,17 @@ require_once 'config/database.php';
                 } else { 
                     startPolling(data.pedido_id); 
                 }
-            } else { 
-                alert(data.message || 'Erro no pagamento.'); 
-                btn.disabled = false; 
-                btn.innerText = 'TENTAR NOVAMENTE'; 
+            } else {
+                const errMsg = data.message || 'Ocorreu um erro ao processar o pagamento. Tente novamente.';
+                showCheckoutError(errMsg);
+                btn.disabled = false;
+                btn.innerHTML = 'PAGAR COM ' + currentMethod.toUpperCase();
             }
-        } catch (e) { alert('Erro de conexão.'); btn.disabled = false; }
+        } catch (e) { 
+            showCheckoutError('Falha na conexão com o servidor. Verifique sua internet e tente novamente.');
+            btn.disabled = false;
+            btn.innerHTML = 'PAGAR COM ' + currentMethod.toUpperCase();
+        }
     }
 
     document.getElementById('checkoutForm').addEventListener('submit', (e) => {
