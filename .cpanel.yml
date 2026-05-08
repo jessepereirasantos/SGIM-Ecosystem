@@ -31,15 +31,11 @@ deployment:
     - /bin/cp -rf SGIM-CLIENTE/includes/system/* /home1/hg9a3205/public_html/includes/system/
     - /bin/cp -rf SGIM-VENDAS/templates /home1/hg9a3205/public_html/
     - /bin/cp -rf SGIM-VENDAS/assets /home1/hg9a3205/public_html/
-    # 5. Certificação Industrial (Hardening & Final Freeze)
-    - /usr/local/bin/php -f /home1/hg9a3205/public_html/includes/system/OtaHardeningAudit.php
-    - /usr/local/bin/php -f /home1/hg9a3205/public_html/includes/system/OtaIntegrationAudit.php
-    
-    # 6. Exibir Certificado Final de Segurança
-    - /bin/cat /home1/hg9a3205/public_html/shared/system/audit/final_freeze.json
-    - /bin/cat /home1/hg9a3205/public_html/shared/system/audit/integration_audit.json
-
-    # 7. Ajuste de Permissões
+    # 5. Ajuste de Permissões
     - /bin/chmod 755 /home1/hg9a3205/public_html/releases
     - /bin/chmod 755 /home1/hg9a3205/public_html/shared
     - /bin/chmod 755 /home1/hg9a3205/public_html/updates
+    - /bin/chmod 755 /home1/hg9a3205/public_html/shared/system/workspace
+    - /bin/chmod 755 /home1/hg9a3205/public_html/shared/system/state
+    - /bin/chmod 755 /home1/hg9a3205/public_html/shared/system/logs
+    - /bin/chmod 755 /home1/hg9a3205/public_html/shared/system/downloads
