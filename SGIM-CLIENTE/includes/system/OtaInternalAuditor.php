@@ -17,7 +17,10 @@ class OtaInternalAuditor {
 
     public function execute() {
         $report = [
-            "timestamp" => date('c'),
+            "audit_signature" => hash('sha256', php_uname() . PHP_VERSION . __DIR__),
+            "audit_version" => "1.0",
+            "generated_at" => date('c'),
+            "environment_mode" => "production",
             "environment" => php_uname(),
             "php_version" => PHP_VERSION,
             "checks" => [
