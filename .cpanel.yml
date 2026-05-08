@@ -1,16 +1,16 @@
+# VERSION: 2026-05-07-REV-D
 ---
 deployment:
   tasks:
-    # 1. Criar apenas as pastas que podem não vir no copy recursivo
+    # 1. Preparar pastas
     - /bin/mkdir -p /home1/hg9a3205/public_html/downloads
 
-    # 2. Deploy em Bloco (Rápido e Atômico)
-    # Copia tudo de SGIM-VENDAS para a raiz do servidor de uma só vez
-    - /bin/cp -R SGIM-VENDAS/* /home1/hg9a3205/public_html/
+    # 2. Deploy Master (Forçado)
+    - /bin/cp -rf SGIM-VENDAS/* /home1/hg9a3205/public_html/
     
-    # 3. Deploy do Cliente
-    - /bin/cp SGIM-CLIENTE/atualizacoes.php /home1/hg9a3205/public_html/
+    # 3. Deploy Cliente
+    - /bin/cp -f SGIM-CLIENTE/atualizacoes.php /home1/hg9a3205/public_html/
 
-    # 4. Permissões Globais (Apenas o necessário)
+    # 4. Permissões
     - /bin/chmod 755 /home1/hg9a3205/public_html/downloads
     - /bin/chmod 644 /home1/hg9a3205/public_html/downloads/sgim_master.zip
