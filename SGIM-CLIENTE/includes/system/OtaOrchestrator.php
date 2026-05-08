@@ -39,10 +39,12 @@ class OtaOrchestrator {
 
             // 1. Discovery (Manifest)
             $manifest = $this->discovery();
+            $this->updateState('discovery', ["last_manifest" => $manifest]);
             
             // 2. Download & Verify SHA256
             if (!$this->config['dry_run']) {
                 $this->downloadEngine->downloadPackage($manifest['url'], $manifest['sha256'], $manifest['version']);
+                $this->updateState('download', ["version" => $manifest['version'], "status" => "SUCCESS"]);
             } else {
                 $this->log("[DRY_RUN] Download simulado para v" . $manifest['version']);
             }
@@ -50,6 +52,7 @@ class OtaOrchestrator {
             // 3. Extraction & Structural Validation
             if (!$this->config['dry_run']) {
                 $this->extractionEngine->extract($manifest['version'], $this->basePath . "shared/system/downloads/release_{$manifest['version']}.zip");
+                $this->updateState('extraction', ["version" => $manifest['version'], "status" => "SUCCESS"]);
             } else {
                 $this->log("[DRY_RUN] Extração simulada");
             }
@@ -81,6 +84,13 @@ class OtaOrchestrator {
         $json = @file_get_contents("https://escolateologicaeloha.com.br/api/update/latest.json");
         if (!$json) throw new Exception("Falha ao consultar Master.");
         return json_decode($json, true);
+    }
+
+    private function updateState($key, $data) {
+        $stateFile = $this->basePath . 'shared/system/state/current_state.json';
+        $state = file_exists($stateFile) ? json_decode(file_get_contents($stateFile), true) : [];
+        $state[$key] = array_merge($data, ["updated_at" => date('c')]);
+        file_put_contents($stateFile, json_encode($state, JSON_PRETTY_PRINT));
     }
 
     private function rollback() {
