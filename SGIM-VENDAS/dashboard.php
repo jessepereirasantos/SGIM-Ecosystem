@@ -63,9 +63,9 @@ if ($error_sql): ?>
             <span class="material-symbols-outlined text-sm">refresh</span>
             Atualizar
         </button>
-        <button onclick="window.location.href='publish_master.php'" class="px-5 py-2.5 rounded-lg bg-primary text-on-primary font-title-sm hover:opacity-90 transition-all flex items-center gap-2">
-            <span class="material-symbols-outlined text-sm">upload</span>
-            Publicar Update
+        <button disabled class="px-5 py-2.5 rounded-lg bg-on-surface-variant/10 text-on-surface-variant/40 font-title-sm cursor-not-allowed flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm">lock</span>
+            Publicador (Em Manutenção)
         </button>
     </div>
 </div>

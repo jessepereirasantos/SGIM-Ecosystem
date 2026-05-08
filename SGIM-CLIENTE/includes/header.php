@@ -17,19 +17,10 @@ if (!$theme) {
 
 $theme_json = json_encode($theme);
 
-// 1. LOGICA DE NOTIFICAÇÃO (SININHO)
+// 1. LOGICA DE NOTIFICAÇÃO (SININHO) - MÓDULO DESATIVADO (NULL STATE)
 $unreadCount = 0;
 $notificacoes = [];
-try {
-    $stmtNotif = $pdo->query("SELECT * FROM sistema_novidades ORDER BY id DESC LIMIT 10");
-    $notificacoes = $stmtNotif->fetchAll(PDO::FETCH_ASSOC);
-    
-    $stmtCount = $pdo->query("SELECT COUNT(*) FROM sistema_novidades WHERE visto = 0");
-    $unreadCount = $stmtCount->fetchColumn();
-} catch (Exception $e) {
-    // Silencer
-}
-$notificacoes_json = json_encode($notificacoes);
+$notificacoes_json = json_encode([]);
 ?>
 <!DOCTYPE html>
 <html :class="darkMode ? 'dark' : ''" lang="pt-br" x-data="themeManager(<?= htmlspecialchars($theme_json) ?>)" x-init="initTheme()">
@@ -162,7 +153,7 @@ $notificacoes_json = json_encode($notificacoes);
                 <h3 class="px-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Configurações</h3>
                 <ul class="space-y-1">
                     <li><a class="flex items-center gap-3 px-3 py-2.5 rounded-twelve <?= ($current_page == 'configuracoes') ? 'bg-brand/10 text-brand' : 'text-gray-400 hover:text-brand hover:bg-white/5' ?> transition-all" href="configuracoes.php"><span class="material-symbols-outlined text-[20px]">settings</span><span class="text-sm">Configurações</span></a></li>
-                    <li><a class="flex items-center gap-3 px-3 py-2.5 rounded-twelve <?= ($current_page == 'atualizacoes') ? 'bg-brand/10 text-brand' : 'text-gray-400 hover:text-brand hover:bg-white/5' ?> transition-all" href="atualizacoes.php"><span class="material-symbols-outlined text-[20px]">system_update</span><span class="text-sm">Atualizações</span></a></li>
+                    <li><a class="flex items-center gap-3 px-3 py-2.5 rounded-twelve <?= ($current_page == 'atualizacoes') ? 'bg-brand/10 text-brand' : 'text-gray-400 hover:text-brand hover:bg-white/5' ?> transition-all opacity-50 cursor-not-allowed" href="#"><span class="material-symbols-outlined text-[20px]">system_update</span><span class="text-sm">Atualizações</span></a></li>
                     <li><a class="flex items-center gap-3 px-3 py-2.5 rounded-twelve text-gray-400 hover:text-red-500 hover:bg-red-500/10 transition-all" href="logout.php"><span class="material-symbols-outlined text-[20px]">logout</span><span class="text-sm">Sair</span></a></li>
                 </ul>
             </div>
