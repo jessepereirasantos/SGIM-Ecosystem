@@ -16,8 +16,6 @@ try {
         $receita_total = $pdo->query("SELECT SUM(valor) FROM pedidos WHERE status = 'pago'")->fetchColumn() ?: 0;
     } catch (Exception $e) { $receita_total = 0; }
 
-    // Última versão do OTA
-    $ultima_versao = $pdo->query("SELECT valor FROM configuracoes WHERE chave = 'system_version'")->fetchColumn() ?: '1.1.0';
 
     // Últimos 5 Clientes
     $ultimos_clientes = $pdo->query("SELECT * FROM clientes ORDER BY id DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC);
@@ -76,14 +74,6 @@ include '../templates/header.php';
                 <h3 class="text-4xl font-black text-white">R$ <?= number_format($receita_total, 2, ',', '.') ?></h3>
             </div>
 
-            <!-- Card: Versão -->
-            <div class="bg-zinc-900/30 border border-zinc-800 p-8 rounded-[32px] hover:border-amber-500/30 transition-all group">
-                <div class="flex justify-between items-start mb-4">
-                    <span class="material-symbols-outlined text-amber-500 text-3xl">verified</span>
-                </div>
-                <p class="text-zinc-500 text-xs font-bold uppercase tracking-widest mb-1">Versão do Engine</p>
-                <h3 class="text-4xl font-black text-white">v<?= $ultima_versao ?></h3>
-            </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">

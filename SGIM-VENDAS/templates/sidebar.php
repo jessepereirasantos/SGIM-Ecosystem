@@ -34,6 +34,12 @@ $current_page = $current_page ?? '';
                         <span class="text-sm">Licenças & Ativação</span>
                     </a>
                 </li>
+                <li>
+                    <a href="relatorios.php" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all <?= ($current_page == 'relatorios') ? 'bg-amber-500 text-black font-bold' : 'text-zinc-400 hover:bg-white/5 hover:text-white' ?>">
+                        <span class="material-symbols-outlined text-[20px]">analytics</span>
+                        <span class="text-sm">Relatórios & Auditoria</span>
+                    </a>
+                </li>
             </ul>
         </div>
 
@@ -51,25 +57,6 @@ $current_page = $current_page ?? '';
                     <a href="cupons.php" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all <?= ($current_page == 'cupons') ? 'bg-amber-500 text-black font-bold' : 'text-zinc-400 hover:bg-white/5 hover:text-white' ?>">
                         <span class="material-symbols-outlined text-[20px]">confirmation_number</span>
                         <span class="text-sm">Cupons & Descontos</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
-
-        <!-- Grupo: Engenharia -->
-        <div>
-            <h3 class="px-4 text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-4">Infraestrutura</h3>
-            <ul class="space-y-1.5">
-                <li>
-                    <a href="publish_master.php" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all text-zinc-400 hover:bg-white/5 hover:text-white">
-                        <span class="material-symbols-outlined text-[20px]">system_update</span>
-                        <span class="text-sm">Publicador OTA</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="relatorios.php" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all <?= ($current_page == 'relatorios') ? 'bg-amber-500 text-black font-bold' : 'text-zinc-400 hover:bg-white/5 hover:text-white' ?>">
-                        <span class="material-symbols-outlined text-[20px]">analytics</span>
-                        <span class="text-sm">Logs & Auditoria</span>
                     </a>
                 </li>
             </ul>
