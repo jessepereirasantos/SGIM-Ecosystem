@@ -20,62 +20,56 @@ class OtaOrchestrator {
     private $downloadEngine;
     private $extractionEngine;
     private $migrationEngine;
-    private $swapEngine;
+    private $activationDriver;
+    private $capabilityManager;
 
     public function __construct($pdo, $basePath) {
         $this->basePath = rtrim($basePath, '/') . '/';
         $this->downloadEngine = new OtaDownloadEngine($this->basePath);
         $this->extractionEngine = new OtaExtractionEngine($this->basePath);
         $this->migrationEngine = new OtaMigrationEngine($pdo, $this->basePath);
-        $this->swapEngine = new OtaSwapEngine($this->basePath);
+        
+        // INTEGRAÇÃO ADAPTATIVA 10D
+        $this->capabilityManager = new OtaCapabilityManager($this->basePath);
+        $capabilities = $this->capabilityManager->generateReport();
+        
+        $driverClass = "\\SGIM\\OTA\\Drivers\\" . $capabilities['driver_analysis']['recommended_driver'];
+        if (class_exists($driverClass)) {
+            $this->activationDriver = new $driverClass($this->basePath);
+        }
     }
 
     /**
-     * Fluxo Transacional de 13 Etapas
+     * Fluxo Transacional Integrado
      */
     public function updateLifecycle() {
         try {
-            $this->log("Iniciando Ciclo de Atualização (MODO: DRY_RUN)");
+            $this->log("Iniciando Ciclo Integrado (Driver: " . get_class($this->activationDriver) . ")");
 
             // 1. Discovery (Manifest)
             $manifest = $this->discovery();
             $this->updateState('discovery', ["last_manifest" => $manifest]);
             
             // 2. Download & Verify SHA256
-            if (!$this->config['dry_run']) {
-                $this->downloadEngine->downloadPackage($manifest['url'], $manifest['sha256'], $manifest['version']);
-                $this->updateState('download', ["version" => $manifest['version'], "status" => "SUCCESS"]);
-            } else {
-                $this->log("[DRY_RUN] Download simulado para v" . $manifest['version']);
-            }
+            $this->downloadEngine->downloadPackage($manifest['url'], $manifest['sha256'], $manifest['version']);
+            $this->updateState('download', ["version" => $manifest['version'], "status" => "SUCCESS"]);
 
             // 3. Extraction & Structural Validation
-            if (!$this->config['dry_run']) {
-                $this->extractionEngine->extract($manifest['version'], $this->basePath . "shared/system/downloads/release_{$manifest['version']}.zip");
-                $this->updateState('extraction', ["version" => $manifest['version'], "status" => "SUCCESS"]);
-            } else {
-                $this->log("[DRY_RUN] Extração simulada");
+            $versionPath = $this->basePath . "releases/v" . $manifest['version'] . "/";
+            $this->extractionEngine->extract($manifest['version'], $this->basePath . "shared/system/downloads/release_{$manifest['version']}.zip");
+            $this->updateState('extraction', ["version" => $manifest['version'], "status" => "SUCCESS"]);
+
+            // 4. Driver Staging (Backup + Impact Report)
+            if ($this->activationDriver) {
+                $this->activationDriver->prepareActivation($versionPath, $manifest);
             }
 
-            // 4. Migration Dry Run
-            $this->log("[DRY_RUN] Validação de Migrações (Expand/Contract)");
-
-            // 5. WAIT STATE (Manual Approval)
-            $this->log("[WAIT] Ciclo parado em STAGING. Aguardando aprovação manual para SWAP.");
-            
-            if (!$this->config['activation_enabled']) {
-                $this->log("[SAFETY] Ativação desabilitada por política de segurança da Fase 7.");
-                return "STAGING_READY";
-            }
-
-            // 6. Swap & Healthcheck (BLOQUEADO NESTA FASE)
-            $this->log("[CRITICAL] Swap bloqueado nas diretrizes da Fase 7.");
-            
-            return "SUCCESS_DRY_RUN";
+            // 5. WAIT STATE (Aprovação Manual Obrigatória)
+            $this->log("[WAIT] Sistema pronto em STAGING. Aguardando comando manual para COMMIT.");
+            return "READY_FOR_COMMIT";
 
         } catch (Exception $e) {
-            $this->log("FALHA NO CICLO: " . $e->getMessage());
-            $this->rollback();
+            $this->log("FALHA NO CICLO INTEGRADO: " . $e->getMessage());
             return "FAIL";
         }
     }
