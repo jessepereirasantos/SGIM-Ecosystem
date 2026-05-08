@@ -1,9 +1,24 @@
 ---
 deployment:
   tasks:
-    # 1. Deploy Direto do Master (SGIM-VENDAS)
-    - /bin/cp -R SGIM-VENDAS/* /home1/hg9a3205/public_html/
-    
-    # 2. Deploy Direto do Cliente (SGIM-CLIENTE)
-    - /bin/cp SGIM-CLIENTE/atualizacoes.php /home1/hg9a3205/public_html/
-    - /bin/cp SGIM-CLIENTE/includes/header.php /home1/hg9a3205/public_html/includes/
+    # 1. Garantir que os diretórios base existem
+    - /bin/mkdir -p /home1/hg9a3205/public_html/api/checkout
+    - /bin/mkdir -p /home1/hg9a3205/public_html/config
+    - /bin/mkdir -p /home1/hg9a3205/public_html/includes
+    - /bin/mkdir -p /home1/hg9a3205/public_html/templates
+    - /bin/mkdir -p /home1/hg9a3205/public_html/assets
+
+    # 2. Deploy do Master (SGIM-VENDAS) - Copia pasta por pasta para evitar erros de permissão
+    - /bin/cp -R /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/api/* /home1/hg9a3205/public_html/api/
+    - /bin/cp -R /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/config/* /home1/hg9a3205/public_html/config/
+    - /bin/cp -R /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/includes/* /home1/hg9a3205/public_html/includes/
+    - /bin/cp -R /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/templates/* /home1/hg9a3205/public_html/templates/
+    - /bin/cp -R /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/assets/* /home1/hg9a3205/public_html/assets/
+    - /bin/cp /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/*.php /home1/hg9a3205/public_html/
+
+    # 3. Deploy do Cliente (Arquivos base necessários no Master)
+    - /bin/cp /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-CLIENTE/atualizacoes.php /home1/hg9a3205/public_html/
+
+    # 4. Ajuste de Permissões Críticas
+    - /bin/chmod 755 /home1/hg9a3205/public_html/api
+    - /bin/chmod 755 /home1/hg9a3205/public_html/config
