@@ -58,4 +58,4 @@ $zip->close();
 
 echo "<h1>📦 Pacote sgim_master.zip Atualizado!</h1>";
 echo "<p>Versão de Produção v1.2.0 gerada com sucesso.</p>";
-echo "<p>Novos clientes agora receberão o Motor OTA v4.0 automaticamente.</p>";
+echo "<p>Novos clientes agora receberão o pacote base estável.</p>";
