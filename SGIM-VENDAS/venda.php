@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 require_once 'config/database.php';
 ?>
@@ -171,11 +171,11 @@ require_once 'config/database.php';
                         <div class="grid grid-cols-2 gap-4">
                             <div class="space-y-1">
                                 <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Criar Senha</label>
-                                <input name="senha" id="senhaInput" required class="input-style" placeholder="ÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇó" type="password">
+                                <input name="senha" id="senhaInput" required class="input-style" placeholder="********" type="password">
                             </div>
                             <div class="space-y-1">
                                 <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Confirmar Senha</label>
-                                <input id="confSenhaInput" required class="input-style" placeholder="ÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇó" type="password">
+                                <input id="confSenhaInput" required class="input-style" placeholder="********" type="password">
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
