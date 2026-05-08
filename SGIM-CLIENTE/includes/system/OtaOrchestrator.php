@@ -74,6 +74,39 @@ class OtaOrchestrator {
         }
     }
 
+    /**
+     * Execução Final (Ativação Real)
+     */
+    public function commitUpdate($version) {
+        try {
+            $this->log("COMANDO MANUAL: Ativando versão $version");
+            $versionPath = $this->basePath . "releases/v" . $version . "/";
+            $manifest = json_decode(file_get_contents($versionPath . 'release_manifest.json'), true);
+
+            if ($this->activationDriver->activate($versionPath, $manifest)) {
+                $this->updateState('activation', ["version" => $version, "status" => "ACTIVE"]);
+                return true;
+            }
+            return false;
+        } catch (Exception $e) {
+            $this->log("ERRO NO COMMIT: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Reversão Manual
+     */
+    public function rollbackUpdate($version) {
+        try {
+            $this->log("COMANDO MANUAL: Revertendo versão $version");
+            return $this->activationDriver->rollback($version);
+        } catch (Exception $e) {
+            $this->log("ERRO NO ROLLBACK: " . $e->getMessage());
+            return false;
+        }
+    }
+
     private function discovery() {
         $json = @file_get_contents("https://escolateologicaeloha.com.br/api/update/latest.json");
         if (!$json) throw new Exception("Falha ao consultar Master.");
