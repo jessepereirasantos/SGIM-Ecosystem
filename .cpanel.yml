@@ -1,6 +1,24 @@
 ---
 deployment:
   tasks:
-    # Formato original e funcional
-    - /bin/cp -R SGIM-VENDAS/* /home1/hg9a3205/public_html/
+    # 1. Garantir que os diretórios base existem (Integridade do Checkout)
+    - /bin/mkdir -p /home1/hg9a3205/public_html/api/checkout
+    - /bin/mkdir -p /home1/hg9a3205/public_html/config
+    - /bin/mkdir -p /home1/hg9a3205/public_html/includes
+    - /bin/mkdir -p /home1/hg9a3205/public_html/templates
+    - /bin/mkdir -p /home1/hg9a3205/public_html/assets
+
+    # 2. Deploy do Master (SGIM-VENDAS) - Cópia pasta por pasta garante que nada fique para trás
+    - /bin/cp -R SGIM-VENDAS/api/* /home1/hg9a3205/public_html/api/
+    - /bin/cp -R SGIM-VENDAS/config/* /home1/hg9a3205/public_html/config/
+    - /bin/cp -R SGIM-VENDAS/includes/* /home1/hg9a3205/public_html/includes/
+    - /bin/cp -R SGIM-VENDAS/templates/* /home1/hg9a3205/public_html/templates/
+    - /bin/cp -R SGIM-VENDAS/assets/* /home1/hg9a3205/public_html/assets/
+    - /bin/cp SGIM-VENDAS/*.php /home1/hg9a3205/public_html/
+
+    # 3. Deploy do Cliente
     - /bin/cp SGIM-CLIENTE/atualizacoes.php /home1/hg9a3205/public_html/
+
+    # 4. Ajuste de Permissões Críticas
+    - /bin/chmod 755 /home1/hg9a3205/public_html/api
+    - /bin/chmod 755 /home1/hg9a3205/public_html/config
