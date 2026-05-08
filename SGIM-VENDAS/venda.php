@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 require_once 'config/database.php';
 ?>
@@ -45,7 +45,7 @@ require_once 'config/database.php';
         /* Ajustes para o Brick do Mercado Pago combinar com o tema */
         #cardPaymentBrick_container iframe { border-radius: 1.25rem !important; background-color: #0a0a0a !important; box-shadow: none !important; }
 
-        /* Estilização forçada */
+        /* Estiliza├º├úo for├ºada */
         .mp-brick-card-form { background-color: #0a0a0a !important; color: #ffffff !important; border: none !important; }
         
         /* Efeito de brilho Destaque Cupom */
@@ -58,7 +58,7 @@ require_once 'config/database.php';
     </style>
 </head>
 <body class="antialiased pb-20 px-6">
-    <!-- Cabeçalho de Checkout Seguro -->
+    <!-- Cabe├ºalho de Checkout Seguro -->
     <header class="max-w-7xl mx-auto py-8 flex justify-between items-center border-b border-white/[0.05] mb-12">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 bg-accent-gold rounded-xl flex items-center justify-center text-black shadow-lg shadow-accent-gold/20">
@@ -66,7 +66,7 @@ require_once 'config/database.php';
             </div>
             <div>
                 <h2 class="text-xl font-black text-white leading-none">SGIM <span class="text-accent-gold">MASTER</span></h2>
-                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Gestão Inteligente</p>
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Gest├úo Inteligente</p>
             </div>
         </div>
         <div class="flex items-center gap-4 text-slate-400">
@@ -81,49 +81,49 @@ require_once 'config/database.php';
     </header>
 
     <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-12 items-start">
-        <!-- Lado Esquerdo: Features e Preço -->
+        <!-- Lado Esquerdo: Features e Pre├ºo -->
         <div class="flex-1 space-y-10">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="feature-card flex items-start gap-4">
                     <span class="material-icons text-accent-gold text-3xl">group</span>
                     <div>
-                        <h4 class="text-white font-bold text-sm">Gestão completa de membros</h4>
-                        <p class="text-slate-500 text-xs">Controle total dos seus fiéis e visitantes.</p>
+                        <h4 class="text-white font-bold text-sm">Gest├úo completa de membros</h4>
+                        <p class="text-slate-500 text-xs">Controle total dos seus fi├®is e visitantes.</p>
                     </div>
                 </div>
                 <!-- ... Outros cards ... -->
                 <div class="feature-card flex items-start gap-4">
                     <span class="material-icons text-accent-gold text-3xl">account_balance_wallet</span>
                     <div>
-                        <h4 class="text-white font-bold text-sm">Controle financeiro avançado</h4>
-                        <p class="text-slate-500 text-xs">Dízimos, ofertas e relatórios detalhados.</p>
+                        <h4 class="text-white font-bold text-sm">Controle financeiro avan├ºado</h4>
+                        <p class="text-slate-500 text-xs">D├¡zimos, ofertas e relat├│rios detalhados.</p>
                     </div>
                 </div>
                 <div class="feature-card flex items-start gap-4">
                     <span class="material-icons text-accent-gold text-3xl">event_available</span>
                     <div>
                         <h4 class="text-white font-bold text-sm">Agenda de eventos</h4>
-                        <p class="text-slate-500 text-xs">Organize cultos, reuniões e festividades.</p>
+                        <p class="text-slate-500 text-xs">Organize cultos, reuni├Áes e festividades.</p>
                     </div>
                 </div>
                 <div class="feature-card flex items-start gap-4">
                     <span class="material-icons text-accent-gold text-3xl">analytics</span>
                     <div>
-                        <h4 class="text-white font-bold text-sm">Relatórios em tempo real</h4>
+                        <h4 class="text-white font-bold text-sm">Relat├│rios em tempo real</h4>
                         <p class="text-slate-500 text-xs">Dashboards inteligentes.</p>
                     </div>
                 </div>
                 <div class="feature-card flex items-start gap-4">
                     <span class="material-icons text-accent-gold text-3xl">cloud_done</span>
                     <div>
-                        <h4 class="text-white font-bold text-sm">Backup automático diário</h4>
+                        <h4 class="text-white font-bold text-sm">Backup autom├ítico di├írio</h4>
                         <p class="text-slate-500 text-xs">Seus dados sempre seguros.</p>
                     </div>
                 </div>
                 <div class="feature-card flex items-start gap-4">
                     <span class="material-icons text-accent-gold text-3xl">support_agent</span>
                     <div>
-                        <h4 class="text-white font-bold text-sm">Suporte prioritário VIP</h4>
+                        <h4 class="text-white font-bold text-sm">Suporte priorit├írio VIP</h4>
                         <p class="text-slate-500 text-xs">Atendimento via WhatsApp.</p>
                     </div>
                 </div>
@@ -131,16 +131,16 @@ require_once 'config/database.php';
 
             <div class="price-card flex flex-col md:flex-row justify-between items-center gap-8">
                 <div class="space-y-1">
-                    <p class="text-accent-gold font-black text-xs uppercase tracking-widest italic">Investimento Único</p>
+                    <p class="text-accent-gold font-black text-xs uppercase tracking-widest italic">Investimento ├Ünico</p>
                     <div class="flex items-baseline gap-2">
                         <span class="text-slate-300 text-2xl font-black">R$</span>
                         <span class="text-6xl font-black text-white" id="totalDisplay"><?php echo number_format(PRODUCT_PRICE, 2, ',', '.'); ?></span>
-                        <span class="text-slate-400 font-bold text-sm">/ único</span>
+                        <span class="text-slate-400 font-bold text-sm">/ ├║nico</span>
                     </div>
                 </div>
                 <div class="text-center md:text-right">
                     <p class="text-slate-500 text-sm font-medium mb-1">Economize mais de R$ 2.400 anual</p>
-                    <p class="text-white font-black text-lg uppercase tracking-tight">ACESSO VITALÍCIO <br> <span class="text-accent-gold">LIBERADO</span></p>
+                    <p class="text-white font-black text-lg uppercase tracking-tight">ACESSO VITAL├ìCIO <br> <span class="text-accent-gold">LIBERADO</span></p>
                 </div>
             </div>
         </div>
@@ -171,11 +171,11 @@ require_once 'config/database.php';
                         <div class="grid grid-cols-2 gap-4">
                             <div class="space-y-1">
                                 <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Criar Senha</label>
-                                <input name="senha" id="senhaInput" required class="input-style" placeholder="••••••••" type="password">
+                                <input name="senha" id="senhaInput" required class="input-style" placeholder="ÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇó" type="password">
                             </div>
                             <div class="space-y-1">
                                 <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Confirmar Senha</label>
-                                <input id="confSenhaInput" required class="input-style" placeholder="••••••••" type="password">
+                                <input id="confSenhaInput" required class="input-style" placeholder="ÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇó" type="password">
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
@@ -207,7 +207,7 @@ require_once 'config/database.php';
                         <div class="pt-2">
                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Cupom de Desconto</p>
                            <div class="flex gap-2">
-                               <input id="couponInput" name="cupom" class="input-style" placeholder="Código do cupom" type="text" autocomplete="off">
+                               <input id="couponInput" name="cupom" class="input-style" placeholder="C├│digo do cupom" type="text" autocomplete="off">
                                <button type="button" onclick="applyCoupon()" class="bg-white/[0.1] hover:bg-white/[0.2] text-white font-bold px-6 rounded-xl transition-all text-xs">Aplicar</button>
                            </div>
                            <p id="couponMessage" class="mt-2 text-[10px] font-bold hidden"></p>
@@ -216,7 +216,7 @@ require_once 'config/database.php';
 
                     <div class="bg-white/[0.03] p-6 rounded-2xl border border-white/[0.05]">
                         <div class="flex justify-between items-center mb-1 text-slate-400 text-xs">
-                            <span>Licença Vitalícia SGIM</span>
+                            <span>Licen├ºa Vital├¡cia SGIM</span>
                             <span class="text-white font-bold">R$ <?php echo number_format(PRODUCT_PRICE, 2, ',', '.'); ?></span>
                         </div>
                         <div class="flex justify-between items-center pt-2 border-t border-white/[0.05]">
@@ -234,7 +234,7 @@ require_once 'config/database.php';
                             </button>
                             <button type="button" onclick="setPaymentMethod('card')" id="btn-card" class="payment-btn flex flex-col items-center justify-center gap-2 p-4 rounded-xl border border-white/[0.05] bg-black">
                                 <span class="material-icons text-2xl">credit_card</span>
-                                <span class="text-[10px] font-bold">Cartão</span>
+                                <span class="text-[10px] font-bold">Cart├úo</span>
                             </button>
                             <button type="button" onclick="setPaymentMethod('boleto')" id="btn-boleto" class="payment-btn flex flex-col items-center justify-center gap-2 p-4 rounded-xl border border-white/[0.05] bg-black">
                                 <span class="material-icons text-2xl">description</span>
@@ -270,7 +270,7 @@ require_once 'config/database.php';
             <h3 class="text-3xl font-black text-white mb-6 leading-tight">Pagamento confirmado <br> com sucesso!</h3>
             <div class="space-y-2 mb-10">
                 <p class="text-slate-300 text-lg font-medium">Seu acesso foi liberado.</p>
-                <p class="text-slate-500 text-sm">Você está sendo redirecionado para sua dashboard...</p>
+                <p class="text-slate-500 text-sm">Voc├¬ est├í sendo redirecionado para sua dashboard...</p>
             </div>
             <p class="text-[10px] text-slate-600 uppercase font-black tracking-[0.3em]">Aguarde...</p>
         </div>
@@ -326,10 +326,10 @@ require_once 'config/database.php';
             if (data.success) {
                 finalPrice = parseFloat(data.valor_final || data.novo_valor);
                 
-                // Regra de Ouro: Mercado Pago Cartão exige valor mínimo (Geralmente R$ 0,50 a R$ 1,00)
+                // Regra de Ouro: Mercado Pago Cart├úo exige valor m├¡nimo (Geralmente R$ 0,50 a R$ 1,00)
                 // Se o cupom for muito agressivo, avisamos
                 if (finalPrice < 0.50) {
-                   msg.innerText = '⚠️ O valor mínimo para cartão é R$ 0,50. Ajustando...';
+                   msg.innerText = 'ÔÜá´©Å O valor m├¡nimo para cart├úo ├® R$ 0,50. Ajustando...';
                    finalPrice = 0.50;
                 }
 
@@ -338,7 +338,7 @@ require_once 'config/database.php';
                 if (document.getElementById('finalTotalDisplay')) document.getElementById('finalTotalDisplay').innerText = 'R$ ' + formatted;
                 if (document.getElementById('pixValueDisplay')) document.getElementById('pixValueDisplay').innerText = 'R$ ' + formatted;
                 
-                msg.innerText = '🎉 Cupom aplicado com sucesso!';
+                msg.innerText = '­ƒÄë Cupom aplicado com sucesso!';
                 msg.className = 'text-green-500 mt-2 text-[10px] font-bold block';
                 
                 // Feedback visual de brilho no container
@@ -346,7 +346,7 @@ require_once 'config/database.php';
                 chk.classList.add('coupon-success');
                 setTimeout(() => chk.classList.remove('coupon-success'), 2000);
                 
-                // Reinicialização BRUTAL do Card Brick (Necessária para atualizar o 'amount')
+                // Reinicializa├º├úo BRUTAL do Card Brick (Necess├íria para atualizar o 'amount')
                 if (document.getElementById('payment_method').value === 'card') {
                     try {
                         if (cardPaymentBrickController) {
@@ -363,7 +363,7 @@ require_once 'config/database.php';
                     }, 1200);
                 }
             } else {
-                msg.innerText = data.message || 'Cupom inválido.';
+                msg.innerText = data.message || 'Cupom inv├ílido.';
                 msg.className = 'text-red-500 mt-2 text-[10px] font-bold block';
             }
         } catch (e) { 
@@ -427,11 +427,11 @@ require_once 'config/database.php';
                         }
                     },
                     texts: {
-                        formTitle: 'Dados do Cartão de Crédito',
-                        emailSectionTitle: 'Titular do Cartão',
+                        formTitle: 'Dados do Cart├úo de Cr├®dito',
+                        emailSectionTitle: 'Titular do Cart├úo',
                         installmentsSectionTitle: 'Parcelas',
                         cardholderName: {
-                            label: 'Nome impresso no cartão',
+                            label: 'Nome impresso no cart├úo',
                             placeholder: 'Ex: MARIA S PEREIRA'
                         }
                     }
@@ -450,7 +450,7 @@ require_once 'config/database.php';
                 onSubmit: (d) => processPayment(d),
                 onError: (e) => {
                     console.error('MP Error:', e);
-                    // Em caso de erro crítico, tenta resetar o container
+                    // Em caso de erro cr├¡tico, tenta resetar o container
                     document.getElementById('cardPaymentBrick_container').innerHTML = '';
                     initCardBrick();
                 }
@@ -458,31 +458,14 @@ require_once 'config/database.php';
         });
     }
 
-    function showCheckoutError(msg) {
-        let errBox = document.getElementById('checkout-error-box');
-        if (!errBox) {
-            errBox = document.createElement('div');
-            errBox.id = 'checkout-error-box';
-            errBox.style.cssText = 'background:#2d0a0a;border:1px solid #7f1d1d;color:#fca5a5;padding:1rem 1.25rem;border-radius:1rem;font-size:12px;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:0.75rem;';
-            document.getElementById('checkoutForm').prepend(errBox);
-        }
-        errBox.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:#ef4444;flex-shrink:0;"></i><span>' + msg + '</span>';
-        errBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-
     async function processPayment(cardData) {
         const s1 = document.getElementById('senhaInput').value;
         const s2 = document.getElementById('confSenhaInput').value;
-        if (s1 !== s2) { showCheckoutError('As senhas não coincidem. Por favor, verifique.'); return; }
-
-        // Validação básica de documento
-        const docRaw = document.getElementById('cpfInput').value.replace(/\D/g, '');
-        if (docRaw.length < 11) { showCheckoutError('Informe um CPF ou CNPJ válido antes de prosseguir.'); return; }
+        if (s1 !== s2) { alert('As senhas n├úo coincidem!'); return; }
 
         const btn = document.getElementById('btnSubmit');
-        const currentMethod = document.getElementById('payment_method').value;
         const formData = new FormData(document.getElementById('checkoutForm'));
-        formData.set('documento', docRaw);
+        formData.set('documento', document.getElementById('cpfInput').value.replace(/\D/g, ''));
         formData.set('telefone', document.getElementById('telInput').value.replace(/\D/g, ''));
         if (cardData) {
             formData.append('token', cardData.token);
@@ -491,10 +474,6 @@ require_once 'config/database.php';
             formData.append('issuer_id', cardData.issuer_id);
         }
         
-        // Remover erro anterior
-        const prevErr = document.getElementById('checkout-error-box');
-        if (prevErr) prevErr.remove();
-
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> PROCESSANDO...';
         try {
@@ -512,17 +491,12 @@ require_once 'config/database.php';
                 } else { 
                     startPolling(data.pedido_id); 
                 }
-            } else {
-                const errMsg = data.message || 'Ocorreu um erro ao processar o pagamento. Tente novamente.';
-                showCheckoutError(errMsg);
-                btn.disabled = false;
-                btn.innerHTML = 'PAGAR COM ' + currentMethod.toUpperCase();
+            } else { 
+                alert(data.message || 'Erro no pagamento.'); 
+                btn.disabled = false; 
+                btn.innerText = 'TENTAR NOVAMENTE'; 
             }
-        } catch (e) { 
-            showCheckoutError('Falha na conexão com o servidor. Verifique sua internet e tente novamente.');
-            btn.disabled = false;
-            btn.innerHTML = 'PAGAR COM ' + currentMethod.toUpperCase();
-        }
+        } catch (e) { alert('Erro de conex├úo.'); btn.disabled = false; }
     }
 
     document.getElementById('checkoutForm').addEventListener('submit', (e) => {
@@ -559,7 +533,7 @@ require_once 'config/database.php';
     }
 
     function showSuccessModal(url) {
-        // Garante que a área do PIX ou formulário suma
+        // Garante que a ├írea do PIX ou formul├írio suma
         document.getElementById('checkoutForm').classList.add('hidden');
         document.getElementById('pixArea').classList.add('hidden');
         
@@ -568,7 +542,7 @@ require_once 'config/database.php';
         modal.classList.remove('hidden');
         modal.classList.add('flex');
         
-        // Redirecionamento após 3 segundos
+        // Redirecionamento ap├│s 3 segundos
         setTimeout(() => {
             window.location.href = url || 'cliente/dashboard.php?success=1';
         }, 3000);
