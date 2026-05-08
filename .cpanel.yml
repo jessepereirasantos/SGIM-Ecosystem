@@ -1,22 +1,16 @@
 ---
 deployment:
   tasks:
-    # 1. Preparação de Infraestrutura
+    # 1. Copia tudo de VENDAS (Formato original que você prefere)
+    - /bin/cp -R SGIM-VENDAS/* /home1/hg9a3205/public_html/
+    
+    # 2. Garante a pasta de downloads (Seguindo o mesmo formato)
     - /bin/mkdir -p /home1/hg9a3205/public_html/downloads
-    - /bin/chmod 755 /home1/hg9a3205/public_html/downloads
-
-    # 2. Deploy do Arquivo ZIP (Tarefa Isolada)
-    # Usamos o caminho relativo para máxima performance no Git do cPanel
-    - /bin/cp SGIM-VENDAS/downloads/sgim_master.zip /home1/hg9a3205/public_html/downloads/sgim_master.zip
-    - /bin/chmod 644 /home1/hg9a3205/public_html/downloads/sgim_master.zip
-
-    # 3. Deploy do Sistema (Código PHP e Assets)
-    - /bin/cp -rf SGIM-VENDAS/api /home1/hg9a3205/public_html/
-    - /bin/cp -rf SGIM-VENDAS/config /home1/hg9a3205/public_html/
-    - /bin/cp -rf SGIM-VENDAS/includes /home1/hg9a3205/public_html/
-    - /bin/cp -rf SGIM-VENDAS/templates /home1/hg9a3205/public_html/
-    - /bin/cp -rf SGIM-VENDAS/assets /home1/hg9a3205/public_html/
-    - /bin/cp SGIM-VENDAS/*.php /home1/hg9a3205/public_html/
-
-    # 4. Deploy do Cliente
+    - /bin/cp -R SGIM-VENDAS/downloads/* /home1/hg9a3205/public_html/downloads/
+    
+    # 3. Copia o arquivo do CLIENTE
     - /bin/cp SGIM-CLIENTE/atualizacoes.php /home1/hg9a3205/public_html/
+
+    # 4. Ajuste de permissão simples
+    - /bin/chmod 755 /home1/hg9a3205/public_html/downloads
+    - /bin/chmod 644 /home1/hg9a3205/public_html/downloads/sgim_master.zip
