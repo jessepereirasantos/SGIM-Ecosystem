@@ -64,7 +64,12 @@ class OtaOrchestrator {
                 $this->activationDriver->prepareActivation($versionPath, $manifest);
             }
 
-            // 5. WAIT STATE (Aprovação Manual Obrigatória)
+            // 5. Database Migrations (Auto-execution)
+            $this->log("Iniciando Migrações Automáticas...");
+            $this->migrationEngine->migrate();
+            $this->updateState('migration', ["status" => "SUCCESS"]);
+
+            // 6. WAIT STATE (Aprovação Manual Obrigatória)
             $this->log("[WAIT] Sistema pronto em STAGING. Aguardando comando manual para COMMIT.");
             return "READY_FOR_COMMIT";
 

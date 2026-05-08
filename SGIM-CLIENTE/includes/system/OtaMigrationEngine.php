@@ -20,19 +20,25 @@ class OtaMigrationEngine {
         $this->statePath = rtrim($basePath, '/') . '/shared/system/state/';
         $this->migrationsPath = rtrim($basePath, '/') . '/shared/system/migrations/';
         $this->logsPath = rtrim($basePath, '/') . '/shared/system/logs/';
-        $this->ensureMigrationTable();
+        $this->ensureBaseline();
     }
 
     /**
-     * Garantir tabela interna de controle (Se o DB existir)
+     * Estabelece a fundação de dados (Self-Provisioning)
      */
-    private function ensureMigrationTable() {
+    private function ensureBaseline() {
         $sql = "CREATE TABLE IF NOT EXISTS ota_migrations_history (
             id INT AUTO_INCREMENT PRIMARY KEY,
             migration_name VARCHAR(255) NOT NULL UNIQUE,
             applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )";
-        $this->pdo->exec($sql);
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+        
+        try {
+            $this->pdo->exec($sql);
+        } catch (Exception $e) {
+            // Falha silenciosa em runtime - logs internos tratam o erro
+            $this->log("Erro ao garantir baseline de banco: " . $e->getMessage());
+        }
     }
 
     /**
