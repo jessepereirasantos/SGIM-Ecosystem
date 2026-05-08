@@ -1,13 +1,10 @@
 ---
 deployment:
   tasks:
-    # 1. Limpeza de Resíduos Técnicos (Segurança Máxima)
     - /bin/rm -f /home1/hg9a3205/public_html/ota_env_audit.php
     - /bin/rm -f /home1/hg9a3205/public_html/check_server.php
     - /bin/rm -f /home1/hg9a3205/public_html/init_foundation.php
     - /bin/rm -f /home1/hg9a3205/public_html/foundation_audit.log
-
-    # 2. Criação da Estrutura Segura (ZONA PROTEGIDA)
     - /bin/mkdir -p /home1/hg9a3205/public_html/releases
     - /bin/mkdir -p /home1/hg9a3205/public_html/shared/system/audit
     - /bin/mkdir -p /home1/hg9a3205/public_html/shared/system/releases
@@ -16,14 +13,10 @@ deployment:
     - /bin/mkdir -p /home1/hg9a3205/public_html/shared/system/logs
     - /bin/mkdir -p /home1/hg9a3205/public_html/updates/workspace
     - /bin/mkdir -p /home1/hg9a3205/public_html/api/update/packages
-
-    # 3. Proteção Atômica (.htaccess deny from all)
     - /bin/echo "Order Deny,Allow\nDeny from all" > /home1/hg9a3205/public_html/releases/.htaccess
     - /bin/echo "Order Deny,Allow\nDeny from all" > /home1/hg9a3205/public_html/shared/.htaccess
     - /bin/echo "Order Deny,Allow\nDeny from all" > /home1/hg9a3205/public_html/updates/.htaccess
     - /bin/echo "Order Deny,Allow\nDeny from all" > /home1/hg9a3205/public_html/api/update/packages/.htaccess
-
-    # 4. Deploy do Código Operacional
     - /bin/mkdir -p /home1/hg9a3205/public_html/includes/system
     - /bin/cp -rf SGIM-VENDAS/api /home1/hg9a3205/public_html/
     - /bin/cp -rf SGIM-VENDAS/config /home1/hg9a3205/public_html/
@@ -31,7 +24,6 @@ deployment:
     - /bin/cp -rf SGIM-CLIENTE/includes/system/* /home1/hg9a3205/public_html/includes/system/
     - /bin/cp -rf SGIM-VENDAS/templates /home1/hg9a3205/public_html/
     - /bin/cp -rf SGIM-VENDAS/assets /home1/hg9a3205/public_html/
-    # 5. Ajuste de Permissões
     - /bin/chmod 755 /home1/hg9a3205/public_html/releases
     - /bin/chmod 755 /home1/hg9a3205/public_html/shared
     - /bin/chmod 755 /home1/hg9a3205/public_html/updates
