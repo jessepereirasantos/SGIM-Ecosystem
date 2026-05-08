@@ -1,24 +1,22 @@
 ---
 deployment:
   tasks:
-    # 1. Garantir que os diretórios base existem
-    - /bin/mkdir -p /home1/hg9a3205/public_html/api/checkout
-    - /bin/mkdir -p /home1/hg9a3205/public_html/config
-    - /bin/mkdir -p /home1/hg9a3205/public_html/includes
-    - /bin/mkdir -p /home1/hg9a3205/public_html/templates
-    - /bin/mkdir -p /home1/hg9a3205/public_html/assets
+    # 1. Preparação de Infraestrutura
+    - /bin/mkdir -p /home1/hg9a3205/public_html/downloads
+    - /bin/chmod 755 /home1/hg9a3205/public_html/downloads
 
-    # 2. Deploy do Master (SGIM-VENDAS) - Copia pasta por pasta para evitar erros de permissão
-    - /bin/cp -R /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/api/* /home1/hg9a3205/public_html/api/
-    - /bin/cp -R /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/config/* /home1/hg9a3205/public_html/config/
-    - /bin/cp -R /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/includes/* /home1/hg9a3205/public_html/includes/
-    - /bin/cp -R /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/templates/* /home1/hg9a3205/public_html/templates/
-    - /bin/cp -R /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/assets/* /home1/hg9a3205/public_html/assets/
-    - /bin/cp /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-VENDAS/*.php /home1/hg9a3205/public_html/
+    # 2. Deploy do Arquivo ZIP (Tarefa Isolada)
+    # Usamos o caminho relativo para máxima performance no Git do cPanel
+    - /bin/cp SGIM-VENDAS/downloads/sgim_master.zip /home1/hg9a3205/public_html/downloads/sgim_master.zip
+    - /bin/chmod 644 /home1/hg9a3205/public_html/downloads/sgim_master.zip
 
-    # 3. Deploy do Cliente (Arquivos base necessários no Master)
-    - /bin/cp /home1/hg9a3205/repositories/SGIM-Ecosystem/SGIM-CLIENTE/atualizacoes.php /home1/hg9a3205/public_html/
+    # 3. Deploy do Sistema (Código PHP e Assets)
+    - /bin/cp -rf SGIM-VENDAS/api /home1/hg9a3205/public_html/
+    - /bin/cp -rf SGIM-VENDAS/config /home1/hg9a3205/public_html/
+    - /bin/cp -rf SGIM-VENDAS/includes /home1/hg9a3205/public_html/
+    - /bin/cp -rf SGIM-VENDAS/templates /home1/hg9a3205/public_html/
+    - /bin/cp -rf SGIM-VENDAS/assets /home1/hg9a3205/public_html/
+    - /bin/cp SGIM-VENDAS/*.php /home1/hg9a3205/public_html/
 
-    # 4. Ajuste de Permissões Críticas
-    - /bin/chmod 755 /home1/hg9a3205/public_html/api
-    - /bin/chmod 755 /home1/hg9a3205/public_html/config
+    # 4. Deploy do Cliente
+    - /bin/cp SGIM-CLIENTE/atualizacoes.php /home1/hg9a3205/public_html/
