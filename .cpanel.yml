@@ -1,17 +1,6 @@
 ---
 deployment:
   tasks:
-    # 1. Garantir pastas base
-    - /bin/mkdir -p /home1/hg9a3205/public_html/downloads
-    - /bin/mkdir -p /home1/hg9a3205/public_html/api
-    - /bin/mkdir -p /home1/hg9a3205/public_html/config
-    - /bin/mkdir -p /home1/hg9a3205/public_html/includes
-
-    # 2. Deploy do Master (SGIM-VENDAS) usando rsync para não travar
-    - /usr/bin/rsync -av SGIM-VENDAS/ /home1/hg9a3205/public_html/
-    
-    # 3. Deploy do Cliente
+    # Formato original e funcional
+    - /bin/cp -R SGIM-VENDAS/* /home1/hg9a3205/public_html/
     - /bin/cp SGIM-CLIENTE/atualizacoes.php /home1/hg9a3205/public_html/
-
-    # 4. Garantir permissões do ZIP para o cliente baixar
-    - /bin/chmod 644 /home1/hg9a3205/public_html/downloads/sgim_master.zip
