@@ -1,16 +1,16 @@
 ---
 deployment:
   tasks:
-    # 1. Copia tudo de VENDAS (Formato original que você prefere)
-    - /bin/cp -R SGIM-VENDAS/* /home1/hg9a3205/public_html/
-    
-    # 2. Garante a pasta de downloads (Seguindo o mesmo formato)
-    - /bin/mkdir -p /home1/hg9a3205/public_html/downloads
-    - /bin/cp -R SGIM-VENDAS/downloads/* /home1/hg9a3205/public_html/downloads/
-    
-    # 3. Copia o arquivo do CLIENTE
-    - /bin/cp SGIM-CLIENTE/atualizacoes.php /home1/hg9a3205/public_html/
+    # 1. Limpeza de segurança (Garante que a pasta destino existe)
+    - /bin/mkdir -p ~/public_html/downloads
 
-    # 4. Ajuste de permissão simples
-    - /bin/chmod 755 /home1/hg9a3205/public_html/downloads
-    - /bin/chmod 644 /home1/hg9a3205/public_html/downloads/sgim_master.zip
+    # 2. Deploy em Bloco (Rápido e Universal usando ~)
+    # Copia tudo de SGIM-VENDAS para o seu public_html
+    - /bin/cp -rf SGIM-VENDAS/* ~/public_html/
+    
+    # 3. Deploy do Cliente
+    - /bin/cp -f SGIM-CLIENTE/atualizacoes.php ~/public_html/
+
+    # 4. Ajuste de Permissões (Para o ZIP ser baixável)
+    - /bin/chmod 755 ~/public_html/downloads
+    - /bin/chmod 644 ~/public_html/downloads/sgim_master.zip
