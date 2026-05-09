@@ -10,10 +10,43 @@ $active_nodes = 1;
 include 'templates/header.php';
 ?>
 
-<div class="flex">
+<div class="flex" x-data="{ 
+    loading: false, 
+    statusMsg: '',
+    async executeAction(action) {
+        this.loading = true;
+        this.statusMsg = 'Processando...';
+        
+        let fd = new FormData();
+        fd.append('acao', action);
+        
+        try {
+            let res = await fetch('api/ota_action.php', { method: 'POST', body: fd });
+            let data = await res.json();
+            
+            if(data.status === 'success') {
+                this.statusMsg = data.message;
+                setTimeout(() => { this.statusMsg = ''; this.loading = false; }, 3000);
+            } else {
+                alert(data.message);
+                this.loading = false;
+            }
+        } catch (e) {
+            alert('Erro de conexão com a API OTA');
+            this.loading = false;
+        }
+    }
+}">
     <?php include 'sidebar.php'; ?>
 
     <main class="ml-[280px] min-h-screen flex-1">
+        <!-- Status Bar Flutuante (Feedback) -->
+        <template x-if="statusMsg">
+            <div class="fixed top-20 right-10 z-[100] bg-primary text-on-primary px-6 py-3 rounded-xl shadow-2xl animate-bounce font-bold text-sm">
+                <span x-text="statusMsg"></span>
+            </div>
+        </template>
+
         <!-- Top Navigation -->
         <header class="h-16 flex items-center justify-between px-8 bg-surface/80 backdrop-blur-md sticky top-0 z-40 border-b border-outline-variant/10">
             <div class="flex items-center gap-2">
@@ -36,9 +69,12 @@ include 'templates/header.php';
                     <h2 class="text-display-lg font-bold text-on-surface tracking-tighter">Engenharia <span class="text-primary">OTA</span></h2>
                     <p class="text-on-surface-variant font-body-md opacity-60">Gerenciamento de releases, sincronização de versões e auditoria de nodes.</p>
                 </div>
-                <button class="px-5 py-2.5 rounded-lg bg-primary text-on-primary font-bold hover:opacity-90 transition-all flex items-center gap-2 text-sm shadow-xl shadow-primary/20">
-                    <span class="material-symbols-outlined text-sm">publish</span>
-                    PUBLICAR RELEASE
+                <button 
+                    @click="executeAction('publicar_release')"
+                    :disabled="loading"
+                    class="px-5 py-2.5 rounded-lg bg-primary text-on-primary font-bold hover:opacity-90 transition-all flex items-center gap-2 text-sm shadow-xl shadow-primary/20 disabled:opacity-50">
+                    <span class="material-symbols-outlined text-sm" :class="loading ? 'animate-spin' : ''" x-text="loading ? 'sync' : 'publish'"></span>
+                    <span x-text="loading ? 'PUBLICANDO...' : 'PUBLICAR RELEASE'"></span>
                 </button>
             </div>
 
@@ -70,10 +106,10 @@ include 'templates/header.php';
                             <tr class="hover:bg-surface-variant/5 transition-colors">
                                 <td class="px-8 py-6">
                                     <div class="flex items-center gap-4">
-                                        <div class="size-10 bg-surface-container-highest rounded-lg flex items-center justify-center text-primary font-mono font-bold">1.1</div>
+                                        <div class="size-10 bg-surface-container-highest rounded-lg flex items-center justify-center text-primary font-mono font-bold">1.1.2</div>
                                         <div>
-                                            <p class="text-sm font-bold text-white">Full Restoration Fix</p>
-                                            <p class="text-[10px] text-on-surface-variant opacity-60">Ajuste de Design System e Includes</p>
+                                            <p class="text-sm font-bold text-white">Restauração Estrutural Total</p>
+                                            <p class="text-[10px] text-on-surface-variant opacity-60">Sidebar, Financeiro e Blindagem Multi-Congregação</p>
                                         </div>
                                     </div>
                                 </td>
@@ -93,9 +129,12 @@ include 'templates/header.php';
                             <span>Hardening Audit</span>
                             <span class="material-symbols-outlined text-emerald-500">verified</span>
                         </button>
-                        <button class="w-full py-4 bg-surface-container border border-outline-variant/20 rounded-xl text-on-surface font-bold text-xs flex items-center justify-between px-6 hover:border-primary/50 transition-all">
-                            <span>Geração de Instalador</span>
-                            <span class="material-symbols-outlined text-primary text-sm">build</span>
+                        <button 
+                            @click="executeAction('gerar_instalador')"
+                            :disabled="loading"
+                            class="w-full py-4 bg-surface-container border border-outline-variant/20 rounded-xl text-on-surface font-bold text-xs flex items-center justify-between px-6 hover:border-primary/50 transition-all disabled:opacity-50">
+                            <span x-text="loading ? 'GERANDO...' : 'Geração de Instalador'"></span>
+                            <span class="material-symbols-outlined text-primary text-sm" :class="loading ? 'animate-spin' : ''">build</span>
                         </button>
                     </div>
                 </div>
