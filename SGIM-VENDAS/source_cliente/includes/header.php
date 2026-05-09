@@ -2,26 +2,28 @@
 /**
  * SGIM CLIENT - GLOBAL HEADER (v4.6 - IDENTITY SYNC)
  */
-use App\Models\ThemeModel;
-require_once __DIR__ . '/../src/autoload.php';
+// Fallback Seguro (Padrão Premium SGIM)
+$theme = [
+    'logo_url' => '', 'cor_brand' => '#ffc880', 'cor_brand_dark' => '#d4a35d', 'cor_brand_light' => '#ffd9a8',
+    'darkbg' => '#050505', 'darkcard' => '#121212', 'darkborder' => '#1e1e1e',
+    'lightbg' => '#F3F4F6', 'lightcard' => '#FFFFFF', 'lightborder' => '#E5E7EB', 'modo_padrao' => 'dark'
+];
 
-$themeModel = new ThemeModel($pdo);
-$theme = $themeModel->getTheme();
-
-if (!$theme) {
-    $theme = [
-        'logo_url' => '', 'cor_brand' => '#FFC107', 'cor_brand_dark' => '#D4AF37', 'cor_brand_light' => '#FFD54F',
-        'darkbg' => '#050505', 'darkcard' => '#121212', 'darkborder' => '#1E1E1E',
-        'lightbg' => '#F3F4F6', 'lightcard' => '#FFFFFF', 'lightborder' => '#E5E7EB', 'modo_padrao' => 'dark'
-    ];
+try {
+    require_once __DIR__ . '/../src/autoload.php';
+    if (isset($pdo) && $pdo) {
+        $themeModel = new ThemeModel($pdo);
+        $dbTheme = $themeModel->getTheme();
+        if ($dbTheme) $theme = array_merge($theme, $dbTheme);
+    }
+} catch (Throwable $e) {
+    error_log("SGIM Theme Warning: Usando fallback devido a erro: " . $e->getMessage());
 }
 
 $theme_json = json_encode($theme);
 
-// 1. LOGICA DE NOTIFICAÇÃO (SININHO) - MÓDULO DESATIVADO (NULL STATE)
+// 1. LOGICA DE NOTIFICAÇÃO (SININHO)
 $unreadCount = 0;
-$notificacoes = [];
-$notificacoes_json = json_encode([]);
 ?>
 <!DOCTYPE html>
 <html :class="darkMode ? 'dark' : ''" lang="pt-br" x-data="themeManager(<?= htmlspecialchars($theme_json) ?>)" x-init="initTheme()">

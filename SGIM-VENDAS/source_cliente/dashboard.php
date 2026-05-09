@@ -27,11 +27,23 @@ if (!$pdo) {
 $page_title = 'SGIM - Dashboard Cliente';
 $current_page = 'dashboard';
 
+// BLINDAGEM VISUAL: Garantir que Tailwind carregue mesmo se o header.php falhar no banco
+?>
+<!DOCTYPE html>
+<html lang="pt-br" class="dark">
+<head>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+</head>
+<body class="bg-[#050505]">
+<?php
 try {
     require_once 'includes/header.php';
 } catch (Throwable $e) {
-    echo "<div style='padding:20px; background:#1a1a1a; color:#ffc107; border:1px solid #333; margin:20px; border-radius:10px;'>
-            <strong>Aviso de Sistema:</strong> O cabeçalho visual falhou ao carregar. Detalhe: " . $e->getMessage() . "
+    // Fallback visual mínimo se o header falhar
+    echo "<div style='background:#121212; border-bottom:1px solid #1e1e1e; padding:20px; color:#ffc880; font-family:sans-serif;'>
+            <strong>SGIM System:</strong> Dashboard em modo de recuperação (Resgate Visual Ativo).
           </div>";
 }
 
