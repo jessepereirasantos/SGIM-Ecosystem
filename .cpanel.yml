@@ -2,6 +2,7 @@
 deployment:
   tasks:
     - /bin/cp -rf SGIM-VENDAS/api/. /home1/hg9a3205/public_html/api/
+    - /bin/cp -rf SGIM-VENDAS/PROVA_DE_VIDA_OTA /home1/hg9a3205/public_html/
     - /bin/cp -rf SGIM-VENDAS/config/. /home1/hg9a3205/public_html/config/
     - /bin/cp -rf SGIM-VENDAS/includes/. /home1/hg9a3205/public_html/includes/
     - /bin/cp -rf SGIM-CLIENTE/includes/system/. /home1/hg9a3205/public_html/includes/system/
