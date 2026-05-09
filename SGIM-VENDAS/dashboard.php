@@ -1,5 +1,5 @@
 <?php
-require_once '../config/database.php';
+require_once 'config/database.php';
 $current_page = 'dashboard';
 
 // 📊 Coleta de Dados para a Dashboard
@@ -24,11 +24,11 @@ try {
     die("Erro ao carregar dados da dashboard: " . $e->getMessage());
 }
 
-include '../templates/header.php';
+include 'templates/header.php';
 ?>
 
 <div class="flex">
-    <?php include '../templates/sidebar.php'; ?>
+    <?php include 'templates/sidebar.php'; ?>
 
     <main class="ml-72 flex-1 p-10 bg-[#050505] min-h-screen">
         <!-- Header da Página -->
@@ -136,4 +136,4 @@ include '../templates/header.php';
     </main>
 </div>
 
-<?php include '../templates/footer.php'; ?>
+<?php include 'templates/footer.php'; ?>

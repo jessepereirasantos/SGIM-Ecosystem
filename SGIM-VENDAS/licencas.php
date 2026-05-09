@@ -1,5 +1,5 @@
 <?php
-require_once '../config/database.php';
+require_once 'config/database.php';
 $current_page = 'licencas';
 
 // Função para Gerar Licença Profissional (Pattern: SGIM-XXXX-XXXX-XXXX)
@@ -23,11 +23,11 @@ if (isset($_POST['gerar_licenca'])) {
 $stmt = $pdo->query("SELECT id, nome, dominio, license_key, data_criacao FROM clientes WHERE license_key IS NOT NULL ORDER BY id DESC");
 $licencas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-include '../templates/header.php';
+include 'templates/header.php';
 ?>
 
 <div class="flex">
-    <?php include '../templates/sidebar.php'; ?>
+    <?php include 'templates/sidebar.php'; ?>
 
     <main class="ml-72 flex-1 p-10 bg-[#050505] min-h-screen">
         <div class="flex justify-between items-end mb-10">
@@ -85,4 +85,4 @@ include '../templates/header.php';
     </main>
 </div>
 
-<?php include '../templates/footer.php'; ?>
+<?php include 'templates/footer.php'; ?>

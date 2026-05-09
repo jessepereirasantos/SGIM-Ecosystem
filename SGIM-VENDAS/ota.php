@@ -1,15 +1,15 @@
 <?php
-require_once '../config/database.php';
+require_once 'config/database.php';
 $current_page = 'ota';
 
 // Busca de Releases
 $releases = $pdo->query("SELECT * FROM ota_releases ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
 
-include '../templates/header.php';
+include 'templates/header.php';
 ?>
 
 <div class="flex">
-    <?php include '../templates/sidebar.php'; ?>
+    <?php include 'templates/sidebar.php'; ?>
 
     <main class="ml-72 flex-1 p-10 bg-[#050505] min-h-screen">
         <div class="flex justify-between items-end mb-10">
@@ -96,4 +96,4 @@ include '../templates/header.php';
     </main>
 </div>
 
-<?php include '../templates/footer.php'; ?>
+<?php include 'templates/footer.php'; ?>
