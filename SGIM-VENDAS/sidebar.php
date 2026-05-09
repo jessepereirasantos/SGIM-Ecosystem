@@ -1,78 +1,62 @@
 <?php
 $current_page = $current_page ?? '';
 ?>
-<!-- Sidebar Premium SGIM Vendas -->
-<aside class="w-72 fixed inset-y-0 left-0 bg-[#0A0A0A] border-r border-zinc-900/50 flex flex-col z-50 shadow-2xl">
-    <div class="p-8 flex flex-col items-center">
-        <div class="size-20 bg-amber-500 rounded-3xl flex items-center justify-center text-black shadow-2xl shadow-amber-500/20 mb-6 group transition-all hover:scale-105">
-            <span class="material-symbols-outlined text-4xl font-black">shield_person</span>
-        </div>
-        <h1 class="text-xl font-black text-white tracking-tighter italic">SGIM <span class="text-amber-500 text-2xl">VENDAS</span></h1>
-        <p class="text-[9px] text-zinc-600 uppercase tracking-[4px] font-bold mt-1">Management Hub</p>
+<!-- Side Navigation Shell (Fiel ao Modelo Stitch) -->
+<aside class="fixed left-0 top-0 h-screen w-[280px] bg-surface border-r border-outline-variant/20 flex flex-col py-8 z-50">
+    <div class="px-6 mb-12">
+        <h1 class="font-headline-md text-headline-md font-bold text-primary tracking-tight italic">SGIM <span class="text-on-surface">Vendas</span></h1>
+        <p class="text-on-surface-variant font-body-sm opacity-60 uppercase tracking-widest text-[9px]">Enterprise Dashboard</p>
     </div>
 
-    <nav class="flex-1 overflow-y-auto px-6 py-4 space-y-8">
-        <!-- Grupo: Negócio -->
-        <div>
-            <h3 class="px-4 text-[10px] font-bold text-zinc-700 uppercase tracking-widest mb-4">Visão de Negócio</h3>
-            <ul class="space-y-2">
-                <li>
-                    <a href="dashboard.php" class="flex items-center gap-3 px-5 py-3.5 rounded-[20px] transition-all <?= ($current_page == 'dashboard') ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/10 font-black' : 'text-zinc-500 hover:text-white hover:bg-white/5' ?>">
-                        <span class="material-symbols-outlined text-[22px]">dashboard_customize</span>
-                        <span class="text-[13px]">Panorama Geral</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="clientes.php" class="flex items-center gap-3 px-5 py-3.5 rounded-[20px] transition-all <?= ($current_page == 'clientes') ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/10 font-black' : 'text-zinc-500 hover:text-white hover:bg-white/5' ?>">
-                        <span class="material-symbols-outlined text-[22px]">group</span>
-                        <span class="text-[13px]">Gestão de Clientes</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="licencas.php" class="flex items-center gap-3 px-5 py-3.5 rounded-[20px] transition-all <?= ($current_page == 'licencas') ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/10 font-black' : 'text-zinc-500 hover:text-white hover:bg-white/5' ?>">
-                        <span class="material-symbols-outlined text-[22px]">vpn_key</span>
-                        <span class="text-[13px]">Licenças & Ativação</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="relatorios.php" class="flex items-center gap-3 px-5 py-3.5 rounded-[20px] transition-all <?= ($current_page == 'relatorios') ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/10 font-black' : 'text-zinc-500 hover:text-white hover:bg-white/5' ?>">
-                        <span class="material-symbols-outlined text-[22px]">analytics</span>
-                        <span class="text-[13px]">Relatórios & Auditoria</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="ota.php" class="flex items-center gap-3 px-5 py-3.5 rounded-[20px] transition-all <?= ($current_page == 'ota') ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/10 font-black' : 'text-zinc-500 hover:text-white hover:bg-white/5' ?>">
-                        <span class="material-symbols-outlined text-[22px]">cloud_sync</span>
-                        <span class="text-[13px]">Engenharia OTA</span>
-                    </a>
-                </li>
-            </ul>
+    <nav class="flex-1 space-y-2 overflow-y-auto px-4">
+        <div class="mb-6">
+            <span class="px-4 text-label-caps font-label-caps text-on-surface-variant/50 block mb-2 uppercase text-[10px]">Visão de Negócio</span>
+            
+            <a href="dashboard.php" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all <?= ($current_page == 'dashboard') ? 'sidebar-item-active text-primary font-bold border-r-2 border-primary' : 'text-on-surface-variant opacity-70 hover:bg-surface-variant/10 hover:text-on-surface' ?>">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span class="text-body-md">Panorama Geral</span>
+            </a>
+
+            <a href="clientes.php" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all <?= ($current_page == 'clientes') ? 'sidebar-item-active text-primary font-bold border-r-2 border-primary' : 'text-on-surface-variant opacity-70 hover:bg-surface-variant/10 hover:text-on-surface' ?>">
+                <span class="material-symbols-outlined">group</span>
+                <span class="text-body-md">Gestão de Clientes</span>
+            </a>
+
+            <a href="licencas.php" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all <?= ($current_page == 'licencas') ? 'sidebar-item-active text-primary font-bold border-r-2 border-primary' : 'text-on-surface-variant opacity-70 hover:bg-surface-variant/10 hover:text-on-surface' ?>">
+                <span class="material-symbols-outlined">vpn_key</span>
+                <span class="text-body-md">Licenças & Nodes</span>
+            </a>
+
+            <a href="ota.php" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all <?= ($current_page == 'ota') ? 'sidebar-item-active text-primary font-bold border-r-2 border-primary' : 'text-on-surface-variant opacity-70 hover:bg-surface-variant/10 hover:text-on-surface' ?>">
+                <span class="material-symbols-outlined">cloud_sync</span>
+                <span class="text-body-md">Engenharia OTA</span>
+            </a>
         </div>
 
-        <!-- Grupo: Financeiro -->
-        <div>
-            <h3 class="px-4 text-[10px] font-bold text-zinc-700 uppercase tracking-widest mb-4">Financeiro</h3>
-            <ul class="space-y-2">
-                <li>
-                    <a href="pedidos.php" class="flex items-center gap-3 px-5 py-3.5 rounded-[20px] transition-all <?= ($current_page == 'pedidos') ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/10 font-black' : 'text-zinc-500 hover:text-white hover:bg-white/5' ?>">
-                        <span class="material-symbols-outlined text-[22px]">receipt_long</span>
-                        <span class="text-[13px]">Histórico de Vendas</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="cupons.php" class="flex items-center gap-3 px-5 py-3.5 rounded-[20px] transition-all <?= ($current_page == 'cupons') ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/10 font-black' : 'text-zinc-500 hover:text-white hover:bg-white/5' ?>">
-                        <span class="material-symbols-outlined text-[22px]">confirmation_number</span>
-                        <span class="text-[13px]">Cupons & Descontos</span>
-                    </a>
-                </li>
-            </ul>
+        <div class="mb-6">
+            <span class="px-4 text-label-caps font-label-caps text-on-surface-variant/50 block mb-2 uppercase text-[10px]">Financeiro</span>
+            
+            <a href="pedidos.php" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all <?= ($current_page == 'pedidos') ? 'sidebar-item-active text-primary font-bold border-r-2 border-primary' : 'text-on-surface-variant opacity-70 hover:bg-surface-variant/10 hover:text-on-surface' ?>">
+                <span class="material-symbols-outlined">receipt_long</span>
+                <span class="text-body-md">Histórico de Vendas</span>
+            </a>
+
+            <a href="cupons.php" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all <?= ($current_page == 'cupons') ? 'sidebar-item-active text-primary font-bold border-r-2 border-primary' : 'text-on-surface-variant opacity-70 hover:bg-surface-variant/10 hover:text-on-surface' ?>">
+                <span class="material-symbols-outlined">confirmation_number</span>
+                <span class="text-body-md">Cupons & Descontos</span>
+            </a>
         </div>
     </nav>
 
-    <div class="p-8 border-t border-zinc-900/50">
-        <a href="logout.php" class="flex items-center gap-3 px-5 py-4 rounded-[20px] text-zinc-600 hover:text-red-500 hover:bg-red-500/5 transition-all text-[13px] font-bold">
+    <div class="px-4 mt-auto pt-8 border-t border-outline-variant/10">
+        <div class="bg-primary-container/10 p-4 rounded-xl mb-6">
+            <p class="text-body-sm text-primary font-bold mb-1">Upgrade Plan</p>
+            <p class="text-[10px] text-on-surface-variant opacity-70 leading-tight">Desbloqueie relatórios de IA avançados.</p>
+        </div>
+        
+        <a href="logout.php" class="flex items-center gap-3 px-4 py-2 rounded-lg text-on-surface-variant opacity-70 hover:text-error transition-all">
             <span class="material-symbols-outlined">logout</span>
-            Sair do Painel
+            <span class="text-body-sm">Sair</span>
         </a>
     </div>
 </aside>

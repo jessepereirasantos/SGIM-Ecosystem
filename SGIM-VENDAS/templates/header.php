@@ -1,7 +1,4 @@
 <?php
-/**
- * SGIM MASTER - GLOBAL HEADER (Obsidian Amber v7.6 - SOURCE OF TRUTH)
- */
 require_once 'config/database.php';
 $current_page = $current_page ?? '';
 ?>
@@ -37,7 +34,6 @@ $current_page = $current_page ?? '';
                 "background": "#131313", "primary": "#ffc880", "on-primary": "#452b00", "secondary": "#f2bf3a"
             },
             "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
-            "spacing": { "unit": "8px", "container-padding": "2rem", "card-gap": "1rem", "section-margin": "3rem", "gutter": "1.5rem" },
             "fontSize": {
                 "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
                 "title-sm": ["18px", {"lineHeight": "1.5", "fontWeight": "600"}],
@@ -57,66 +53,3 @@ $current_page = $current_page ?? '';
     </style>
 </head>
 <body class="bg-background text-on-surface font-body-md overflow-x-hidden">
-
-<aside class="fixed left-0 top-0 h-screen w-[280px] bg-surface border-r border-outline-variant/20 flex flex-col py-8 z-50">
-    <div class="px-6 mb-12">
-        <h1 class="font-headline-md text-headline-md font-bold text-primary tracking-tight">SGIM Vendas</h1>
-        <p class="text-on-surface-variant font-body-sm opacity-60">Enterprise Dashboard</p>
-    </div>
-    <nav class="flex-1 space-y-2 overflow-y-auto px-4">
-        <div class="mb-6">
-            <span class="px-4 text-label-caps font-label-caps text-on-surface-variant/50 block mb-2 uppercase">Visão de Negócio</span>
-            <a class="flex items-center gap-3 px-4 py-3 rounded-lg <?= ($current_page == 'dashboard') ? 'sidebar-item-active text-primary font-bold border-r-2 border-primary' : 'text-on-surface-variant opacity-70 hover:bg-surface-variant/10 hover:text-on-surface' ?> transition-all" href="dashboard.php">
-                <span class="material-symbols-outlined">dashboard</span>
-                <span class="text-body-md font-body-md">Panorama Geral</span>
-            </a>
-            <a class="flex items-center gap-3 px-4 py-3 rounded-lg <?= ($current_page == 'clientes') ? 'sidebar-item-active text-primary font-bold border-r-2 border-primary' : 'text-on-surface-variant opacity-70 hover:bg-surface-variant/10 hover:text-on-surface' ?> transition-all" href="clientes.php">
-                <span class="material-symbols-outlined">group</span>
-                <span class="text-body-md font-body-md">Gestão de Clientes</span>
-            </a>
-            <a class="flex items-center gap-3 px-4 py-3 rounded-lg <?= ($current_page == 'pedidos') ? 'sidebar-item-active text-primary font-bold border-r-2 border-primary' : 'text-on-surface-variant opacity-70 hover:bg-surface-variant/10 hover:text-on-surface' ?> transition-all" href="pedidos.php">
-                <span class="material-symbols-outlined">history</span>
-                <span class="text-body-md font-body-md">Histórico de Vendas</span>
-            </a>
-            <a class="flex items-center gap-3 px-4 py-3 rounded-lg <?= ($current_page == 'licencas') ? 'sidebar-item-active text-primary font-bold border-r-2 border-primary' : 'text-on-surface-variant opacity-70 hover:bg-surface-variant/10 hover:text-on-surface' ?> transition-all" href="licencas.php">
-                <span class="material-symbols-outlined">vpn_key</span>
-                <span class="text-body-md font-body-md">Licenças & Ativação</span>
-            </a>
-        </div>
-        <div class="mb-6">
-            <span class="px-4 text-label-caps font-label-caps text-on-surface-variant/50 block mb-2 uppercase">Financeiro</span>
-            <a class="flex items-center gap-3 px-4 py-3 rounded-lg <?= ($current_page == 'cupons') ? 'sidebar-item-active text-primary font-bold border-r-2 border-primary' : 'text-on-surface-variant opacity-70 hover:bg-surface-variant/10 hover:text-on-surface' ?> transition-all" href="cupons.php">
-                <span class="material-symbols-outlined">confirmation_number</span>
-                <span class="text-body-md font-body-md">Cupons & Descontos</span>
-            </a>
-        </div>
-        <div>
-        </div>
-    </nav>
-    <div class="px-4 mt-auto pt-8 border-t border-outline-variant/10">
-        <div class="bg-primary-container/10 p-4 rounded-xl mb-6">
-            <p class="text-body-sm text-primary font-bold mb-1">Upgrade Plan</p>
-            <p class="text-xs text-on-surface-variant opacity-70">Desbloqueie relatórios de IA avançados.</p>
-        </div>
-        <a class="flex items-center gap-3 px-4 py-2 rounded-lg text-on-surface-variant opacity-70 hover:text-error transition-all" href="logout.php">
-            <span class="material-symbols-outlined">logout</span>
-            <span class="text-body-sm font-body-sm">Sair</span>
-        </a>
-    </div>
-</aside>
-
-<main class="ml-[280px] min-h-screen">
-    <header class="h-16 flex items-center justify-between px-8 bg-surface/80 backdrop-blur-md sticky top-0 z-40 border-b border-outline-variant/10">
-        <div class="flex items-center gap-4 bg-surface-container-low px-4 py-2 rounded-lg w-full max-w-md border border-outline-variant/20">
-            <span class="material-symbols-outlined text-on-surface-variant">search</span>
-            <input class="bg-transparent border-none focus:ring-0 text-body-sm w-full placeholder:text-on-surface-variant/40" placeholder="Buscar clientes ou licenças..." type="text"/>
-        </div>
-        <div class="flex items-center gap-6">
-            <div class="text-right">
-                <p class="text-body-sm font-bold text-on-surface">Admin SGIM</p>
-                <p class="text-[10px] uppercase tracking-widest text-primary font-bold">PRODUCTION STABLE</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center text-primary font-black">A</div>
-        </div>
-    </header>
-    <div class="p-10 max-w-[1600px] mx-auto">

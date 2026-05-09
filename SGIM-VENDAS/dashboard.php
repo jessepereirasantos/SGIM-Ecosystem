@@ -17,136 +17,207 @@ try {
 include 'templates/header.php';
 ?>
 
-<div class="flex bg-black">
+<div class="flex">
     <?php include 'sidebar.php'; ?>
 
-    <main class="ml-72 flex-1 p-10 bg-black min-h-screen">
-        <!-- Top Bar Busca -->
-        <div class="mb-10 flex items-center gap-6">
-            <div class="relative flex-1 group">
-                <span class="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-amber-500 transition-colors">search</span>
-                <input type="text" placeholder="Buscar clientes ou licenças..." class="w-full bg-zinc-900/40 border border-zinc-900 rounded-[20px] py-4 pl-16 pr-6 text-zinc-400 focus:outline-none focus:border-amber-500/50 transition-all text-sm">
+    <!-- Main Content Shell -->
+    <main class="ml-[280px] min-h-screen flex-1">
+        <!-- Top Navigation -->
+        <header class="h-16 flex items-center justify-between px-8 bg-surface/80 backdrop-blur-md sticky top-0 z-40 border-b border-outline-variant/10">
+            <div class="flex items-center gap-4 bg-surface-container-low px-4 py-2 rounded-lg w-full max-w-md border border-outline-variant/20">
+                <span class="material-symbols-outlined text-on-surface-variant">search</span>
+                <input class="bg-transparent border-none focus:ring-0 text-body-sm w-full placeholder:text-on-surface-variant/40 outline-none text-white" placeholder="Buscar clientes ou licenças..." type="text"/>
             </div>
-            <div class="flex items-center gap-4 px-6 py-3">
-                <div class="text-right">
-                    <p class="text-[11px] font-black text-white leading-tight">Admin SGIM</p>
-                    <p class="text-[9px] text-amber-500 uppercase font-bold tracking-widest">Production Stable</p>
+            <div class="flex items-center gap-6">
+                <div class="flex gap-4">
+                    <button class="relative p-2 rounded-lg hover:bg-surface-variant/20 transition-all text-on-surface-variant">
+                        <span class="material-symbols-outlined">notifications</span>
+                        <span class="absolute top-2 right-2 w-2 h-2 bg-secondary rounded-full"></span>
+                    </button>
                 </div>
-                <div class="size-10 bg-zinc-900 border border-zinc-800 rounded-xl flex items-center justify-center text-zinc-400 font-black">A</div>
+                <div class="h-8 w-[1px] bg-outline-variant/20"></div>
+                <div class="flex items-center gap-3">
+                    <div class="text-right">
+                        <p class="text-body-sm font-bold text-on-surface leading-tight">Admin SGIM</p>
+                        <p class="text-[10px] uppercase tracking-widest text-primary font-bold">Administrador</p>
+                    </div>
+                    <div class="size-10 bg-surface-container-highest border border-primary/20 rounded-lg flex items-center justify-center text-primary font-black shadow-lg">A</div>
+                </div>
             </div>
-        </div>
+        </header>
 
-        <div class="flex gap-8">
-            <!-- Conteúdo Principal -->
-            <div class="flex-1">
-                <div class="flex justify-between items-center mb-10">
-                    <div>
-                        <h2 class="text-4xl font-black text-white tracking-tighter">Panorama <span class="text-amber-500">Geral</span></h2>
-                        <p class="text-zinc-500 text-sm mt-1">Bem-vindo ao centro de comando do SGIM SaaS.</p>
-                    </div>
-                    <div class="flex items-center gap-3 px-4 py-2 bg-zinc-900/50 border border-zinc-800 rounded-full">
-                        <div class="size-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
-                        <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Sistema Online</span>
-                    </div>
+        <!-- Page Content -->
+        <div class="p-10 max-w-[1600px] mx-auto">
+            <!-- Header Section -->
+            <div class="flex justify-between items-end mb-10">
+                <div>
+                    <h2 class="text-display-lg font-bold text-on-surface tracking-tighter">Panorama Geral</h2>
+                    <p class="text-on-surface-variant font-body-md opacity-60">Bem-vindo de volta. Aqui estão as métricas de desempenho da SGIM Vendas.</p>
                 </div>
-
-                <!-- Stats Grid -->
-                <div class="grid grid-cols-3 gap-6 mb-10">
-                    <div class="bg-[#0A0A0A] border border-zinc-900/50 p-8 rounded-[40px] hover:border-amber-500/20 transition-all group relative overflow-hidden">
-                        <div class="flex justify-between items-start mb-8">
-                            <span class="material-symbols-outlined text-amber-500 text-3xl">group</span>
-                            <span class="px-3 py-1 bg-emerald-500/10 text-emerald-500 rounded-full text-[10px] font-black">+12%</span>
-                        </div>
-                        <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Total de Clientes</p>
-                        <h3 class="text-4xl font-black text-white"><?= $total_clientes ?></h3>
-                    </div>
-
-                    <div class="bg-[#0A0A0A] border border-zinc-900/50 p-8 rounded-[40px] hover:border-amber-500/20 transition-all group relative overflow-hidden">
-                        <div class="flex justify-between items-start mb-8">
-                            <span class="material-symbols-outlined text-amber-500 text-3xl">shopping_cart</span>
-                            <span class="px-3 py-1 bg-amber-500/10 text-amber-500 rounded-full text-[10px] font-black italic">Mensal</span>
-                        </div>
-                        <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Vendas no Mês</p>
-                        <h3 class="text-4xl font-black text-white"><?= $vendas_mes ?></h3>
-                    </div>
-
-                    <div class="bg-[#0A0A0A] border border-zinc-900/50 p-8 rounded-[40px] hover:border-amber-500/20 transition-all group relative overflow-hidden">
-                        <div class="flex justify-between items-start mb-8">
-                            <span class="material-symbols-outlined text-amber-500 text-3xl">payments</span>
-                        </div>
-                        <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Receita Total</p>
-                        <h3 class="text-4xl font-black text-white">R$ <?= number_format($receita_total, 2, ',', '.') ?></h3>
-                    </div>
-                </div>
-
-                <!-- Tabela de Clientes Recentes -->
-                <div class="bg-[#0A0A0A] border border-zinc-900/50 rounded-[40px] p-8">
-                    <div class="flex justify-between items-center mb-8">
-                        <h4 class="text-lg font-bold text-white">Novos Clientes <span class="text-zinc-600 font-normal ml-2 text-sm">Recentemente Ativados</span></h4>
-                        <a href="clientes.php" class="text-amber-500 text-xs font-bold hover:underline">Ver Todos</a>
-                    </div>
-                    <table class="w-full text-left">
-                        <thead>
-                            <tr class="text-[10px] text-zinc-700 uppercase tracking-widest border-b border-zinc-900">
-                                <th class="pb-4 font-bold">Cliente</th>
-                                <th class="pb-4 font-bold">Domínio</th>
-                                <th class="pb-4 font-bold">Status</th>
-                                <th class="pb-4 font-bold">Data</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-zinc-900/50">
-                            <?php foreach ($ultimos_clientes as $c): ?>
-                            <tr class="group hover:bg-white/[0.01] transition-all">
-                                <td class="py-5 flex items-center gap-4">
-                                    <div class="size-10 bg-zinc-900 rounded-xl border border-zinc-800 flex items-center justify-center text-zinc-600 font-black"><?= strtoupper(substr($c['nome'],0,1)) ?></div>
-                                    <div>
-                                        <p class="text-sm font-bold text-white"><?= htmlspecialchars($c['nome']) ?></p>
-                                        <p class="text-[10px] text-zinc-600"><?= htmlspecialchars($c['email']) ?></p>
-                                    </div>
-                                </td>
-                                <td class="py-5 text-zinc-500 text-xs font-mono"><?= htmlspecialchars($c['dominio'] ?? 'Não definido') ?></td>
-                                <td class="py-5">
-                                    <span class="px-3 py-1 bg-emerald-500/10 text-emerald-500 text-[9px] font-black uppercase rounded-full">Ativo</span>
-                                </td>
-                                <td class="py-5 text-zinc-600 text-xs font-mono"><?= date('d/m/Y', strtotime($c['created_at'])) ?></td>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                <div class="flex gap-3">
+                    <button class="px-5 py-2.5 rounded-lg border border-outline-variant/20 text-on-surface font-semibold hover:bg-surface-variant/10 transition-all flex items-center gap-2 text-sm">
+                        <span class="material-symbols-outlined text-sm">calendar_today</span>
+                        Últimos 30 dias
+                    </button>
+                    <button class="px-5 py-2.5 rounded-lg bg-primary text-on-primary font-bold hover:opacity-90 transition-all flex items-center gap-2 text-sm shadow-xl shadow-primary/20">
+                        <span class="material-symbols-outlined text-sm">add</span>
+                        Novo Cliente
+                    </button>
                 </div>
             </div>
 
-            <!-- Coluna Lateral: Ações Rápidas -->
-            <div class="w-80">
-                <div class="bg-amber-500 rounded-[40px] p-8 text-black relative overflow-hidden group hover:scale-[1.02] transition-all cursor-pointer shadow-2xl shadow-amber-500/20">
-                    <div class="relative z-10">
-                        <h4 class="text-2xl font-black tracking-tighter leading-tight mb-4">Ativação<br>Assistida</h4>
-                        <p class="text-sm font-bold leading-relaxed mb-8 opacity-80">Gere uma nova licença e prepare o sistema para um novo cliente em um único clique.</p>
-                        <button class="w-full bg-black text-white font-black py-4 rounded-2xl text-xs flex items-center justify-center gap-2">
-                            INICIAR PROCESSO
-                            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+            <!-- KPI Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
+                <!-- Card 1: Clientes -->
+                <div class="glass-card p-8 rounded-xl relative overflow-hidden group">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-3 rounded-lg bg-primary/10 text-primary">
+                            <span class="material-symbols-outlined">person_add</span>
+                        </div>
+                        <div class="flex items-center gap-1 text-secondary">
+                            <span class="material-symbols-outlined text-sm">trending_up</span>
+                            <span class="text-xs font-bold">+12%</span>
+                        </div>
+                    </div>
+                    <p class="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-widest mb-1">Clientes Ativos</p>
+                    <p class="text-headline-md font-bold text-on-surface"><?= $total_clientes ?></p>
+                    <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <span class="material-symbols-outlined text-[100px]">group</span>
+                    </div>
+                </div>
+
+                <!-- Card 2: Licenças -->
+                <div class="glass-card p-8 rounded-xl relative overflow-hidden group">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-3 rounded-lg bg-tertiary-container/20 text-tertiary">
+                            <span class="material-symbols-outlined">vpn_key</span>
+                        </div>
+                        <div class="flex items-center gap-1 text-secondary">
+                            <span class="material-symbols-outlined text-sm">trending_up</span>
+                            <span class="text-xs font-bold">Stable</span>
+                        </div>
+                    </div>
+                    <p class="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-widest mb-1">Nodes Ativos</p>
+                    <p class="text-headline-md font-bold text-on-surface">1</p>
+                    <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <span class="material-symbols-outlined text-[100px]">workspace_premium</span>
+                    </div>
+                </div>
+
+                <!-- Card 3: Pedidos -->
+                <div class="glass-card p-8 rounded-xl relative overflow-hidden group">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-3 rounded-lg bg-secondary-container/20 text-secondary">
+                            <span class="material-symbols-outlined">shopping_cart</span>
+                        </div>
+                        <div class="flex items-center gap-1 text-secondary">
+                            <span class="material-symbols-outlined text-sm">trending_up</span>
+                            <span class="text-xs font-bold"><?= $vendas_mes ?></span>
+                        </div>
+                    </div>
+                    <p class="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-widest mb-1">Vendas (Mês)</p>
+                    <p class="text-headline-md font-bold text-on-surface"><?= $vendas_mes ?></p>
+                    <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <span class="material-symbols-outlined text-[100px]">receipt_long</span>
+                    </div>
+                </div>
+
+                <!-- Card 4: Receita -->
+                <div class="glass-card p-8 rounded-xl relative overflow-hidden group border-primary/20">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-3 rounded-lg bg-primary text-on-primary shadow-xl shadow-primary/20">
+                            <span class="material-symbols-outlined">account_balance_wallet</span>
+                        </div>
+                    </div>
+                    <p class="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-widest mb-1">Receita Mensal</p>
+                    <p class="text-headline-md font-bold text-on-surface">R$ <?= number_format($receita_total, 2, ',', '.') ?></p>
+                    <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <span class="material-symbols-outlined text-[100px]">payments</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Latest Customers Table -->
+                <div class="lg:col-span-2 glass-card rounded-xl overflow-hidden">
+                    <div class="p-8 border-b border-outline-variant/10 flex justify-between items-center">
+                        <div>
+                            <h3 class="text-title-sm font-bold text-on-surface">Últimos Clientes Cadastrados</h3>
+                            <p class="text-body-sm text-on-surface-variant opacity-60">Visualização detalhada dos novos parceiros comerciais.</p>
+                        </div>
+                        <a href="clientes.php" class="text-primary font-bold text-sm hover:underline">Ver Todos</a>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="bg-surface-container-low/50 text-[10px] uppercase tracking-widest text-on-surface-variant/50">
+                                    <th class="px-8 py-4 font-bold">Empresa / Cliente</th>
+                                    <th class="px-8 py-4 font-bold">Domínio</th>
+                                    <th class="px-8 py-4 font-bold">Data</th>
+                                    <th class="px-8 py-4 font-bold text-right">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-outline-variant/10">
+                                <?php foreach ($ultimos_clientes as $c): ?>
+                                <tr class="hover:bg-surface-variant/5 transition-colors">
+                                    <td class="px-8 py-5">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center font-bold text-primary"><?= strtoupper(substr($c['nome'],0,2)) ?></div>
+                                            <div>
+                                                <p class="text-body-md font-bold text-on-surface leading-tight"><?= htmlspecialchars($c['nome']) ?></p>
+                                                <p class="text-xs text-on-surface-variant opacity-60"><?= htmlspecialchars($c['email']) ?></p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-8 py-5">
+                                        <span class="px-3 py-1 rounded-full bg-tertiary-container/10 text-tertiary text-[10px] font-bold uppercase tracking-wider"><?= htmlspecialchars($c['dominio'] ?? 'pendente') ?></span>
+                                    </td>
+                                    <td class="px-8 py-5 text-body-sm text-on-surface-variant font-mono"><?= date('d/m/Y', strtotime($c['created_at'])) ?></td>
+                                    <td class="px-8 py-5 text-right">
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-container/20 text-secondary text-[10px] font-bold uppercase">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                                            Ativo
+                                        </span>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Quick Insights Column -->
+                <div class="flex flex-col gap-8">
+                    <!-- Distribution Chart (Visual) -->
+                    <div class="glass-card p-8 rounded-xl">
+                        <h3 class="text-title-sm font-bold text-on-surface mb-6">Distribuição de Receita</h3>
+                        <div class="space-y-6">
+                            <div>
+                                <div class="flex justify-between text-body-sm mb-2">
+                                    <span class="text-on-surface-variant">Licenças SaaS</span>
+                                    <span class="text-on-surface font-bold">100%</span>
+                                </div>
+                                <div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+                                    <div class="h-full bg-primary rounded-full" style="width: 100%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Target Card -->
+                    <div class="glass-card p-8 rounded-xl bg-gradient-to-br from-primary/10 to-transparent border-primary/20">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-title-sm font-bold text-on-surface">Meta Semanal</h3>
+                            <span class="text-[10px] font-black text-primary px-2 py-1 rounded bg-primary/20 uppercase tracking-widest">Ativa</span>
+                        </div>
+                        <div class="text-center py-6">
+                            <p class="text-[48px] font-black text-on-surface tracking-tighter">100%</p>
+                            <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest opacity-60">Operação em Escala</p>
+                        </div>
+                        <button class="w-full py-3 rounded-lg bg-primary text-on-primary font-black hover:opacity-90 transition-all text-xs">
+                            VER RELATÓRIO IA
                         </button>
-                    </div>
-                    <span class="material-symbols-outlined absolute -bottom-4 -right-4 text-[150px] opacity-10 rotate-12">key</span>
-                </div>
-
-                <div class="mt-6 bg-zinc-900/30 border border-zinc-900 p-8 rounded-[40px]">
-                    <h5 class="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-6">Logs de Segurança</h5>
-                    <div class="space-y-6">
-                        <div class="flex gap-4">
-                            <div class="size-2 bg-amber-500 rounded-full mt-1.5 shadow-[0_0_8px_rgba(245,158,11,0.5)]"></div>
-                            <div>
-                                <p class="text-xs text-white font-bold">Deploy Concluído</p>
-                                <p class="text-[10px] text-zinc-600">v1.1.0 via Rsync Hub</p>
-                            </div>
-                        </div>
-                        <div class="flex gap-4">
-                            <div class="size-2 bg-zinc-800 rounded-full mt-1.5"></div>
-                            <div>
-                                <p class="text-xs text-zinc-500">Backup Diário</p>
-                                <p class="text-[10px] text-zinc-700">Concluído há 2h</p>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
