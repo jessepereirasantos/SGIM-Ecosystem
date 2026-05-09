@@ -222,6 +222,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $db_config_content = "<?php\n";
             $db_config_content .= "// ARQUIVO DE CONFIGURAÇÃO CRÍTICO - NÃO EXCLUIR\n";
+            $db_config_content .= "\$is_configured = true;\n";
+            $db_config_content .= "\$is_installed_local = true;\n";
             $db_config_content .= "\$host = '{$db_host}';\n";
             $db_config_content .= "\$dbname = '{$db_name}';\n";
             $db_config_content .= "\$user = '{$db_user}';\n";
@@ -229,9 +231,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db_config_content .= "try {\n";
             $db_config_content .= "    \$pdo = new PDO(\"mysql:host=\$host;dbname=\$dbname;charset=utf8mb4\", \$user, \$pass);\n";
             $db_config_content .= "    \$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);\n";
-            $db_config_content .= "    if (!defined('DB_CONFIGURED')) define('DB_CONFIGURED', true);\n";
             $db_config_content .= "} catch (PDOException \$e) {\n";
-            $db_config_content .= "    error_log('PDO Connection Error in db_config: ' . \$e->getMessage());\n";
+            $db_config_content .= "    \$is_configured = false;\n";
             $db_config_content .= "    \$pdo = null;\n";
             $db_config_content .= "}\n";
             $db_config_content .= "?>";
