@@ -5,8 +5,8 @@
 session_start();
 header('Content-Type: application/json');
 
-if (!isset($_SESSION['usuario_id'])) {
-    echo json_encode(['status' => 'error', 'message' => 'Não autorizado']);
+if (!isset($_SESSION['admin_logged']) || $_SESSION['admin_logged'] !== true) {
+    echo json_encode(['status' => 'error', 'message' => 'Não autorizado: Admin session not found']);
     exit;
 }
 
