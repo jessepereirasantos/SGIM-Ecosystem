@@ -1,8 +1,11 @@
 <?php
+// Ativar exibição de erros temporariamente para depuração se necessário
+// ini_set('display_errors', 1); error_reporting(E_ALL);
+
 require_once 'config/database.php';
 $current_page = 'licencas';
 
-// Função para Gerar Licença (Preservando lógica)
+// Função para Gerar Licença
 function generateSGIMLicense() {
     return 'SGIM-' . strtoupper(substr(md5(uniqid()), 0, 4)) . '-' . strtoupper(substr(md5(uniqid()), 5, 4)) . '-' . strtoupper(substr(md5(uniqid()), 10, 4));
 }
@@ -19,9 +22,20 @@ if (isset($_POST['gerar_licenca'])) {
             </div>";
 }
 
-// Busca de Licenças Ativas
-$stmt = $pdo->query("SELECT id, nome, dominio, license_key, created_at FROM clientes WHERE license_key IS NOT NULL ORDER BY id DESC");
-$licencas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// Busca de Licenças com Tratamento de Erro (Garantindo que a página abra mesmo com erro SQL)
+$licencas = [];
+try {
+    // Tenta primeiro com created_at, se falhar tenta com data_criacao
+    $stmt = $pdo->query("SELECT id, nome, dominio, license_key, created_at FROM clientes WHERE license_key IS NOT NULL ORDER BY id DESC");
+    $licencas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    try {
+        $stmt = $pdo->query("SELECT id, nome, dominio, license_key, data_criacao as created_at FROM clientes WHERE license_key IS NOT NULL ORDER BY id DESC");
+        $licencas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e2) {
+        error_log("Erro Crítico Licenças: " . $e2->getMessage());
+    }
+}
 
 include 'templates/header.php';
 ?>
@@ -30,11 +44,10 @@ include 'templates/header.php';
     <?php include 'sidebar.php'; ?>
 
     <main class="ml-[280px] min-h-screen flex-1">
-        <!-- Top Navigation -->
         <header class="h-16 flex items-center justify-between px-8 bg-surface/80 backdrop-blur-md sticky top-0 z-40 border-b border-outline-variant/10">
             <div class="flex items-center gap-2">
                 <span class="material-symbols-outlined text-primary">vpn_key</span>
-                <span class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Licensing Control</span>
+                <span class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Licensing Control Hub</span>
             </div>
         </header>
 
@@ -55,26 +68,32 @@ include 'templates/header.php';
             <?= $msg ?>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <?php foreach ($licencas as $l): ?>
-                <div class="glass-card p-8 rounded-xl hover:border-primary/30 transition-all group relative overflow-hidden">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="size-2 bg-secondary rounded-full shadow-[0_0_10px_rgba(242,191,58,0.5)]"></div>
-                        <span class="text-[10px] font-bold text-secondary uppercase tracking-widest italic">Ativa & Vinculada</span>
-                    </div>
+                <?php if (count($licencas) > 0): ?>
+                    <?php foreach ($licencas as $l): ?>
+                    <div class="glass-card p-8 rounded-xl hover:border-primary/30 transition-all group relative overflow-hidden">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="size-2 bg-secondary rounded-full shadow-[0_0_10px_rgba(242,191,58,0.5)]"></div>
+                            <span class="text-[10px] font-bold text-secondary uppercase tracking-widest italic">Ativa & Vinculada</span>
+                        </div>
 
-                    <h4 class="text-on-surface font-bold text-lg leading-tight"><?= htmlspecialchars($l['nome']) ?></h4>
-                    <p class="text-on-surface-variant text-xs font-mono mb-6"><?= htmlspecialchars($l['dominio']) ?></p>
+                        <h4 class="text-on-surface font-bold text-lg leading-tight"><?= htmlspecialchars($l['nome']) ?></h4>
+                        <p class="text-on-surface-variant text-xs font-mono mb-6"><?= htmlspecialchars($l['dominio']) ?></p>
 
-                    <div class="bg-surface-container/50 border border-outline-variant/10 p-4 rounded-xl mb-6">
-                        <p class="text-[9px] text-on-surface-variant font-bold uppercase tracking-widest mb-1">Chave de Acesso</p>
-                        <code class="text-primary text-sm font-black font-mono break-all"><?= $l['license_key'] ?></code>
-                    </div>
+                        <div class="bg-surface-container/50 border border-outline-variant/10 p-4 rounded-xl mb-6">
+                            <p class="text-[9px] text-on-surface-variant font-bold uppercase tracking-widest mb-1">Chave de Acesso</p>
+                            <code class="text-primary text-sm font-black font-mono break-all"><?= $l['license_key'] ?></code>
+                        </div>
 
-                    <div class="flex justify-between items-center pt-6 border-t border-outline-variant/10">
-                        <span class="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest opacity-60">Emitida em <?= date('d/m/Y', strtotime($l['created_at'])) ?></span>
+                        <div class="flex justify-between items-center pt-6 border-t border-outline-variant/10">
+                            <span class="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest opacity-60">Emitida em <?= isset($l['created_at']) ? date('d/m/Y', strtotime($l['created_at'])) : '---' ?></span>
+                        </div>
                     </div>
-                </div>
-                <?php endforeach; ?>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="col-span-full p-20 glass-card rounded-xl text-center opacity-40 italic">
+                        <p class="text-sm">Nenhuma licença vinculada encontrada.</p>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </main>
