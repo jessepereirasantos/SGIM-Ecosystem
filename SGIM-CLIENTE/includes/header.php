@@ -184,43 +184,92 @@ $unreadCount = 0;
             </div>
         </div>
 
-        <nav class="flex-1 px-4 space-y-8">
+        <nav class="flex-1 px-4 space-y-6 overflow-y-auto py-4">
+            <!-- GRUPO: PRINCIPAL -->
             <div>
-                <p class="px-4 text-[11px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-4">Principal</p>
+                <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-3">Painel</p>
                 <div class="space-y-1">
                     <a href="dashboard.php" class="sidebar-item <?= ($current_page == 'dashboard') ? 'active' : '' ?>">
                         <span class="material-symbols-outlined">dashboard</span>
-                        <span>Dashboard</span>
+                        <span>Início</span>
                     </a>
                     <a href="novidades.php" class="sidebar-item <?= ($current_page == 'novidades') ? 'active' : '' ?>">
-                        <span class="material-symbols-outlined">notifications_active</span>
+                        <span class="material-symbols-outlined">campaign</span>
                         <div class="flex justify-between items-center w-full">
-                            <span>Novidades</span>
+                            <span>Comunicados</span>
                             <?php if ($unreadCount > 0): ?>
-                                <span class="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full"><?= $unreadCount ?></span>
+                                <span class="bg-[#ffc880] text-black text-[9px] font-black px-1.5 py-0.5 rounded-full"><?= $unreadCount ?></span>
                             <?php endif; ?>
                         </div>
                     </a>
                 </div>
             </div>
 
+            <!-- GRUPO: GESTÃO MINISTERIAL -->
             <div>
-                <p class="px-4 text-[11px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-4">Gestão</p>
+                <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-3">Ministerial</p>
                 <div class="space-y-1">
                     <a href="membros.php" class="sidebar-item <?= ($current_page == 'membros') ? 'active' : '' ?>">
                         <span class="material-symbols-outlined">group</span>
                         <span>Membros</span>
                     </a>
-                    <a href="financeiro.php" class="sidebar-item <?= ($current_page == 'financeiro') ? 'active' : '' ?>">
-                        <span class="material-symbols-outlined">payments</span>
-                        <span>Financeiro</span>
+                    <a href="congregacoes.php" class="sidebar-item <?= ($current_page == 'congregacoes') ? 'active' : '' ?>">
+                        <span class="material-symbols-outlined">church</span>
+                        <span>Congregações</span>
+                    </a>
+                    <a href="departamentos.php" class="sidebar-item <?= ($current_page == 'departamentos') ? 'active' : '' ?>">
+                        <span class="material-symbols-outlined">corporate_fare</span>
+                        <span>Departamentos</span>
+                    </a>
+                    <a href="eventos.php" class="sidebar-item <?= ($current_page == 'eventos') ? 'active' : '' ?>">
+                        <span class="material-symbols-outlined">calendar_month</span>
+                        <span>Eventos</span>
                     </a>
                 </div>
             </div>
 
-            <div class="pt-6 border-t border-[#1e1e1e]">
-                <p class="px-4 text-[11px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-4">Sistema</p>
+            <!-- GRUPO: SECRETARIA E COMUNICAÇÃO -->
+            <div>
+                <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-3">Secretaria</p>
                 <div class="space-y-1">
+                    <a href="carteirinha_digital.php" class="sidebar-item <?= ($current_page == 'carteirinhas') ? 'active' : '' ?>">
+                        <span class="material-symbols-outlined">badge</span>
+                        <span>Carteirinhas</span>
+                    </a>
+                    <a href="whatsapp.php" class="sidebar-item <?= ($current_page == 'whatsapp') ? 'active' : '' ?>">
+                        <span class="material-symbols-outlined">chat_bubble</span>
+                        <span>WhatsApp</span>
+                    </a>
+                    <a href="comunicacao.php" class="sidebar-item <?= ($current_page == 'comunicacao') ? 'active' : '' ?>">
+                        <span class="material-symbols-outlined">mail</span>
+                        <span>E-mail Marketing</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- GRUPO: FINANCEIRO -->
+            <div>
+                <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-3">Tesouraria</p>
+                <div class="space-y-1">
+                    <a href="financeiro.php" class="sidebar-item <?= ($current_page == 'financeiro') ? 'active' : '' ?>">
+                        <span class="material-symbols-outlined">payments</span>
+                        <span>Dashboard Financeira</span>
+                    </a>
+                    <a href="financeiro_relatorio.php" class="sidebar-item <?= ($current_page == 'relatorios_fin') ? 'active' : '' ?>">
+                        <span class="material-symbols-outlined">analytics</span>
+                        <span>Relatórios PDF</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- GRUPO: ESTATÍSTICAS E SISTEMA -->
+            <div>
+                <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-3">Administração</p>
+                <div class="space-y-1">
+                    <a href="relatorios.php" class="sidebar-item <?= ($current_page == 'relatorios') ? 'active' : '' ?>">
+                        <span class="material-symbols-outlined">assessment</span>
+                        <span>Relatórios Gerais</span>
+                    </a>
                     <a href="configuracoes.php" class="sidebar-item <?= ($current_page == 'configuracoes') ? 'active' : '' ?>">
                         <span class="material-symbols-outlined">settings</span>
                         <span>Configurações</span>

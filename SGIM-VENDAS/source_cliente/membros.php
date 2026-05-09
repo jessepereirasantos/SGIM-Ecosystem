@@ -104,14 +104,22 @@ require_once 'includes/header.php';
                     </thead>
                     <tbody class="divide-y divide-darkborder">
                     <?php
+                    $where = "WHERE m.status = ?";
+                    $params = [$filter_status];
+                    
+                    if ($_SESSION['user_nivel'] !== 'admin' && isset($_SESSION['congregacao_id'])) {
+                        $where .= " AND m.congregacao_id = ?";
+                        $params[] = $_SESSION['congregacao_id'];
+                    }
+
                     $sql = "SELECT m.*, c.nome as cargo_nome, con.nome as congregacao_nome 
                             FROM membros m 
                             LEFT JOIN cargos c ON m.cargo_id = c.id 
                             LEFT JOIN congregacoes con ON m.congregacao_id = con.id 
-                            WHERE m.status = ? 
+                            $where 
                             ORDER BY m.id DESC";
                     $stmt = $pdo->prepare($sql);
-                    $stmt->execute([$filter_status]);
+                    $stmt->execute($params);
                     $membros = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                     if (count($membros) > 0) {
