@@ -1,7 +1,10 @@
 <?php
 ob_start();
 session_start();
-require_once 'config/db.php';
+// O carregamento do DB deve ser condicional, pois no setup inicial o arquivo ainda não existe.
+if (file_exists('config/db.php')) {
+    include_once 'config/db.php';
+}
 
 // Higienização do domínio para consulta remota (remove www)
 $domain_raw = $_SERVER['HTTP_HOST'] ?? 'iadeeloha.com.br';
