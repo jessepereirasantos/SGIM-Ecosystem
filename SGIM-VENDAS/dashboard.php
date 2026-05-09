@@ -1,115 +1,139 @@
 <?php
-/**
- * SGIM MASTER - DASHBOARD v7.8 (ESTABILIZAÇÃO TOTAL)
- */
-session_start();
-
-// Proteção de Acesso: Se não estiver logado, vai para o login
-if (!isset($_SESSION['admin_logged']) || $_SESSION['admin_logged'] !== true) {
-    header("Location: login.php");
-    exit;
-}
-
+require_once '../config/database.php';
 $current_page = 'dashboard';
-require_once 'templates/header.php';
 
-// Inicialização segura
-$total_clientes = 0;
-$licencas_ativas = 0;
-$vendas_mes = 0;
-$receita_total = 0;
-$ultimos_clientes = [];
-$error_sql = null;
-
+// 📊 Coleta de Dados para a Dashboard
 try {
-    // Verificação de conexão
-    if (!isset($pdo)) {
-        throw new Exception("Variável de conexão PDO não definida.");
-    }
-
+    // Total de Clientes
     $total_clientes = $pdo->query("SELECT COUNT(*) FROM clientes")->fetchColumn() ?: 0;
-    $licencas_ativas = $pdo->query("SELECT COUNT(*) FROM licencas WHERE status = 'ativa'")->fetchColumn() ?: 0;
-    $vendas_mes = $pdo->query("SELECT COUNT(*) FROM pedidos WHERE MONTH(data_venda) = MONTH(CURRENT_DATE()) AND YEAR(data_venda) = YEAR(CURRENT_DATE())")->fetchColumn() ?: 0;
     
+    // Vendas do Mês (Simulação baseada na tabela pedidos)
+    $vendas_mes = $pdo->query("SELECT COUNT(*) FROM pedidos WHERE MONTH(data_criacao) = MONTH(CURRENT_DATE())")->fetchColumn() ?: 0;
+    
+    // Receita Total (Soma da coluna 'valor' da tabela pedidos onde status = 'pago')
+    // Verificando se a coluna 'valor' existe, caso contrário usa fallback 0
     try {
-        $receita_total = $pdo->query("SELECT SUM(valor) FROM pedidos WHERE status IN ('approved', 'pago', 'APROVADO')")->fetchColumn() ?: 0;
-    } catch (Exception $e) {
-        $receita_total = 0;
-    }
-    
-    $ultimos_clientes = $pdo->query("SELECT * FROM clientes ORDER BY id DESC LIMIT 4")->fetchAll(PDO::FETCH_ASSOC);
+        $receita_total = $pdo->query("SELECT SUM(valor) FROM pedidos WHERE status = 'pago'")->fetchColumn() ?: 0;
+    } catch (Exception $e) { $receita_total = 0; }
+
+
+    // Últimos 5 Clientes
+    $ultimos_clientes = $pdo->query("SELECT * FROM clientes ORDER BY id DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC);
+
 } catch (Exception $e) {
-    $error_sql = $e->getMessage();
+    die("Erro ao carregar dados da dashboard: " . $e->getMessage());
 }
 
-// Alerta de Erro SQL (Apenas para diagnóstico)
-if ($error_sql): ?>
-    <div style="background: #fff5f5; border: 1px solid #feb2b2; color: #c53030; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 2rem; font-family: sans-serif;">
-        <h3 style="margin-top:0">🚨 Erro de Banco de Dados</h3>
-        <p>O Dashboard carregou, mas não conseguiu puxar os dados:</p>
-        <code><?= htmlspecialchars($error_sql) ?></code>
-        <p style="font-size: 0.9rem; margin-bottom:0">Dica: Verifique se as tabelas <code>clientes</code> e <code>pedidos</code> existem no banco.</p>
-    </div>
-<?php endif; ?>
+include '../templates/header.php';
+?>
 
-<!-- Restante do HTML Original -->
-<div class="flex justify-between items-end mb-10">
-    <div>
-        <h2 class="text-display-lg font-display-lg text-on-surface mb-2">Panorama Geral</h2>
-        <p class="text-on-surface-variant font-body-md opacity-80">Bem-vindo de volta, <?= htmlspecialchars($_SESSION['usuario_nome'] ?? 'Admin') ?>.</p>
-    </div>
-    <div class="flex gap-3">
-        <button onclick="window.location.reload()" class="px-5 py-2.5 rounded-lg border border-outline-variant/20 text-on-surface font-title-sm hover:bg-surface-variant/10 transition-all flex items-center gap-2">
-            <span class="material-symbols-outlined text-sm">refresh</span>
-            Atualizar
-        </button>
-        <button disabled class="px-5 py-2.5 rounded-lg bg-on-surface-variant/10 text-on-surface-variant/40 font-title-sm cursor-not-allowed flex items-center gap-2">
-            <span class="material-symbols-outlined text-sm">lock</span>
-            Publicador (Em Manutenção)
-        </button>
-    </div>
+<div class="flex">
+    <?php include '../templates/sidebar.php'; ?>
+
+    <main class="ml-72 flex-1 p-10 bg-[#050505] min-h-screen">
+        <!-- Header da Página -->
+        <div class="flex justify-between items-center mb-10">
+            <div>
+                <h2 class="text-3xl font-black text-white tracking-tighter">Panorama <span class="text-amber-500">Geral</span></h2>
+                <p class="text-zinc-500 text-sm mt-1">Bem-vindo ao centro de comando do SGIM SaaS.</p>
+            </div>
+            <div class="bg-zinc-900/50 px-4 py-2 rounded-2xl border border-zinc-800 flex items-center gap-3">
+                <div class="size-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Sistema Online</span>
+            </div>
+        </div>
+
+        <!-- Cards de Indicadores -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+            <!-- Card: Clientes -->
+            <div class="bg-zinc-900/30 border border-zinc-800 p-8 rounded-[32px] hover:border-amber-500/30 transition-all group">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="material-symbols-outlined text-amber-500 text-3xl">group</span>
+                    <span class="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-lg">+12%</span>
+                </div>
+                <p class="text-zinc-500 text-xs font-bold uppercase tracking-widest mb-1">Total de Clientes</p>
+                <h3 class="text-4xl font-black text-white"><?= $total_clientes ?></h3>
+            </div>
+
+            <!-- Card: Vendas Mes -->
+            <div class="bg-zinc-900/30 border border-zinc-800 p-8 rounded-[32px] hover:border-amber-500/30 transition-all group">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="material-symbols-outlined text-amber-500 text-3xl">shopping_cart</span>
+                    <span class="text-[10px] font-bold text-amber-500 bg-amber-500/10 px-2 py-1 rounded-lg">Mensal</span>
+                </div>
+                <p class="text-zinc-500 text-xs font-bold uppercase tracking-widest mb-1">Vendas no Mês</p>
+                <h3 class="text-4xl font-black text-white"><?= $vendas_mes ?></h3>
+            </div>
+
+            <!-- Card: Receita -->
+            <div class="bg-zinc-900/30 border border-zinc-800 p-8 rounded-[32px] hover:border-amber-500/30 transition-all group">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="material-symbols-outlined text-amber-500 text-3xl">payments</span>
+                </div>
+                <p class="text-zinc-500 text-xs font-bold uppercase tracking-widest mb-1">Receita Total</p>
+                <h3 class="text-4xl font-black text-white">R$ <?= number_format($receita_total, 2, ',', '.') ?></h3>
+            </div>
+
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Tabela: Últimos Clientes -->
+            <div class="lg:col-span-2 bg-zinc-900/20 border border-zinc-900 rounded-[40px] p-8">
+                <div class="flex justify-between items-center mb-8">
+                    <h4 class="text-lg font-bold text-white tracking-tight">Novos Clientes <span class="text-zinc-600 text-sm ml-2">Recentemente Ativados</span></h4>
+                    <a href="clientes.php" class="text-xs text-amber-500 font-bold hover:underline">Ver Todos</a>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="text-[10px] text-zinc-600 uppercase tracking-widest border-b border-zinc-800">
+                                <th class="pb-4 font-bold">Cliente</th>
+                                <th class="pb-4 font-bold">Domínio</th>
+                                <th class="pb-4 font-bold">Status</th>
+                                <th class="pb-4 font-bold">Data</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-zinc-800/50">
+                            <?php foreach ($ultimos_clientes as $c): ?>
+                            <tr class="group hover:bg-white/[0.01] transition-colors">
+                                <td class="py-5">
+                                    <div class="flex items-center gap-3">
+                                        <div class="size-9 bg-zinc-800 rounded-xl flex items-center justify-center text-xs font-bold text-zinc-400"><?= substr($c['nome'] ?? 'U', 0, 1) ?></div>
+                                        <div>
+                                            <p class="text-sm font-bold text-white"><?= htmlspecialchars($c['nome'] ?? 'Usuário Sem Nome') ?></p>
+                                            <p class="text-[10px] text-zinc-500"><?= htmlspecialchars($c['email'] ?? '') ?></p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-5 text-xs text-zinc-400 font-mono"><?= htmlspecialchars($c['dominio'] ?? 'Não definido') ?></td>
+                                <td class="py-5">
+                                    <span class="px-2 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-bold rounded-lg border border-emerald-500/20">Ativo</span>
+                                </td>
+                                <td class="py-5 text-xs text-zinc-600"><?= date('d/m/Y', strtotime($c['data_criacao'] ?? 'now')) ?></td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Card: Ativação Rápida -->
+            <div class="bg-gradient-to-br from-amber-500 to-amber-700 rounded-[40px] p-10 flex flex-col justify-between shadow-2xl shadow-amber-500/10">
+                <div>
+                    <h4 class="text-2xl font-black text-black tracking-tighter mb-4 leading-none">Ativação <br>Assistida</h4>
+                    <p class="text-black/60 text-sm font-medium leading-relaxed">Gere uma nova licença e prepare o sistema para um novo cliente em um único clique.</p>
+                </div>
+                <div class="mt-8 space-y-3">
+                    <a href="licencas.php?acao=nova" class="w-full bg-black text-amber-500 font-black py-4 rounded-2xl flex items-center justify-center gap-3 hover:scale-[1.02] transition-all">
+                        <span class="material-symbols-outlined">add_circle</span>
+                        NOVA LICENÇA
+                    </a>
+                    <p class="text-center text-[9px] text-black/40 font-bold uppercase tracking-widest">Processo Automatizado</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
-    <div class="glass-card p-8 rounded-xl relative overflow-hidden group">
-        <p class="text-label-caps font-label-caps text-on-surface-variant/60 uppercase mb-1">Clientes</p>
-        <p class="text-headline-md font-headline-md text-on-surface"><?= $total_clientes ?></p>
-    </div>
-    <div class="glass-card p-8 rounded-xl relative overflow-hidden group">
-        <p class="text-label-caps font-label-caps text-on-surface-variant/60 uppercase mb-1">Licenças</p>
-        <p class="text-headline-md font-headline-md text-on-surface"><?= $licencas_ativas ?></p>
-    </div>
-    <div class="glass-card p-8 rounded-xl relative overflow-hidden group">
-        <p class="text-label-caps font-label-caps text-on-surface-variant/60 uppercase mb-1">Vendas (Mês)</p>
-        <p class="text-headline-md font-headline-md text-on-surface"><?= $vendas_mes ?></p>
-    </div>
-    <div class="glass-card p-8 rounded-xl relative overflow-hidden group">
-        <p class="text-label-caps font-label-caps text-on-surface-variant/60 uppercase mb-1">Receita</p>
-        <p class="text-headline-md font-headline-md text-on-surface">R$ <?= number_format($receita_total, 2, ',', '.') ?></p>
-    </div>
-</div>
-
-<div class="glass-card rounded-xl overflow-hidden p-8">
-    <h3 class="text-title-sm font-title-sm text-on-surface mb-4">Últimos Clientes</h3>
-    <table class="w-full text-left">
-        <thead>
-            <tr class="bg-surface-container-low/50">
-                <th class="px-4 py-3 text-label-caps font-label-caps text-on-surface-variant/50 uppercase">Nome</th>
-                <th class="px-4 py-3 text-label-caps font-label-caps text-on-surface-variant/50 uppercase">Data</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($ultimos_clientes as $c): ?>
-            <tr class="border-t border-outline-variant/10">
-                <td class="px-4 py-3"><?= htmlspecialchars($c['nome']) ?></td>
-                <td class="px-4 py-3"><?= date('d/m/Y', strtotime($c['data_cadastro'])) ?></td>
-            </tr>
-            <?php endforeach; ?>
-            <?php if(empty($ultimos_clientes)): ?>
-                <tr><td colspan="2" class="px-4 py-8 text-center opacity-50">Nenhum registro.</td></tr>
-            <?php endif; ?>
-        </tbody>
-    </table>
-</div>
-
-<?php include 'templates/footer.php'; ?>
+<?php include '../templates/footer.php'; ?>

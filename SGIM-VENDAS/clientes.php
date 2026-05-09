@@ -1,115 +1,126 @@
 <?php
-/**
- * SGIM MASTER - CLIENTES (Obsidian Amber Style v8.1)
- */
+require_once '../config/database.php';
 $current_page = 'clientes';
-require_once 'templates/header.php';
 
-try {
-    $stmt = $pdo->query("SELECT * FROM clientes ORDER BY id DESC");
-    $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (Exception $e) { $error_sql = $e->getMessage(); }
+// Processamento de Ações (Simples para este MVP, evoluiremos para AJAX)
+$msg = "";
+if (isset($_GET['delete'])) {
+    $id = (int)$_GET['delete'];
+    try {
+        $pdo->prepare("DELETE FROM clientes WHERE id = ?")->execute([$id]);
+        header("Location: clientes.php?success=1");
+        exit;
+    } catch (Exception $e) {
+        $msg = "<div class='p-4 bg-red-500/10 text-red-500 rounded-2xl mb-6 text-sm font-bold border border-red-500/20'>🛑 Erro ao remover: " . $e->getMessage() . "</div>";
+    }
+}
+
+if (isset($_GET['success'])) {
+    $msg = "<div class='p-4 bg-emerald-500/10 text-emerald-500 rounded-2xl mb-6 text-sm font-bold border border-emerald-500/20'>✅ Cliente removido com sucesso.</div>";
+}
+
+// Busca de Clientes
+$search = $_GET['search'] ?? '';
+$query = "SELECT * FROM clientes";
+if (!empty($search)) {
+    $query .= " WHERE nome LIKE :s OR email LIKE :s OR dominio LIKE :s";
+}
+$query .= " ORDER BY id DESC";
+
+$stmt = $pdo->prepare($query);
+if (!empty($search)) {
+    $stmt->bindValue(':s', "%$search%");
+}
+$stmt->execute();
+$clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+include '../templates/header.php';
 ?>
 
-<div class="flex justify-between items-end mb-10">
-    <div>
-        <h2 class="text-display-lg text-on-surface mb-2 font-display-lg">Gestão de Clientes</h2>
-        <p class="text-on-surface-variant font-body-md opacity-80">Administração de parceiros e acessos.</p>
-    </div>
-    <button onclick="document.getElementById('modalCliente').classList.remove('hidden')" class="px-8 py-4 rounded-xl bg-primary text-on-primary text-sm font-black hover:scale-105 transition-all shadow-xl shadow-amber-500/10">
-        NOVO CLIENTE
-    </button>
-</div>
+<div class="flex">
+    <?php include '../templates/sidebar.php'; ?>
 
-<div class="glass-card rounded-2xl overflow-hidden">
-    <table class="w-full text-left">
-        <thead>
-            <tr class="bg-surface-container-low/50">
-                <th class="px-8 py-6 text-label-caps text-on-surface-variant/50 uppercase">Nome / Documento</th>
-                <th class="px-8 py-6 text-label-caps text-on-surface-variant/50 uppercase">Contato</th>
-                <th class="px-8 py-6 text-label-caps text-on-surface-variant/50 uppercase">Data</th>
-                <th class="px-8 py-6 text-label-caps text-on-surface-variant/50 uppercase text-right">Ações</th>
-            </tr>
-        </thead>
-        <tbody class="divide-y divide-outline-variant/10">
-            <?php foreach ($clientes as $c): ?>
-            <tr id="row-<?= $c['id'] ?>" class="hover:bg-white/[0.02] transition-all group">
-                <td class="px-8 py-6">
-                    <p class="text-sm font-bold text-on-surface"><?= htmlspecialchars($c['nome']) ?></p>
-                    <p class="text-[10px] text-zinc-500 font-mono"><?= htmlspecialchars($c['documento'] ?? '---') ?></p>
-                </td>
-                <td class="px-8 py-6">
-                    <p class="text-sm text-zinc-400"><?= htmlspecialchars($c['email']) ?></p>
-                    <p class="text-[10px] text-zinc-600 italic"><?= htmlspecialchars($c['telefone'] ?? '') ?></p>
-                </td>
-                <td class="px-8 py-6 text-xs text-zinc-500"><?= date('d/m/Y', strtotime($c['data_cadastro'])) ?></td>
-                <td class="px-8 py-6 text-right">
-                    <button class="size-10 bg-zinc-900 rounded-xl inline-flex items-center justify-center text-zinc-600 hover:text-primary transition-all">
-                        <span class="material-symbols-outlined text-[18px]">edit</span>
-                    </button>
-                    <button onclick="deleteRecord('clientes', <?= $c['id'] ?>)" class="size-10 bg-zinc-900 rounded-xl inline-flex items-center justify-center text-zinc-600 hover:text-red-500 transition-all">
-                        <span class="material-symbols-outlined text-[18px]">delete</span>
-                    </button>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
-</div>
-
-<!-- Modal Novo Cliente (DESIGN PADRONIZADO) -->
-<div id="modalCliente" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
-    <div class="bg-[#121212] border border-white/5 rounded-[32px] w-full max-w-lg p-10 shadow-2xl relative">
-        <div class="flex justify-between items-center mb-10">
-            <h3 class="text-2xl font-bold text-white">Novo <span class="text-primary italic">Cliente</span></h3>
-            <button onclick="document.getElementById('modalCliente').classList.add('hidden')" class="text-zinc-500 hover:text-white transition-colors">
-                <span class="material-symbols-outlined">close</span>
-            </button>
+    <main class="ml-72 flex-1 p-10 bg-[#050505] min-h-screen">
+        <div class="flex justify-between items-end mb-10">
+            <div>
+                <h2 class="text-3xl font-black text-white tracking-tighter">Gestão de <span class="text-amber-500">Clientes</span></h2>
+                <p class="text-zinc-500 text-sm mt-1">Controle total sobre a base instalada e domínios ativos.</p>
+            </div>
+            <div class="flex gap-4">
+                <form class="relative group">
+                    <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Buscar cliente..." 
+                           class="bg-zinc-900 border border-zinc-800 rounded-2xl px-5 py-3 text-sm text-white w-64 focus:border-amber-500 outline-none transition-all pl-12">
+                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-amber-500 transition-colors">search</span>
+                </form>
+                <button class="bg-amber-500 text-black font-black px-6 py-3 rounded-2xl flex items-center gap-2 hover:scale-105 transition-all text-sm">
+                    <span class="material-symbols-outlined text-[20px]">person_add</span>
+                    NOVO CLIENTE
+                </button>
+            </div>
         </div>
-        
-        <form id="formCliente" class="space-y-6">
-            <input type="hidden" name="table" value="clientes">
-            
-            <div class="space-y-2">
-                <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Nome da Empresa / Cliente</label>
-                <input type="text" name="data[nome]" required class="w-full bg-white rounded-xl px-6 py-4 text-black font-bold focus:ring-4 focus:ring-primary/20 transition-all">
-            </div>
 
-            <div class="grid grid-cols-2 gap-4">
-                <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">E-mail</label>
-                    <input type="email" name="data[email]" required class="w-full bg-white rounded-xl px-6 py-4 text-black font-bold focus:ring-4 focus:ring-primary/20">
-                </div>
-                <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Telefone</label>
-                    <input type="text" name="data[telefone]" class="w-full bg-white rounded-xl px-6 py-4 text-black font-bold focus:ring-4 focus:ring-primary/20">
-                </div>
-            </div>
+        <?= $msg ?>
 
-            <div class="space-y-2">
-                <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Documento (CPF/CNPJ)</label>
-                <input type="text" name="data[documento]" class="w-full bg-white rounded-xl px-6 py-4 text-black font-bold focus:ring-4 focus:ring-primary/20">
-            </div>
-
-            <button type="submit" class="w-full py-5 bg-primary text-on-primary font-black rounded-xl shadow-xl hover:opacity-90 transition-all uppercase tracking-widest text-sm mt-4">
-                SALVAR CLIENTE
-            </button>
-        </form>
-    </div>
+        <div class="bg-zinc-900/20 border border-zinc-900 rounded-[40px] overflow-hidden">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="text-[10px] text-zinc-600 uppercase tracking-widest bg-white/[0.02] border-b border-zinc-800">
+                        <th class="px-8 py-6 font-bold">Identificação</th>
+                        <th class="px-8 py-6 font-bold">Domínio Autorizado</th>
+                        <th class="px-8 py-6 font-bold">Licença</th>
+                        <th class="px-8 py-6 font-bold text-center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-800/50">
+                    <?php if (count($clientes) > 0): ?>
+                        <?php foreach ($clientes as $c): ?>
+                        <tr class="group hover:bg-white/[0.01] transition-colors">
+                            <td class="px-8 py-6">
+                                <div class="flex items-center gap-4">
+                                    <div class="size-12 bg-gradient-to-br from-zinc-800 to-zinc-900 rounded-2xl flex items-center justify-center text-lg font-black text-zinc-500 border border-zinc-800"><?= strtoupper(substr($c['nome'] ?? 'U', 0, 1)) ?></div>
+                                    <div>
+                                        <p class="text-sm font-bold text-white"><?= htmlspecialchars($c['nome'] ?? 'Sem Nome') ?></p>
+                                        <p class="text-[11px] text-zinc-500"><?= htmlspecialchars($c['email'] ?? '') ?></p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-8 py-6">
+                                <div class="flex flex-col">
+                                    <span class="text-xs text-white font-mono"><?= htmlspecialchars($c['dominio'] ?? 'pendente...') ?></span>
+                                    <span class="text-[9px] text-zinc-600 uppercase font-bold tracking-tighter mt-1">HostGator / Shared</span>
+                                </div>
+                            </td>
+                            <td class="px-8 py-6">
+                                <div class="bg-zinc-900 px-3 py-2 rounded-xl border border-zinc-800 flex items-center justify-between group-hover:border-amber-500/30 transition-all">
+                                    <span class="text-[10px] text-zinc-400 font-mono"><?= substr($c['license_key'] ?? 'N/A', 0, 15) ?>...</span>
+                                    <span class="material-symbols-outlined text-[14px] text-emerald-500">verified</span>
+                                </div>
+                            </td>
+                            <td class="px-8 py-6">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button class="size-10 bg-zinc-900 rounded-xl border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-amber-500 hover:border-amber-500/50 transition-all shadow-sm">
+                                        <span class="material-symbols-outlined text-[18px]">edit</span>
+                                    </button>
+                                    <a href="?delete=<?= $c['id'] ?>" onclick="return confirm('ATENÇÃO: Deseja realmente excluir este cliente? Esta ação é irreversível.')" 
+                                       class="size-10 bg-zinc-900 rounded-xl border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-red-500 hover:border-red-500/50 transition-all shadow-sm">
+                                        <span class="material-symbols-outlined text-[18px]">delete</span>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="4" class="p-20 text-center">
+                                <span class="material-symbols-outlined text-6xl text-zinc-800 mb-4">person_search</span>
+                                <p class="text-zinc-500 text-sm">Nenhum cliente encontrado com os critérios de busca.</p>
+                            </td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </main>
 </div>
 
-<script>
-document.getElementById('formCliente').addEventListener('submit', function(e) {
-    e.preventDefault();
-    fetch('api/save_record.php', { method: 'POST', body: new FormData(this) })
-    .then(r => r.json()).then(data => { if(data.success) location.reload(); else alert(data.message); });
-});
-function deleteRecord(table, id) {
-    if(!confirm('Excluir?')) return;
-    const fd = new FormData(); fd.append('table', table); fd.append('id', id);
-    fetch('api/delete_record.php', { method: 'POST', body: fd })
-    .then(r => r.json()).then(data => { if(data.success) document.getElementById('row-'+id).remove(); });
-}
-</script>
-
-<?php include 'templates/footer.php'; ?>
+<?php include '../templates/footer.php'; ?>
