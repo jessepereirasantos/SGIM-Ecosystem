@@ -4,7 +4,7 @@
  * Este script empacota a versão estável do CLIENTE para novos compradores.
  */
 
-$sourceDir = __DIR__ . '/fonte_cliente/'; // Pasta onde você subirá o código completo do sistema
+$sourceDir = __DIR__ . '/source_cliente/'; // Pasta com o código real do cliente
 $zipFile = __DIR__ . '/sgim_master.zip';
 
 $zip = new ZipArchive();
