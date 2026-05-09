@@ -8,7 +8,7 @@ try {
         email VARCHAR(255) NOT NULL UNIQUE,
         senha VARCHAR(255) NOT NULL,
         nivel ENUM('admin', 'cliente') DEFAULT 'cliente',
-        data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )");
     echo "Tabela 'usuarios' verificada/criada.<br>";
 
@@ -33,7 +33,7 @@ try {
         indicado_id INT NOT NULL,
         status ENUM('pendente', 'convertido', 'cancelado') DEFAULT 'pendente',
         bonus_pago DECIMAL(10,2) DEFAULT 0.00,
-        data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (referente_id) REFERENCES clientes(id),
         FOREIGN KEY (indicado_id) REFERENCES clientes(id)
     )");
@@ -55,7 +55,7 @@ try {
         limite_usos INT DEFAULT 0,
         usos_atuais INT DEFAULT 0,
         validade DATE DEFAULT NULL,
-        data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )");
     echo "Tabela 'cupons' verificada.<br>";
 

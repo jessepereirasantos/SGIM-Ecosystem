@@ -20,7 +20,7 @@ if (isset($_POST['gerar_licenca'])) {
 }
 
 // Busca de Licenças Ativas (Simulado da tabela clientes onde license_key não é nulo)
-$stmt = $pdo->query("SELECT id, nome, dominio, license_key, data_criacao FROM clientes WHERE license_key IS NOT NULL ORDER BY id DESC");
+$stmt = $pdo->query("SELECT id, nome, dominio, license_key, created_at FROM clientes WHERE license_key IS NOT NULL ORDER BY id DESC");
 $licencas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 include 'templates/header.php';
@@ -66,7 +66,7 @@ include 'templates/header.php';
                 </div>
 
                 <div class="flex justify-between items-center pt-6 border-t border-zinc-800/50">
-                    <span class="text-[10px] text-zinc-600 font-bold uppercase">Emitida em <?= date('d/m/Y', strtotime($l['data_criacao'])) ?></span>
+                    <span class="text-[10px] text-zinc-600 font-bold uppercase">Emitida em <?= date('d/m/Y', strtotime($l['created_at'])) ?></span>
                     <button class="text-zinc-500 hover:text-white transition-colors">
                         <span class="material-symbols-outlined text-[20px]">settings</span>
                     </button>

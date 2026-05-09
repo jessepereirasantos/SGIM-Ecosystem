@@ -7,21 +7,24 @@ try {
     // Total de Clientes
     $total_clientes = $pdo->query("SELECT COUNT(*) FROM clientes")->fetchColumn() ?: 0;
     
-    // Vendas do Mês (Simulação baseada na tabela pedidos)
-    $vendas_mes = $pdo->query("SELECT COUNT(*) FROM pedidos WHERE MONTH(data_criacao) = MONTH(CURRENT_DATE())")->fetchColumn() ?: 0;
+    // Vendas do Mês (Detectando coluna de data correta)
+    try {
+        $vendas_mes = $pdo->query("SELECT COUNT(*) FROM pedidos WHERE MONTH(created_at) = MONTH(CURRENT_DATE())")->fetchColumn() ?: 0;
+    } catch (Exception $e) {
+        $vendas_mes = 0; // Fallback se a coluna não existir
+    }
     
-    // Receita Total (Soma da coluna 'valor' da tabela pedidos onde status = 'pago')
-    // Verificando se a coluna 'valor' existe, caso contrário usa fallback 0
+    // Receita Total
     try {
         $receita_total = $pdo->query("SELECT SUM(valor) FROM pedidos WHERE status = 'pago'")->fetchColumn() ?: 0;
     } catch (Exception $e) { $receita_total = 0; }
-
 
     // Últimos 5 Clientes
     $ultimos_clientes = $pdo->query("SELECT * FROM clientes ORDER BY id DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (Exception $e) {
-    die("Erro ao carregar dados da dashboard: " . $e->getMessage());
+    // Erro silencioso com logs para não travar a UI
+    error_log("Erro Dashboard: " . $e->getMessage());
 }
 
 include 'templates/header.php';
@@ -109,7 +112,7 @@ include 'templates/header.php';
                                 <td class="py-5">
                                     <span class="px-2 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-bold rounded-lg border border-emerald-500/20">Ativo</span>
                                 </td>
-                                <td class="py-5 text-xs text-zinc-600"><?= date('d/m/Y', strtotime($c['data_criacao'] ?? 'now')) ?></td>
+                                <td class="py-5 text-xs text-zinc-600"><?= date('d/m/Y', strtotime($c['created_at'] ?? 'now')) ?></td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>

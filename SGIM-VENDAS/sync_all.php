@@ -74,7 +74,7 @@ try {
                     $new_key = 'SGIM-' . implode('-', $p_parts);
                     $new_token = bin2hex(random_bytes(32));
                     
-                    $sqlInsLic = "INSERT INTO licencas (cliente_id, pedido_id, chave_licenca, api_token, status, dominio, data_criacao) 
+                    $sqlInsLic = "INSERT INTO licencas (cliente_id, pedido_id, chave_licenca, api_token, status, dominio, created_at) 
                                   VALUES (?, ?, ?, ?, 'ativa', 'venda_automática', NOW())";
                     $pdo->prepare($sqlInsLic)->execute([$cid, $pid, $new_key, $new_token]);
                 } else {

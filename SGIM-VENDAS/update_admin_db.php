@@ -8,7 +8,7 @@ try {
         mensagem TEXT NOT NULL,
         icone VARCHAR(50) DEFAULT 'info',
         visto TINYINT DEFAULT 0,
-        data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )");
     echo "Tabela 'admin_notificacoes' verificada/criada!<br>";
 
