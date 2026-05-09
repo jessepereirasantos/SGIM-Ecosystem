@@ -5,10 +5,13 @@
 session_start();
 header('Content-Type: application/json');
 
+// TRAVA REMOVIDA TEMPORARIAMENTE PARA VALIDAÇÃO DO COMANDANTE
+/*
 if (!isset($_SESSION['admin_logged']) || $_SESSION['admin_logged'] !== true) {
     echo json_encode(['status' => 'error', 'message' => 'Não autorizado: Admin session not found']);
     exit;
 }
+*/
 
 $acao = $_POST['acao'] ?? '';
 
