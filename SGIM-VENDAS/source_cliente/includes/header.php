@@ -3,6 +3,7 @@
  * SGIM CLIENT - GLOBAL HEADER (v4.6 - IDENTITY SYNC)
  */
 use App\Models\ThemeModel;
+require_once __DIR__ . '/../src/autoload.php';
 
 $themeModel = new ThemeModel($pdo);
 $theme = $themeModel->getTheme();
@@ -113,66 +114,165 @@ $notificacoes_json = json_encode([]);
         });
     </script>
     <style>
-        body { color: var(--c-text); background-color: var(--c-bg); }
-        .text-white { color: var(--c-text) !important; }
-        .text-gray-300 { color: var(--c-text) !important; }
-        .text-gray-400 { color: var(--c-text-muted) !important; }
-        .text-gray-500 { color: var(--c-text-muted) !important; }
-        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        :root {
+            --brand-primary: #ffc880;
+            --brand-dark: #d4a35d;
+            --brand-light: #ffd9a8;
+            --bg-main: #050505;
+            --bg-card: #121212;
+            --border-color: #1e1e1e;
+        }
+
+        body { 
+            background-color: var(--bg-main); 
+            color: #e5e7eb; 
+            font-family: 'Inter', sans-serif;
+        }
+
+        .glass-card {
+            background: rgba(18, 18, 18, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+        }
+
+        .sidebar-item {
+            display: flex;
+            items-center: center;
+            gap: 12px;
+            padding: 10px 16px;
+            border-radius: 12px;
+            transition: all 0.2s;
+            color: #9ca3af;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .sidebar-item:hover {
+            background: rgba(255, 200, 128, 0.05);
+            color: var(--brand-primary);
+        }
+
+        .sidebar-item.active {
+            background: linear-gradient(90deg, rgba(255, 200, 128, 0.1) 0%, rgba(255, 200, 128, 0) 100%);
+            color: var(--brand-primary);
+            border-left: 3px solid var(--brand-primary);
+            border-radius: 4px 12px 12px 4px;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
     </style>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="<?= $theme['cor_brand'] ?>">
+    <meta name="theme-color" content="#ffc880">
 </head>
-<body class="bg-darkbg text-gray-100 font-sans antialiased min-h-screen flex transition-colors duration-300">
+<body class="bg-[#050505] text-gray-100 antialiased min-h-screen flex">
     <!-- Sidebar -->
-    <aside class="w-64 fixed inset-y-0 left-0 bg-darkcard border-r border-darkborder flex flex-col z-50">
-        <div class="p-6 flex flex-col border-b border-darkborder">
+    <aside class="w-72 fixed inset-y-0 left-0 bg-[#050505] border-r border-[#1e1e1e] flex flex-col z-50">
+        <div class="p-8 mb-4">
             <div class="flex items-center gap-3">
-                <?php if (!empty($theme['logo_url'])): ?>
-                    <img src="<?= htmlspecialchars($theme['logo_url']) ?>" alt="Logo" class="h-10 max-w-[180px] object-contain">
-                <?php else: ?>
-                    <div class="size-9 bg-brand rounded-lg flex items-center justify-center text-black">
-                        <span class="material-symbols-outlined text-xl font-bold">church</span>
-                    </div>
-                    <div>
-                        <h1 class="text-xl font-bold text-brand tracking-tighter leading-none">SGIM</h1>
-                    </div>
-                <?php endif; ?>
+                <div class="size-10 bg-gradient-to-br from-[#ffc880] to-[#d4a35d] rounded-xl flex items-center justify-center shadow-lg shadow-[#ffc880]/10">
+                    <span class="material-symbols-outlined text-black font-bold text-2xl">church</span>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white tracking-tight leading-none">SGIM</h1>
+                    <p class="text-[10px] text-[#ffc880] uppercase tracking-widest font-bold mt-1">SaaS Edition</p>
+                </div>
             </div>
         </div>
-        <nav class="flex-1 overflow-y-auto p-4 space-y-6">
+
+        <nav class="flex-1 px-4 space-y-8">
             <div>
-                <ul class="space-y-1">
-                    <li><a class="flex items-center gap-3 px-3 py-2.5 rounded-twelve <?= ($current_page == 'dashboard') ? 'bg-brand/10 text-brand' : 'text-gray-400 hover:text-brand hover:bg-white/5' ?> font-medium transition-all" href="dashboard.php"><span class="material-symbols-outlined text-[20px]">dashboard</span><span class="text-sm">Dashboard</span></a></li>
-                    <li><a class="flex items-center justify-between px-3 py-2.5 rounded-twelve <?= ($current_page == 'novidades') ? 'bg-brand/10 text-brand' : 'text-gray-400 hover:text-brand hover:bg-white/5' ?> transition-all" href="novidades.php"><div class="flex items-center gap-3"><span class="material-symbols-outlined text-[20px]">notifications_active</span><span class="text-sm">Novidades</span></div><?php if ($unreadCount > 0): ?><span class="flex size-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white"><?= $unreadCount ?></span><?php endif; ?></a></li>
-                    <li><a class="flex items-center gap-3 px-3 py-2.5 rounded-twelve <?= ($current_page == 'membros') ? 'bg-brand/10 text-brand' : 'text-gray-400 hover:text-brand hover:bg-white/5' ?> transition-all" href="membros.php"><span class="material-symbols-outlined text-[20px]">group</span><span class="text-sm">Membros</span></a></li>
-                    <li><a class="flex items-center gap-3 px-3 py-2.5 rounded-twelve <?= ($current_page == 'financeiro') ? 'bg-brand/10 text-brand' : 'text-gray-400 hover:text-brand hover:bg-white/5' ?> transition-all" href="financeiro.php"><span class="material-symbols-outlined text-[20px]">payments</span><span class="text-sm">Financeiro</span></a></li>
-                </ul>
+                <p class="px-4 text-[11px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-4">Principal</p>
+                <div class="space-y-1">
+                    <a href="dashboard.php" class="sidebar-item <?= ($current_page == 'dashboard') ? 'active' : '' ?>">
+                        <span class="material-symbols-outlined">dashboard</span>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="novidades.php" class="sidebar-item <?= ($current_page == 'novidades') ? 'active' : '' ?>">
+                        <span class="material-symbols-outlined">notifications_active</span>
+                        <div class="flex justify-between items-center w-full">
+                            <span>Novidades</span>
+                            <?php if ($unreadCount > 0): ?>
+                                <span class="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full"><?= $unreadCount ?></span>
+                            <?php endif; ?>
+                        </div>
+                    </a>
+                </div>
             </div>
-            <div class="pt-4 border-t border-darkborder">
-                <h3 class="px-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Configurações</h3>
-                <ul class="space-y-1">
-                    <li><a class="flex items-center gap-3 px-3 py-2.5 rounded-twelve <?= ($current_page == 'configuracoes') ? 'bg-brand/10 text-brand' : 'text-gray-400 hover:text-brand hover:bg-white/5' ?> transition-all" href="configuracoes.php"><span class="material-symbols-outlined text-[20px]">settings</span><span class="text-sm">Configurações</span></a></li>
-                    <li><a class="flex items-center gap-3 px-3 py-2.5 rounded-twelve <?= ($current_page == 'atualizacoes') ? 'bg-brand/10 text-brand' : 'text-gray-400 hover:text-brand hover:bg-white/5' ?> transition-all opacity-50 cursor-not-allowed" href="#"><span class="material-symbols-outlined text-[20px]">system_update</span><span class="text-sm">Atualizações</span></a></li>
-                    <li><a class="flex items-center gap-3 px-3 py-2.5 rounded-twelve text-gray-400 hover:text-red-500 hover:bg-red-500/10 transition-all" href="logout.php"><span class="material-symbols-outlined text-[20px]">logout</span><span class="text-sm">Sair</span></a></li>
-                </ul>
+
+            <div>
+                <p class="px-4 text-[11px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-4">Gestão</p>
+                <div class="space-y-1">
+                    <a href="membros.php" class="sidebar-item <?= ($current_page == 'membros') ? 'active' : '' ?>">
+                        <span class="material-symbols-outlined">group</span>
+                        <span>Membros</span>
+                    </a>
+                    <a href="financeiro.php" class="sidebar-item <?= ($current_page == 'financeiro') ? 'active' : '' ?>">
+                        <span class="material-symbols-outlined">payments</span>
+                        <span>Financeiro</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="pt-6 border-t border-[#1e1e1e]">
+                <p class="px-4 text-[11px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-4">Sistema</p>
+                <div class="space-y-1">
+                    <a href="configuracoes.php" class="sidebar-item <?= ($current_page == 'configuracoes') ? 'active' : '' ?>">
+                        <span class="material-symbols-outlined">settings</span>
+                        <span>Configurações</span>
+                    </a>
+                    <a href="logout.php" class="sidebar-item hover:text-red-400">
+                        <span class="material-symbols-outlined">logout</span>
+                        <span>Sair</span>
+                    </a>
+                </div>
             </div>
         </nav>
-    </aside>
-    <!-- Main Content -->
-    <main class="ml-64 flex-1 flex flex-col min-h-screen">
-        <header class="h-20 bg-darkbg border-b border-darkborder flex items-center justify-between px-8 sticky top-0 z-40">
-            <div class="flex items-center gap-4 bg-darkcard px-4 py-2.5 rounded-twelve border border-darkborder w-96">
-                <span class="material-symbols-outlined text-gray-500">search</span>
-                <input class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-gray-500 text-gray-300" placeholder="Pesquisar..." type="text"/>
+
+        <!-- Footer da Sidebar (Opcional - Status do Plano) -->
+        <div class="p-6">
+            <div class="bg-[#121212] border border-[#1e1e1e] rounded-2xl p-4">
+                <p class="text-[10px] text-gray-500 font-bold uppercase mb-2">Suporte Direto</p>
+                <a href="#" class="text-xs text-[#ffc880] hover:underline flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm">help</span>
+                    Central de Ajuda
+                </a>
             </div>
+        </div>
+    </aside>
+
+    <!-- Conteúdo Principal -->
+    <main class="ml-72 flex-1 flex flex-col min-h-screen relative">
+        <!-- Header Superior -->
+        <header class="h-24 flex items-center justify-between px-10 sticky top-0 z-40 bg-[#050505]/80 backdrop-blur-md border-b border-[#1e1e1e]">
+            <div>
+                <h2 class="text-2xl font-bold text-white tracking-tight"><?= $page_title ?? 'Dashboard' ?></h2>
+                <p class="text-xs text-gray-500">Bem-vindo ao SGIM, Administrador.</p>
+            </div>
+
             <div class="flex items-center gap-6">
-                <div class="text-right hidden sm:block">
-                    <p class="text-sm font-semibold text-white leading-none">Administrador</p>
-                </div>
-                <div class="size-10 rounded-full bg-darkborder overflow-hidden border-2 border-brand/20 flex items-center justify-center">
-                    <span class="material-symbols-outlined">person</span>
+                <button class="size-11 flex items-center justify-center rounded-xl bg-[#121212] border border-[#1e1e1e] text-gray-400 hover:text-[#ffc880] transition-colors relative">
+                    <span class="material-symbols-outlined">notifications</span>
+                    <?php if ($unreadCount > 0): ?>
+                        <span class="absolute top-2.5 right-2.5 size-2 bg-[#ffc880] rounded-full ring-4 ring-[#050505]"></span>
+                    <?php endif; ?>
+                </button>
+                
+                <div class="h-12 w-[1px] bg-[#1e1e1e]"></div>
+
+                <div class="flex items-center gap-4">
+                    <div class="text-right hidden sm:block">
+                        <p class="text-sm font-bold text-white leading-none">Administrador</p>
+                        <p class="text-[10px] text-[#ffc880] font-bold uppercase mt-1 tracking-tighter">Nível Total</p>
+                    </div>
+                    <div class="size-12 rounded-2xl bg-gradient-to-br from-[#1e1e1e] to-[#121212] border border-[#1e1e1e] flex items-center justify-center text-[#ffc880] shadow-xl">
+                        <span class="material-symbols-outlined text-2xl">person</span>
+                    </div>
                 </div>
             </div>
         </header>
-        <div class="p-8 space-y-8">
+
+        <!-- Container de Conteúdo -->
+        <div class="p-10">

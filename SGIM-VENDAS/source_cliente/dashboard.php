@@ -222,77 +222,96 @@ if ($pdo) {
 <?php endif; ?>
 
 <!-- Stats Cards -->
-<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-    <!-- Saúde Financeira Quick Widget -->
-    <div class="bg-darkcard p-6 rounded-twelve border border-darkborder hover:border-brand/30 transition-all group shadow-sm overflow-hidden relative">
-        <div class="flex items-center justify-between mb-4">
-            <div class="p-2 bg-green-500/10 rounded-lg text-green-500">
-                <span class="material-symbols-outlined">account_balance_wallet</span>
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+    <!-- Saúde Financeira -->
+    <div class="glass-card p-8 hover:border-[#ffc880]/30 transition-all group relative overflow-hidden">
+        <div class="absolute -right-4 -top-4 size-24 bg-[#ffc880]/5 rounded-full blur-2xl group-hover:bg-[#ffc880]/10 transition-colors"></div>
+        <div class="flex items-center justify-between mb-6">
+            <div class="size-12 bg-[#ffc880]/10 rounded-xl flex items-center justify-center text-[#ffc880] border border-[#ffc880]/20">
+                <span class="material-symbols-outlined text-2xl">account_balance_wallet</span>
             </div>
-            <span class="text-[10px] font-black uppercase text-gray-500">Este Mês</span>
+            <div class="px-2.5 py-1 bg-[#ffc880]/5 border border-[#ffc880]/10 rounded-full">
+                <span class="text-[10px] font-bold uppercase text-[#ffc880] tracking-wider">Balanço</span>
+            </div>
         </div>
-        <h3 class="text-gray-400 text-sm font-medium">Saúde Financeira</h3>
-        <p class="text-2xl font-bold mt-1 <?= $balanco_mes >= 0 ? 'text-green-500' : 'text-red-500' ?>">
+        <h3 class="text-gray-500 text-xs font-bold uppercase tracking-widest">Saúde Financeira</h3>
+        <p class="text-3xl font-black mt-2 tracking-tight <?= $balanco_mes >= 0 ? 'text-white' : 'text-red-400' ?>">
             R$ <?= number_format($balanco_mes, 2, ',', '.') ?>
         </p>
-        <div class="mt-2 flex items-center gap-2">
-            <div class="h-1 flex-1 bg-gray-800 rounded-full overflow-hidden">
-                <?php 
-                $perc = $entradas_mes > 0 ? min(100, ($saidas_mes / $entradas_mes) * 100) : 0;
-                ?>
-                <div class="h-full bg-red-500" style="width: <?= $perc ?>%"></div>
+        <div class="mt-4 flex flex-col gap-2">
+            <?php $perc = $entradas_mes > 0 ? min(100, ($saidas_mes / $entradas_mes) * 100) : 0; ?>
+            <div class="flex justify-between items-center">
+                <span class="text-[10px] font-bold text-gray-500">CONSUMO MENSAL</span>
+                <span class="text-[10px] font-bold <?= $perc > 80 ? 'text-red-400' : 'text-[#ffc880]' ?>"><?= round($perc) ?>%</span>
             </div>
-            <span class="text-[9px] font-bold text-gray-500"><?= round($perc) ?>% gastos</span>
+            <div class="h-1.5 w-full bg-[#1e1e1e] rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-[#ffc880] to-[#d4a35d]" style="width: <?= $perc ?>%"></div>
+            </div>
         </div>
     </div>
-    <div class="bg-darkcard p-6 rounded-twelve border border-darkborder hover:border-brand/30 transition-all group shadow-sm">
-        <div class="flex items-center justify-between mb-4">
-            <div class="p-2 bg-brand/10 rounded-lg text-brand">
-                <span class="material-symbols-outlined">group</span>
+
+    <!-- Total de Membros -->
+    <div class="glass-card p-8 hover:border-[#ffc880]/30 transition-all group relative overflow-hidden">
+        <div class="absolute -right-4 -top-4 size-24 bg-[#ffc880]/5 rounded-full blur-2xl group-hover:bg-[#ffc880]/10 transition-colors"></div>
+        <div class="flex items-center justify-between mb-6">
+            <div class="size-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-400 border border-blue-500/20">
+                <span class="material-symbols-outlined text-2xl">group</span>
             </div>
-            <span class="text-xs text-green-500 font-medium">Ativos</span>
-        </div>
-        <h3 class="text-gray-400 text-sm font-medium">Total Membros</h3>
-        <p class="text-3xl font-bold mt-1 text-white"><?= number_format($total_membros, 0, ',', '.') ?></p>
-        <p class="text-[11px] text-gray-500 mt-2">Membros registrados no sistema</p>
-    </div>
-    <div class="bg-darkcard p-6 rounded-twelve border border-darkborder hover:border-brand/30 transition-all group shadow-sm">
-        <div class="flex items-center justify-between mb-4">
-            <div class="p-2 bg-brand/10 rounded-lg text-brand">
-                <span class="material-symbols-outlined">person_add</span>
+            <div class="px-2.5 py-1 bg-blue-500/5 border border-blue-500/10 rounded-full">
+                <span class="text-[10px] font-bold uppercase text-blue-400 tracking-wider">Base Ativa</span>
             </div>
-            <span class="text-xs text-brand font-medium">+30 dias</span>
         </div>
-        <h3 class="text-gray-400 text-sm font-medium">Novas Entradas</h3>
-        <p class="text-3xl font-bold mt-1 text-white"><?= $novos_membros ?></p>
-        <p class="text-[11px] text-gray-500 mt-2">Novos membros este mês</p>
-    </div>
-    <div class="bg-darkcard p-6 rounded-twelve border border-darkborder hover:border-brand/30 transition-all group shadow-sm">
-        <div class="flex items-center justify-between mb-4">
-            <div class="p-2 bg-brand/10 rounded-lg text-brand">
-                <span class="material-symbols-outlined">apartment</span>
-            </div>
-            <span class="text-xs text-gray-500 font-medium tracking-wider">Unidades</span>
-        </div>
-        <h3 class="text-gray-400 text-sm font-medium">Congregações</h3>
-        <p class="text-3xl font-bold mt-1 text-white"><?= $total_congregacoes ?></p>
-        <p class="text-[11px] text-gray-500 mt-2">Congregações cadastradas</p>
-    </div>
-    <div class="bg-darkcard p-6 rounded-twelve border border-darkborder hover:border-brand/30 transition-all group shadow-sm">
-        <div class="flex items-center justify-between mb-4">
-            <div class="p-2 bg-brand/10 rounded-lg text-brand">
-                <span class="material-symbols-outlined">event</span>
-            </div>
-            <span class="text-xs text-brand font-medium uppercase"><?= $proximo_evento ? 'Em breve' : 'Agenda' ?></span>
-        </div>
-        <h3 class="text-gray-400 text-sm font-medium">Próximo Evento</h3>
-        <p class="text-xl font-bold mt-1 text-white truncate"><?= $proximo_evento ? htmlspecialchars($proximo_evento['nome']) : 'Nenhum agendado' ?></p>
-        <p class="text-[11px] text-brand mt-2 font-semibold uppercase tracking-wider">
-            <?= $proximo_evento ? date('d/m • H:i', strtotime($proximo_evento['data_evento'])) . ' • ' . htmlspecialchars($proximo_evento['local']) : 'Sem eventos' ?>
+        <h3 class="text-gray-500 text-xs font-bold uppercase tracking-widest">Total Membros</h3>
+        <p class="text-4xl font-black mt-2 text-white tracking-tight">
+            <?= number_format($total_membros, 0, ',', '.') ?>
         </p>
+        <div class="mt-4 flex items-center gap-2 text-green-400">
+            <span class="material-symbols-outlined text-sm">trending_up</span>
+            <span class="text-[10px] font-bold uppercase tracking-widest">+<?= $novos_membros ?> Este Mês</span>
+        </div>
+    </div>
+
+    <!-- Congregações -->
+    <div class="glass-card p-8 hover:border-[#ffc880]/30 transition-all group relative overflow-hidden">
+        <div class="absolute -right-4 -top-4 size-24 bg-[#ffc880]/5 rounded-full blur-2xl group-hover:bg-[#ffc880]/10 transition-colors"></div>
+        <div class="flex items-center justify-between mb-6">
+            <div class="size-12 bg-purple-500/10 rounded-xl flex items-center justify-center text-purple-400 border border-purple-500/20">
+                <span class="material-symbols-outlined text-2xl">apartment</span>
+            </div>
+            <div class="px-2.5 py-1 bg-purple-500/5 border border-purple-500/10 rounded-full">
+                <span class="text-[10px] font-bold uppercase text-purple-400 tracking-wider">Unidades</span>
+            </div>
+        </div>
+        <h3 class="text-gray-500 text-xs font-bold uppercase tracking-widest">Congregações</h3>
+        <p class="text-4xl font-black mt-2 text-white tracking-tight">
+            <?= $total_congregacoes ?>
+        </p>
+        <p class="mt-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Registradas no SGIM</p>
+    </div>
+
+    <!-- Próximo Evento / Quick Action -->
+    <div class="glass-card p-8 bg-gradient-to-br from-[#121212] to-[#0a0a0a] border-[#ffc880]/20 hover:border-[#ffc880]/40 transition-all relative overflow-hidden">
+        <div class="absolute -right-2 -bottom-2 size-24 bg-[#ffc880]/5 rounded-full blur-3xl pointer-events-none"></div>
+        <h3 class="text-white font-bold text-lg mb-2">Ações Rápidas</h3>
+        <p class="text-gray-500 text-xs mb-6 leading-relaxed">Acesse os módulos principais do sistema de forma imediata.</p>
+        
+        <div class="grid grid-cols-2 gap-3">
+            <a href="membros_cadastro.php" class="flex flex-col items-center gap-2 p-3 bg-white/5 border border-white/5 rounded-xl hover:bg-[#ffc880]/10 hover:border-[#ffc880]/20 transition-all group">
+                <span class="material-symbols-outlined text-[#ffc880]">person_add</span>
+                <span class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">Novo Membro</span>
+            </a>
+            <a href="financeiro_entrada.php" class="flex flex-col items-center gap-2 p-3 bg-white/5 border border-white/5 rounded-xl hover:bg-[#ffc880]/10 hover:border-[#ffc880]/20 transition-all">
+                <span class="material-symbols-outlined text-[#ffc880]">add_circle</span>
+                <span class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">Lançar Dízimo</span>
+            </a>
+        </div>
     </div>
 </section>
 
 <?php
-require_once 'includes/footer.php';
+// Footer da Página (Fecha o container aberto no header.php)
 ?>
+</div>
+</main>
+</body>
+</html>
