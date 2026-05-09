@@ -2,96 +2,104 @@
 require_once 'config/database.php';
 $current_page = 'ota';
 
-// Busca de Releases
-$releases = $pdo->query("SELECT * FROM ota_releases ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
+// 🛠️ Dados OTA (Simulado para MVP)
+$current_version = "v1.1.0";
+$last_update = "09/05/2026";
+$active_nodes = 1;
 
 include 'templates/header.php';
 ?>
 
 <div class="flex">
-    <?php include 'templates/sidebar.php'; ?>
+    <?php include 'sidebar.php'; ?>
 
-    <main class="ml-72 flex-1 p-10 bg-[#050505] min-h-screen">
-        <div class="flex justify-between items-end mb-10">
-            <div>
-                <h2 class="text-3xl font-black text-white tracking-tighter italic">Engenharia <span class="text-amber-500">OTA</span></h2>
-                <p class="text-zinc-500 text-sm mt-1">Gerenciamento de versões, distribuição industrial e monitoramento.</p>
+    <main class="ml-[280px] min-h-screen flex-1">
+        <!-- Top Navigation -->
+        <header class="h-16 flex items-center justify-between px-8 bg-surface/80 backdrop-blur-md sticky top-0 z-40 border-b border-outline-variant/10">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">cloud_sync</span>
+                <span class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">OTA Management Hub</span>
             </div>
-            <div class="flex gap-4">
-                <button class="bg-zinc-900 text-white font-bold px-6 py-3 rounded-2xl border border-zinc-800 hover:border-amber-500/50 transition-all text-sm flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[20px]">package_2</span>
-                    GERAR INSTALADOR (ZIP)
+            <div class="flex items-center gap-6">
+                <div class="text-right">
+                    <p class="text-body-sm font-bold text-on-surface">Admin OTA</p>
+                    <p class="text-[10px] uppercase tracking-widest text-primary font-bold">Orchestrator Node</p>
+                </div>
+                <div class="size-10 bg-surface-container-highest border border-primary/20 rounded-lg flex items-center justify-center text-primary font-black">O</div>
+            </div>
+        </header>
+
+        <div class="p-10 max-w-[1600px] mx-auto">
+            <!-- Header Section -->
+            <div class="flex justify-between items-end mb-10">
+                <div>
+                    <h2 class="text-display-lg font-bold text-on-surface tracking-tighter">Engenharia <span class="text-primary">OTA</span></h2>
+                    <p class="text-on-surface-variant font-body-md opacity-60">Gerenciamento de releases, sincronização de versões e auditoria de nodes.</p>
+                </div>
+                <button class="px-5 py-2.5 rounded-lg bg-primary text-on-primary font-bold hover:opacity-90 transition-all flex items-center gap-2 text-sm shadow-xl shadow-primary/20">
+                    <span class="material-symbols-outlined text-sm">publish</span>
+                    PUBLICAR RELEASE
                 </button>
-                <button class="bg-amber-500 text-black font-black px-6 py-3 rounded-2xl flex items-center gap-2 hover:scale-105 transition-all text-sm">
-                    <span class="material-symbols-outlined text-[20px]">upload_file</span>
-                    NOVA RELEASE
-                </button>
             </div>
-        </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
-            <div class="bg-zinc-900/50 p-6 rounded-[30px] border border-zinc-900 shadow-xl">
-                <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-2">Status do Master</p>
-                <h3 class="text-2xl font-black text-white">ONLINE</h3>
-                <p class="text-emerald-500 text-[10px] font-bold mt-1">Sincronizado com GitHub</p>
+            <!-- OTA Status Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div class="glass-card p-8 rounded-xl relative overflow-hidden group">
+                    <p class="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-widest mb-1">Versão de Produção</p>
+                    <p class="text-headline-md font-bold text-primary font-mono"><?= $current_version ?></p>
+                    <p class="text-[10px] text-secondary font-bold mt-2 italic">● Sincronizado com Main</p>
+                </div>
+                <div class="glass-card p-8 rounded-xl relative overflow-hidden group">
+                    <p class="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-widest mb-1">Última Atualização</p>
+                    <p class="text-headline-md font-bold text-on-surface"><?= $last_update ?></p>
+                </div>
+                <div class="glass-card p-8 rounded-xl relative overflow-hidden group">
+                    <p class="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-widest mb-1">Nodes Monitorados</p>
+                    <p class="text-headline-md font-bold text-on-surface"><?= $active_nodes ?></p>
+                </div>
             </div>
-            <div class="bg-zinc-900/50 p-6 rounded-[30px] border border-zinc-900 shadow-xl">
-                <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-2">Versão Estável</p>
-                <h3 class="text-2xl font-black text-amber-500">v1.1.0</h3>
-                <p class="text-zinc-500 text-[10px] font-bold mt-1">Publicada em 08/05/2026</p>
-            </div>
-            <div class="bg-zinc-900/50 p-6 rounded-[30px] border border-zinc-900 shadow-xl">
-                <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-2">Clientes Conectados</p>
-                <h3 class="text-2xl font-black text-white">1 ATIVO</h3>
-                <p class="text-zinc-500 text-[10px] font-bold mt-1">Monitoramento em tempo real</p>
-            </div>
-        </div>
 
-        <div class="bg-zinc-900/20 border border-zinc-900 rounded-[40px] overflow-hidden">
-            <table class="w-full text-left">
-                <thead>
-                    <tr class="border-b border-zinc-900/50">
-                        <th class="px-8 py-6 text-[10px] font-black text-zinc-600 uppercase tracking-widest">Versão / ID</th>
-                        <th class="px-8 py-6 text-[10px] font-black text-zinc-600 uppercase tracking-widest">Status</th>
-                        <th class="px-8 py-6 text-[10px] font-black text-zinc-600 uppercase tracking-widest">Data</th>
-                        <th class="px-8 py-6 text-center text-[10px] font-black text-zinc-600 uppercase tracking-widest">Ações</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-zinc-900/30">
-                    <?php if (empty($releases)): ?>
-                        <tr>
-                            <td colspan="4" class="p-20 text-center">
-                                <span class="material-symbols-outlined text-6xl text-zinc-800 mb-4">inventory_2</span>
-                                <p class="text-zinc-500 text-sm">Nenhuma release gerada ainda. O Master está pronto para o primeiro empacotamento.</p>
-                            </td>
-                        </tr>
-                    <?php else: ?>
-                        <?php foreach ($releases as $r): ?>
-                        <tr class="group hover:bg-white/[0.02] transition-all">
-                            <td class="px-8 py-6">
-                                <div class="flex flex-col">
-                                    <span class="text-white font-black tracking-tighter">v<?= $r['version'] ?></span>
-                                    <span class="text-[10px] text-zinc-600 font-mono"><?= $r['release_id'] ?></span>
-                                </div>
-                            </td>
-                            <td class="px-8 py-6">
-                                <span class="px-3 py-1 bg-emerald-500/10 text-emerald-500 rounded-full text-[9px] font-black uppercase"><?= $r['status'] ?></span>
-                            </td>
-                            <td class="px-8 py-6 text-xs text-zinc-400">
-                                <?= date('d/m/Y H:i', strtotime($r['created_at'])) ?>
-                            </td>
-                            <td class="px-8 py-6">
-                                <div class="flex items-center justify-center gap-2">
-                                    <button class="size-10 bg-zinc-900 rounded-xl border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-amber-500 transition-all">
-                                        <span class="material-symbols-outlined text-[18px]">visibility</span>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Release History -->
+                <div class="lg:col-span-2 glass-card rounded-xl overflow-hidden">
+                    <div class="p-8 border-b border-outline-variant/10">
+                        <h3 class="text-title-sm font-bold text-on-surface">Histórico de Releases</h3>
+                    </div>
+                    <table class="w-full text-left">
+                        <tbody class="divide-y divide-outline-variant/10">
+                            <tr class="hover:bg-surface-variant/5 transition-colors">
+                                <td class="px-8 py-6">
+                                    <div class="flex items-center gap-4">
+                                        <div class="size-10 bg-surface-container-highest rounded-lg flex items-center justify-center text-primary font-mono font-bold">1.1</div>
+                                        <div>
+                                            <p class="text-sm font-bold text-white">Full Restoration Fix</p>
+                                            <p class="text-[10px] text-on-surface-variant opacity-60">Ajuste de Design System e Includes</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-8 py-6 text-right">
+                                    <span class="text-[10px] bg-secondary-container/20 text-secondary px-3 py-1 rounded-full font-bold uppercase tracking-widest">Stable</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- OTA Toolbox -->
+                <div class="glass-card p-8 rounded-xl">
+                    <h3 class="text-title-sm font-bold text-on-surface mb-6 italic">Orchestrator Tools</h3>
+                    <div class="space-y-4">
+                        <button class="w-full py-4 bg-surface-container border border-outline-variant/20 rounded-xl text-on-surface font-bold text-xs flex items-center justify-between px-6 hover:border-primary/50 transition-all">
+                            <span>Hardening Audit</span>
+                            <span class="material-symbols-outlined text-emerald-500">verified</span>
+                        </button>
+                        <button class="w-full py-4 bg-surface-container border border-outline-variant/20 rounded-xl text-on-surface font-bold text-xs flex items-center justify-between px-6 hover:border-primary/50 transition-all">
+                            <span>Geração de Instalador</span>
+                            <span class="material-symbols-outlined text-primary text-sm">build</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 </div>
