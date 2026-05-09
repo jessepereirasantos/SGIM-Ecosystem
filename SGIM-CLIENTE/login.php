@@ -3,6 +3,7 @@ ob_start();
 session_start();
 
 // O db.php já foi blindado para ser passivo.
+require_once 'src/bootstrap.php';
 require_once 'config/db.php';
 
 // 1. Verificação de Conexão - Garantir que a flag é respeitada

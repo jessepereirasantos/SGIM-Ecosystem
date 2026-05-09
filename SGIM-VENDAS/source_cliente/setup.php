@@ -236,19 +236,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db_config_content .= "}\n";
             $db_config_content .= "?>";
             
-            // TENTA GRAVAR EM TRÊS LUGARES PARA GARANTIR PERSISTÊNCIA NO CPANEL
+            // TENTA GRAVAR PARA GARANTIR PERSISTÊNCIA NO CPANEL
             $success_write = false;
-            $possible_paths = [
-                $config_dir . '/db_config.php',
-                __DIR__ . '/db_config.php',
-                dirname(__DIR__) . '/db_config.php'
-            ];
+            $path = $config_dir . '/db.php';
 
-            foreach ($possible_paths as $path) {
-                if (file_put_contents($path, $db_config_content) !== false) {
-                    $success_write = true;
-                    error_log("SGIM Success: Arquivo de config gravado em $path");
-                }
+            if (file_put_contents($path, $db_config_content) !== false) {
+                $success_write = true;
+                error_log("SGIM Success: Arquivo de config gravado em $path");
             }
 
             if (!$success_write) {
