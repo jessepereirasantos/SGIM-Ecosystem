@@ -1,8 +1,6 @@
 ---
 deployment:
   tasks:
-    - /bin/cp -rf SGIM-VENDAS/* /home1/hg9a3205/public_html/
-    - /bin/cp -rf SGIM-CLIENTE/includes/system/* /home1/hg9a3205/public_html/includes/system/
+    - /usr/bin/rsync -av --exclude='.git' SGIM-VENDAS/ /home1/hg9a3205/public_html/
+    - /usr/bin/rsync -av --exclude='.git' SGIM-CLIENTE/includes/system/ /home1/hg9a3205/public_html/includes/system/
     - /bin/chmod 755 /home1/hg9a3205/public_html/shared
-    - /bin/chmod 755 /home1/hg9a3205/public_html/shared/system/state
-    - /bin/chmod 755 /home1/hg9a3205/public_html/shared/system/logs
