@@ -73,8 +73,8 @@ include 'templates/header.php';
                     @click="executeAction('publicar_release')"
                     :disabled="loading"
                     class="px-5 py-2.5 rounded-lg bg-primary text-on-primary font-bold hover:opacity-90 transition-all flex items-center gap-2 text-sm shadow-xl shadow-primary/20 disabled:opacity-50">
-                    <span class="material-symbols-outlined text-sm" :class="loading ? 'animate-spin' : ''" x-text="loading ? 'sync' : 'publish'"></span>
-                    <span x-text="loading ? 'PUBLICANDO...' : 'PUBLICAR RELEASE'"></span>
+                    <span class="material-symbols-outlined text-sm" :class="loading ? 'animate-spin' : ''" x-text="loading ? 'sync' : 'publish'">publish</span>
+                    <span x-text="loading ? 'PUBLICANDO...' : 'PUBLICAR RELEASE'">PUBLICAR RELEASE</span>
                 </button>
             </div>
 
@@ -133,8 +133,8 @@ include 'templates/header.php';
                             @click="executeAction('gerar_instalador')"
                             :disabled="loading"
                             class="w-full py-4 bg-surface-container border border-outline-variant/20 rounded-xl text-on-surface font-bold text-xs flex items-center justify-between px-6 hover:border-primary/50 transition-all disabled:opacity-50">
-                            <span x-text="loading ? 'GERANDO...' : 'Geração de Instalador'"></span>
-                            <span class="material-symbols-outlined text-primary text-sm" :class="loading ? 'animate-spin' : ''">build</span>
+                            <span x-text="loading ? 'GERANDO...' : 'Geração de Instalador'">Geração de Instalador</span>
+                            <span class="material-symbols-outlined text-primary text-sm" :class="loading ? 'animate-spin' : ''" x-text="loading ? 'sync' : 'build'">build</span>
                         </button>
                     </div>
                 </div>
