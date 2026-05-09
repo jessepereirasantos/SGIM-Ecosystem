@@ -5,7 +5,7 @@
 session_start();
 header('Content-Type: application/json');
 
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['usuario_id'])) {
     echo json_encode(['status' => 'error', 'message' => 'Não autorizado']);
     exit;
 }
