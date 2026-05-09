@@ -16,8 +16,8 @@ use Exception;
 class SharedHostingDriver implements ActivationDriverInterface {
     private $basePath;
     private $config = [
-        "simulation_only" => true,
-        "write_enabled" => false,
+        "simulation_only" => false,
+        "write_enabled" => true,
         "rollback_enabled" => true
     ];
     

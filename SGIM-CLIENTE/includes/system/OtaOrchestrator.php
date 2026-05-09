@@ -12,9 +12,9 @@ use Exception;
 class OtaOrchestrator {
     private $basePath;
     private $config = [
-        "dry_run" => true,
-        "activation_enabled" => false,
-        "manual_approval_required" => true
+        "dry_run" => false,
+        "activation_enabled" => true,
+        "manual_approval_required" => false
     ];
     
     private $downloadEngine;
