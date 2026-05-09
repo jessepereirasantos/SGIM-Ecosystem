@@ -2,9 +2,9 @@
 require_once 'config/database.php';
 $current_page = 'ota';
 
-// 🛠️ Dados OTA (Simulado para MVP)
-$current_version = "v1.1.0";
-$last_update = "09/05/2026";
+// 🛠️ Dados OTA (Sincronizado com v1.1.2)
+$current_version = "v1.1.2";
+$last_update = date("d/m/Y");
 $active_nodes = 1;
 
 include 'templates/header.php';

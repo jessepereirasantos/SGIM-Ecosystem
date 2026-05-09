@@ -1,12 +1,13 @@
 {
-  "version": "1.1.0",
-  "url": "https://escolateologicaeloha.com.br/api/update/packages/SGIM_v1.1.0.zip",
-  "sha256": "815e2fdc141703e61815cb58bd387464ce9c2b5",
+  "version": "1.1.2",
+  "url": "https://escolateologicaeloha.com.br/downloads/SGIM-CLIENTE-RESTAURADO.zip",
+  "sha256": "auto-generated-by-master",
   "release_date": "2026-05-09",
-  "notes": "Full restoration and visual standardization of the Master Dashboard.",
+  "notes": "Restauração Total: Sidebar completa, Módulo Financeiro corrigido e Segurança Multi-Congregação ativada.",
   "changed_files": [
-    "dashboard.php",
-    "sidebar.php",
-    "templates/header.php"
+    "includes/header.php",
+    "financeiro.php",
+    "membros.php",
+    "config/database.php"
   ]
 }
