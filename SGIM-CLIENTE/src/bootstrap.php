@@ -5,7 +5,7 @@
 session_start();
 
 // Configurações do Banco de Dados
-require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../config/db_config.php';
 require_once __DIR__ . '/autoload.php';
 
 // O bootstrap agora é puramente um carregador de dependências.
