@@ -28,7 +28,13 @@ if (!$pdo) {
 $page_title = 'SGIM - Dashboard Cliente';
 $current_page = 'dashboard';
 
-require_once 'includes/header.php';
+try {
+    require_once 'includes/header.php';
+} catch (Throwable $e) {
+    echo "<div style='padding:20px; background:#1a1a1a; color:#ffc107; border:1px solid #333; margin:20px; border-radius:10px;'>
+            <strong>Aviso de Sistema:</strong> O cabeçalho visual falhou ao carregar. Detalhe: " . $e->getMessage() . "
+          </div>";
+}
 
 // SISTEMA DE ATUALIZAÇÕES AUTOMÁTICAS (OTA v3.1)
 // Nota: O $updater já é instanciado no header.php como App\Updater\UpdaterCore
