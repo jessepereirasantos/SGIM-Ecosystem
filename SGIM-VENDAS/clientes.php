@@ -2,15 +2,24 @@
 require_once 'config/database.php';
 $current_page = 'clientes';
 
-// Processamento de Ações (Preservando lógica original)
+// Processamento de Ações (Exclusão em Cascata)
 $msg = "";
 if (isset($_GET['delete'])) {
     $id = (int)$_GET['delete'];
     try {
+        $pdo->beginTransaction();
+        // 1. Remove pedidos vinculados
+        $pdo->prepare("DELETE FROM pedidos WHERE cliente_id = ?")->execute([$id]);
+        // 2. Remove vendas vinculadas (se a tabela existir)
+        try { $pdo->prepare("DELETE FROM vendas WHERE cliente_id = ?")->execute([$id]); } catch(Exception $e){}
+        // 3. Remove o cliente
         $pdo->prepare("DELETE FROM clientes WHERE id = ?")->execute([$id]);
+        
+        $pdo->commit();
         header("Location: clientes.php?success=1");
         exit;
     } catch (Exception $e) {
+        $pdo->rollBack();
         $msg = "<div class='p-4 bg-error/10 text-error rounded-xl mb-6 text-xs font-bold border border-error/20'>🛑 Erro ao remover: " . $e->getMessage() . "</div>";
     }
 }
@@ -116,9 +125,9 @@ include 'templates/header.php';
                                     </td>
                                     <td class="px-8 py-5">
                                         <div class="flex items-center justify-center gap-3">
-                                            <button class="p-2 bg-surface-container rounded-lg text-on-surface-variant hover:text-primary transition-all">
+                                            <a href="editar_cliente.php?id=<?= $c['id'] ?>" class="p-2 bg-surface-container rounded-lg text-on-surface-variant hover:text-primary transition-all">
                                                 <span class="material-symbols-outlined text-[18px]">edit</span>
-                                            </button>
+                                            </a>
                                             <a href="?delete=<?= $c['id'] ?>" onclick="return confirm('Deseja realmente excluir este cliente?')" 
                                                class="p-2 bg-surface-container rounded-lg text-on-surface-variant hover:text-error transition-all">
                                                 <span class="material-symbols-outlined text-[18px]">delete</span>
