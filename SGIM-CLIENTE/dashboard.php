@@ -1,7 +1,7 @@
 <?php
 ob_start();
 session_start();
-require_once 'config/db_config.php';
+require_once 'config/database.php';
 
 // 1. Controle de Acesso Baseado no Estado (db.php agora apenas define flags)
 // Se não estiver configurado E não estiver instalado, manda para o setup
@@ -28,16 +28,6 @@ $page_title = 'SGIM - Dashboard Cliente';
 $current_page = 'dashboard';
 
 // BLINDAGEM VISUAL: Garantir que Tailwind carregue mesmo se o header.php falhar no banco
-?>
-<!DOCTYPE html>
-<html lang="pt-br" class="dark">
-<head>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
-</head>
-<body class="bg-[#050505]">
-<?php
 try {
     require_once 'includes/header.php';
 } catch (Throwable $e) {

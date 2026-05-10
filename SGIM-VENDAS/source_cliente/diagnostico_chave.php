@@ -1,5 +1,5 @@
 <?php
-require_once 'config/db.php';
+require_once 'config/database.php';
 
 // Captura Automática de Conexão
 if (!isset($pdo) || $pdo === null) {

@@ -2,7 +2,7 @@
 /**
  * SGIM - Corretor de Configuração (Master URL)
  */
-require_once 'config/db.php';
+require_once 'config/database.php';
 
 if (!isset($pdo) || $pdo === null) {
     foreach (get_defined_vars() as $var) {

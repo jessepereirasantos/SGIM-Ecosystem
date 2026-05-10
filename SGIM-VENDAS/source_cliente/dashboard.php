@@ -1,7 +1,7 @@
 <?php
 ob_start();
 session_start();
-require_once 'config/db_config.php';
+require_once 'config/database.php';
 
 // 1. Controle de Acesso Baseado no Estado (db.php agora apenas define flags)
 // Se não estiver configurado E não estiver instalado, manda para o setup

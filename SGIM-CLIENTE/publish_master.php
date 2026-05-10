@@ -5,7 +5,7 @@
 session_start();
 if (!isset($_SESSION['user_id'])) die("Acesso negado.");
 
-require_once 'config/db.php';
+require_once 'config/database.php';
 
 $zipName = "sgim_master.zip";
 $sourceDir = __DIR__;

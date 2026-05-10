@@ -5,7 +5,7 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-require_once 'config/db.php';
+require_once 'config/database.php';
 require_once 'includes/BackupService.php';
 
 $page_title = 'SGIM - Backup de Segurança';

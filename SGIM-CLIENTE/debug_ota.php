@@ -1,5 +1,5 @@
 <?php
-require_once 'config/db.php';
+require_once 'config/database.php';
 require_once 'src/Updater/UpdaterCore.php';
 use App\Updater\UpdaterCore;
 

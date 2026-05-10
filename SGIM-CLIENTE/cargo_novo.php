@@ -5,7 +5,7 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-require_once 'config/db.php';
+require_once 'config/database.php';
 
 $mensagem = '';
 $erro = false;

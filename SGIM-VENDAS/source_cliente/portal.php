@@ -1,7 +1,7 @@
 <?php
 ob_start();
 session_start();
-require_once 'config/db.php';
+require_once 'config/database.php';
 
 // Portal do Membro - Acesso Público para Auto-Cadastro e Consulta
 $page_title = "Portal do Membro - SGIM";

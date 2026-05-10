@@ -3,7 +3,7 @@
  * Geração de Carteirinha Digital (v1.0)
  * Gera um HTML formatado para impressão ou salvamento como PDF
  */
-require_once 'config/db.php';
+require_once 'config/database.php';
 
 if (!isset($_GET['id'])) {
     // Se não houver ID, mostra uma lista simples de membros para selecionar

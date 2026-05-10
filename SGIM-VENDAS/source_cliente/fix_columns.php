@@ -1,5 +1,5 @@
 <?php
-require_once 'config/db.php';
+require_once 'config/database.php';
 
 echo "<h2>🔧 Diagnóstico e Correção de Banco (OTA)</h2>";
 

@@ -1,7 +1,7 @@
 <?php
 ob_start();
 session_start();
-require_once 'config/db.php';
+require_once 'config/database.php';
 
 // Auto-patch do banco de dados para evitar o erro de 'Unknown column canal'
 try {

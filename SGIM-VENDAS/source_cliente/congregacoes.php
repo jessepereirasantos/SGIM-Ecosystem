@@ -1,7 +1,7 @@
 <?php
 ob_start();
 session_start();
-require_once 'config/db.php';
+require_once 'config/database.php';
 
 // Verificação de Autenticação e Conexão de Banco
 if (!isset($pdo) || $pdo === null) {
@@ -54,7 +54,7 @@ require_once 'includes/header.php';
                 </thead>
                 <tbody class="divide-y divide-darkborder">
                 <?php
-                require_once 'config/db.php';
+                require_once 'config/database.php';
                 $stmt = $pdo->query("SELECT * FROM congregacoes ORDER BY nome ASC");
                 $congregacoes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

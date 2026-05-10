@@ -1,7 +1,7 @@
 <?php
 ob_start();
 session_start();
-require_once 'config/db.php';
+require_once 'config/database.php';
 
 // Verificação de Autenticação e Conexão de Banco (v1.4.9 logic)
 if (!isset($pdo) || $pdo === null) {

@@ -4,7 +4,7 @@
  * Interface administrativa para controle manual de atualizações.
  */
 
-require_once 'config/db.php';
+require_once 'config/database.php';
 require_once 'includes/system/OtaOrchestrator.php';
 require_once 'includes/system/OtaPassiveReporter.php';
 

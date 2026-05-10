@@ -6,7 +6,7 @@
 error_reporting(0); 
 ini_set('display_errors', 0);
 
-require_once 'config/db.php'; 
+require_once 'config/database.php'; 
 require_once 'includes/system/OtaOrchestrator.php';
 
 if (!isset($pdo) || $pdo === null) {

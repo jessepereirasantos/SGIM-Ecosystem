@@ -1,7 +1,7 @@
 <?php
 ob_start();
 session_start();
-require_once 'config/db.php';
+require_once 'config/database.php';
 
 // Cadastro Público - Auto-Cadastro de Membros
 $page_title = "Cadastro de Membro - SGIM";
