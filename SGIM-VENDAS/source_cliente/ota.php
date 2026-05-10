@@ -1,13 +1,13 @@
 <?php
 /**
- * SGIM - Motor OTA v4.2 (Dynamic Identity)
+ * SGIM - Motor OTA v5.0 (Reconstructed)
+ * Endpoint local consultado pelo frontend do cliente.
  */
 error_reporting(0); 
 ini_set('display_errors', 0);
 
 require_once 'config/db.php'; 
-require_once 'src/Updater/VersionManager.php';
-require_once 'src/Updater/UpdaterCoreV4.php';
+require_once 'includes/system/OtaOrchestrator.php';
 
 if (!isset($pdo) || $pdo === null) {
     foreach (get_defined_vars() as $var) {
@@ -15,31 +15,81 @@ if (!isset($pdo) || $pdo === null) {
     }
 }
 
-try {
-    if (!$pdo) throw new Exception("Falha na ponte de conexão.");
+$logFile = __DIR__ . '/ota_detection_log.json';
+$telemetry = [
+    'timestamp' => date('c'),
+    'url_consultada' => '',
+    'http_status' => 0,
+    'versao_local' => '1.1.0', // Fixo temporário se não houver config
+    'versao_remota' => '',
+    'resultado_comparacao' => false,
+    'motivo_falha' => ''
+];
 
-    // 1. Obter Identidade Real do Banco
+try {
+    if (!$pdo) throw new Exception("Falha na ponte de conexão PDO.");
+
     $stmtLic = $pdo->query("SELECT valor FROM configuracoes WHERE chave = 'license_key'");
     $licenseKey = $stmtLic->fetchColumn();
 
     $stmtMaster = $pdo->query("SELECT valor FROM configuracoes WHERE chave = 'master_url'");
     $masterUrl = $stmtMaster->fetchColumn();
 
-    // Fallback de segurança se o banco ainda estiver como "PADRÃO"
     if (!$masterUrl || $masterUrl === 'PADRÃO') {
         $masterUrl = 'https://escolateologicaeloha.com.br/';
     }
+    
+    $telemetry['url_consultada'] = rtrim($masterUrl, '/') . '/api/update/latest.json';
 
-    if (!$licenseKey) throw new Exception("Licença não localizada no banco do cliente.");
+    // Obter versão local (simulada se banco não tiver)
+    $stmtVer = $pdo->query("SELECT valor FROM configuracoes WHERE chave = 'versao_sistema'");
+    if($stmtVer) {
+        $localVersion = $stmtVer->fetchColumn();
+        if($localVersion) $telemetry['versao_local'] = $localVersion;
+    }
 
-    // 2. Executar Motor
-    $updater = new \App\Updater\UpdaterCoreV4($pdo, $licenseKey, $masterUrl);
-    $resultado = $updater->checkAndPrepare();
+    // Consulta real ao Master
+    $json = @file_get_contents($telemetry['url_consultada']);
+    if (!$json) {
+        $telemetry['http_status'] = 500;
+        throw new Exception("Não foi possível alcançar o MASTER em " . $telemetry['url_consultada']);
+    }
+
+    $telemetry['http_status'] = 200;
+    $manifest = json_decode($json, true);
+    
+    if (!$manifest || !isset($manifest['version'])) {
+        throw new Exception("Manifesto JSON inválido ou corrompido.");
+    }
+
+    $telemetry['versao_remota'] = $manifest['version'];
+    
+    // Comparação
+    $hasUpdate = version_compare($manifest['version'], $telemetry['versao_local'], '>');
+    $telemetry['resultado_comparacao'] = $hasUpdate;
+
+    // Salva Telemetria
+    $logs = file_exists($logFile) ? json_decode(file_get_contents($logFile), true) : [];
+    $logs[] = $telemetry;
+    file_put_contents($logFile, json_encode(array_slice($logs, -50), JSON_PRETTY_PRINT));
 
     header('Content-Type: application/json');
-    echo json_encode($resultado, JSON_PRETTY_PRINT);
+    echo json_encode([
+        'status' => 'success',
+        'has_update' => $hasUpdate,
+        'current_version' => $telemetry['versao_local'],
+        'latest_version' => $manifest['version'],
+        'notes' => $manifest['notes'] ?? '',
+        'manifest' => $manifest
+    ], JSON_PRETTY_PRINT);
 
 } catch (Exception $e) {
+    $telemetry['motivo_falha'] = $e->getMessage();
+    
+    $logs = file_exists($logFile) ? json_decode(file_get_contents($logFile), true) : [];
+    $logs[] = $telemetry;
+    file_put_contents($logFile, json_encode(array_slice($logs, -50), JSON_PRETTY_PRINT));
+
     header('Content-Type: application/json');
-    echo json_encode(['status' => 'error', 'stage' => 'init', 'message' => $e->getMessage()], JSON_PRETTY_PRINT);
+    echo json_encode(['status' => 'error', 'message' => $e->getMessage()], JSON_PRETTY_PRINT);
 }

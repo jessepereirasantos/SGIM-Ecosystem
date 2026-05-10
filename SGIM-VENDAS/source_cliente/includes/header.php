@@ -99,6 +99,44 @@ $unreadCount = 0;
                 showNotifications: false,
                 unreadCount: <?= $unreadCount ?? 0 ?>,
                 notifications: <?= isset($notificacoes_json) ? $notificacoes_json : '[]' ?>,
+                
+                // --- MOTOR DE POLLING OTA ---
+                otaAvailable: false,
+                otaNotes: '',
+                otaVersion: '',
+                
+                async checkOTA() {
+                    try {
+                        let res = await fetch('ota.php');
+                        let data = await res.json();
+                        
+                        // Se detectar versão maior, dispara frontend
+                        if (data.status === 'success' && data.has_update) {
+                            this.otaAvailable = true;
+                            this.otaVersion = data.latest_version;
+                            this.otaNotes = data.notes;
+                            
+                            // Injeta no Sino
+                            this.unreadCount++;
+                            this.notifications.unshift({
+                                id: 'ota_alert',
+                                titulo: 'Atualização ' + data.latest_version + ' Disponível',
+                                mensagem: data.notes,
+                                data_criacao: new Date().toISOString(),
+                                visto: 0,
+                                link: 'admin_ota.php' 
+                            });
+                        }
+                    } catch (e) { 
+                        console.error('FALHA DE POLLING OTA:', e); 
+                    }
+                },
+                
+                init() {
+                    this.initTheme();
+                    this.checkOTA(); // Dispara sondagem ao carregar
+                },
+
                 async markAllRead() {
                     let fd = new FormData(); fd.append('acao', 'marcar_lidas');
                     await fetch('api/v1/notificacoes_action.php', { method: 'POST', body: fd });
@@ -170,6 +208,26 @@ $unreadCount = 0;
     <meta name="theme-color" content="#ffc880">
 </head>
 <body class="bg-[#050505] text-gray-100 antialiased min-h-screen flex">
+    
+    <!-- BANNER OTA FLUTUANTE (Renderizado via Polling) -->
+    <template x-if="otaAvailable">
+        <div class="fixed top-6 right-6 z-[100] max-w-sm w-full bg-gradient-to-r from-emerald-900 to-green-900 border border-emerald-500/30 rounded-xl shadow-2xl p-4 animate-bounce">
+            <div class="flex items-start gap-4">
+                <div class="size-10 bg-emerald-500/20 rounded-lg flex items-center justify-center text-emerald-400">
+                    <span class="material-symbols-outlined">system_update</span>
+                </div>
+                <div class="flex-1">
+                    <h4 class="text-white font-bold text-sm">Atualização v<span x-text="otaVersion"></span></h4>
+                    <p class="text-emerald-200 text-xs mt-1 leading-relaxed" x-text="otaNotes"></p>
+                    <a href="admin_ota.php" class="mt-3 inline-block bg-emerald-500 text-black text-xs font-bold px-4 py-2 rounded shadow hover:bg-emerald-400 transition-colors">ATUALIZAR AGORA</a>
+                </div>
+                <button @click="otaAvailable = false" class="text-emerald-400 hover:text-white">
+                    <span class="material-symbols-outlined text-sm">close</span>
+                </button>
+            </div>
+        </div>
+    </template>
+    
     <!-- Sidebar -->
     <aside class="w-72 fixed inset-y-0 left-0 bg-[#050505] border-r border-[#1e1e1e] flex flex-col z-50">
         <div class="p-8 mb-4">
