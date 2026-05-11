@@ -332,6 +332,15 @@ $unreadCount = 0;
                         <span class="material-symbols-outlined">settings</span>
                         <span>Configurações</span>
                     </a>
+                    <a href="atualizacoes.php" class="sidebar-item <?= ($current_page == 'atualizacoes') ? 'active' : '' ?>">
+                        <span class="material-symbols-outlined">system_update</span>
+                        <div class="flex justify-between items-center w-full">
+                            <span>Atualizações</span>
+                            <template x-if="otaAvailable">
+                                <span class="bg-emerald-500 text-black text-[8px] font-black px-1.5 py-0.5 rounded-full animate-pulse">NOVO</span>
+                            </template>
+                        </div>
+                    </a>
                     <a href="logout.php" class="sidebar-item hover:text-red-400">
                         <span class="material-symbols-outlined">logout</span>
                         <span>Sair</span>
@@ -362,11 +371,12 @@ $unreadCount = 0;
             </div>
 
             <div class="flex items-center gap-6">
-                <button class="size-11 flex items-center justify-center rounded-xl bg-[#121212] border border-[#1e1e1e] text-gray-400 hover:text-[#ffc880] transition-colors relative">
+                <button @click="location.href='atualizacoes.php'" class="size-11 flex items-center justify-center rounded-xl bg-[#121212] border border-[#1e1e1e] text-gray-400 hover:text-[#ffc880] transition-colors relative">
                     <span class="material-symbols-outlined">notifications</span>
-                    <?php if ($unreadCount > 0): ?>
+                    <!-- Ponto de Notificação (Sininho) - Reage a Mensagens ou OTA -->
+                    <template x-if="unreadCount > 0 || otaAvailable">
                         <span class="absolute top-2.5 right-2.5 size-2 bg-[#ffc880] rounded-full ring-4 ring-[#050505]"></span>
-                    <?php endif; ?>
+                    </template>
                 </button>
                 
                 <div class="h-12 w-[1px] bg-[#1e1e1e]"></div>

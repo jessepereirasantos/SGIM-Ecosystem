@@ -248,7 +248,13 @@ if ($pdo instanceof PDO) {
 @unlink($zipFile);
 otaLog("=== INSTALAÇÃO CONCLUÍDA ===", $logFile);
 
+// ✅ LOG DE AUDITORIA (Histórico de Sucesso)
+$auditLog = __DIR__ . '/../shared/system/logs/ota_audit.log';
+$auditMsg = "[" . date('c') . "] SUCCESS: v{$currentVersion} -> v{$manifest['version']} | Files: $copied | User: {$_SESSION['user_id']}\n";
+@file_put_contents($auditLog, $auditMsg, FILE_APPEND | LOCK_EX);
+
 $output = [
+
     'status'         => 'success',
     'message'        => "✅ Atualização v{$manifest['version']} instalada com sucesso! $copied arquivos atualizados.",
     'version_antiga' => $currentVersion,
