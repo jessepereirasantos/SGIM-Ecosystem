@@ -28,16 +28,6 @@ $page_title = 'SGIM - Dashboard Cliente';
 $current_page = 'dashboard';
 
 // BLINDAGEM VISUAL: Garantir que Tailwind carregue mesmo se o header.php falhar no banco
-?>
-<!DOCTYPE html>
-<html lang="pt-br" class="dark">
-<head>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
-</head>
-<body class="bg-[#050505]">
-<?php
 try {
     require_once 'includes/header.php';
 } catch (Throwable $e) {
@@ -79,15 +69,30 @@ if (isset($_GET['action']) && $_GET['action'] === 'run_update' && isset($_GET['u
     }
 }
 
-// Usar o que veio do header se estiver na sessão
-// NUNCA bloquear a dashboard por falha no OTA (try/catch silencioso)
+// Consulta local ao endpoint OTA para detectar atualizacoes reais (elimina dependencia quebrada de sessao)
+$updateInfo = null;
+$hasUpdate = false;
 try {
-    $updateInfo = $_SESSION['ota_available'] ?? null;
-    // Só consultar o master se necessário e com timeout baixo para não travar
+    $otaUrl = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . str_replace(basename(__FILE__), 'ota.php', $_SERVER['PHP_SELF']);
+    if (function_exists('curl_init')) {
+        $ch = curl_init($otaUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 3);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $otaRaw = curl_exec($ch);
+        curl_close($ch);
+        if ($otaRaw) {
+            $otaJson = json_decode($otaRaw, true);
+            if (isset($otaJson['has_update']) && $otaJson['has_update']) {
+                $updateInfo = $otaJson;
+                $hasUpdate = true;
+            }
+        }
+    }
 } catch (Throwable $t) {
     $updateInfo = null;
+    $hasUpdate = false;
 }
-$hasUpdate = isset($updateInfo['has_update']) && $updateInfo['has_update'] === true;
 
 // DADOS REAIS PARA A DASHBOARD (Inicialização com valores padrão)
 $total_membros = 0;

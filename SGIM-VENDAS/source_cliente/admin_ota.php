@@ -5,6 +5,7 @@
  */
 
 require_once 'config/database.php';
+require_once 'src/autoload.php';              // ✅ FIX: Garante autoload SGIM\OTA\
 require_once 'includes/system/OtaOrchestrator.php';
 require_once 'includes/system/OtaPassiveReporter.php';
 
@@ -14,10 +15,26 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-$reporter = new SGIM\OTA\OtaPassiveReporter(__DIR__);
-$orchestrator = new SGIM\OTA\OtaOrchestrator($pdo, __DIR__);
-$telemetry = $reporter->getTelemetryMatrix();
-$report = $telemetry['ota_infrastructure']['download_state']; // Exemplo de leitura simplificada
+if (!$pdo instanceof PDO) {
+    die(json_encode(['status' => 'error', 'message' => 'Sem conexão com banco. Verifique db_config.php']));
+}
+
+// ✅ FIX: Lê master_url do banco — não depende de hardcode
+$masterUrl = 'https://escolateologicaeloha.com.br'; // fallback seguro
+try {
+    $stmtMaster = $pdo->query("SELECT valor FROM configuracoes WHERE chave = 'master_url' LIMIT 1");
+    $urlDb = $stmtMaster ? $stmtMaster->fetchColumn() : null;
+    if ($urlDb && $urlDb !== 'PADRÃO' && filter_var($urlDb, FILTER_VALIDATE_URL)) {
+        $masterUrl = rtrim($urlDb, '/');
+    }
+} catch (Exception $e) { /* usa fallback */ }
+
+$reporter     = new SGIM\OTA\OtaPassiveReporter(__DIR__);
+$orchestrator = new SGIM\OTA\OtaOrchestrator($pdo, __DIR__, $masterUrl); // ✅ master_url do banco
+
+$telemetry = $reporter->getTelemetryMatrix(); // ✅ atribuição restaurada
+$report    = $telemetry['ota_infrastructure']['download_state'] ?? [];
+
 
 // Processamento de Ações Manuais
 $msg = "";

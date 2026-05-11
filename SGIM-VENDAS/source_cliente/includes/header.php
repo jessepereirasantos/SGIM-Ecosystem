@@ -26,7 +26,7 @@ $theme_json = json_encode($theme);
 $unreadCount = 0;
 ?>
 <!DOCTYPE html>
-<html :class="darkMode ? 'dark' : ''" lang="pt-br" x-data="themeManager(<?= htmlspecialchars($theme_json) ?>)" x-init="initTheme()">
+<html :class="darkMode ? 'dark' : ''" lang="pt-br" x-data="themeManager(<?= htmlspecialchars($theme_json) ?>)" x-init="init()">
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
@@ -35,7 +35,7 @@ $unreadCount = 0;
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     
     <script>
@@ -219,7 +219,7 @@ $unreadCount = 0;
                 <div class="flex-1">
                     <h4 class="text-white font-bold text-sm">Atualização v<span x-text="otaVersion"></span></h4>
                     <p class="text-emerald-200 text-xs mt-1 leading-relaxed" x-text="otaNotes"></p>
-                    <a href="admin_ota.php" class="mt-3 inline-block bg-emerald-500 text-black text-xs font-bold px-4 py-2 rounded shadow hover:bg-emerald-400 transition-colors">ATUALIZAR AGORA</a>
+                    <a href="atualizacoes.php" class="mt-3 inline-block bg-emerald-500 text-black text-xs font-bold px-4 py-2 rounded shadow hover:bg-emerald-400 transition-colors">ATUALIZAR AGORA</a>
                 </div>
                 <button @click="otaAvailable = false" class="text-emerald-400 hover:text-white">
                     <span class="material-symbols-outlined text-sm">close</span>
