@@ -27,16 +27,24 @@ switch ($acao) {
             mkdir($logDir, 0755, true);
 
         try {
-            // ✅ FIX: Auto-incrementa a versão a partir do latest.json atual
             $manifestPath = dirname(__DIR__) . '/api/update/latest.json';
             $currentManifest = file_exists($manifestPath)
                 ? json_decode(file_get_contents($manifestPath), true)
                 : [];
-            $currentVersion = $currentManifest['version'] ?? '1.0.0';
-            $parts = explode('.', $currentVersion);
-            $parts[2] = (intval($parts[2] ?? 0)) + 1;   // Incrementa o patch
-            $version = implode('.', $parts);
+            
+            // Aceita a versão enviada pelo front-end (prompt do usuário) ou auto-incrementa se não for informada
+            if (!empty($_POST['version'])) {
+                $version = trim($_POST['version']);
+            } else {
+                $currentVersion = $currentManifest['version'] ?? '1.0.0';
+                $parts = explode('.', $currentVersion);
+                $parts[2] = (intval($parts[2] ?? 0)) + 1;   // Incrementa o patch
+                $version = implode('.', $parts);
+            }
 
+            // Atualiza o manifesto atual imediatamente para garantir persistência inicial do número da versão
+            $currentManifest['version'] = $version;
+            
             // ✅ FIX: Garante que o diretório de destino dos pacotes exista
             $packagesDir = dirname(__DIR__) . '/api/update/packages/';
             if (!is_dir($packagesDir))

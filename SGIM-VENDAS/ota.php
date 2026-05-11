@@ -11,6 +11,15 @@ if (file_exists($manifestPath)) {
 }
 
 $current_version = 'v' . ($manifest['version'] ?? 'N/A');
+$clean_version = str_replace('v', '', $current_version);
+if ($clean_version === 'N/A') {
+    $next_version = '1.0.0';
+} else {
+    $parts = explode('.', $clean_version);
+    $parts[2] = (isset($parts[2]) ? (int)$parts[2] : 0) + 1;
+    $next_version = implode('.', $parts);
+}
+
 $last_update = 'N/A';
 if (!empty($manifest['published_at'])) {
     $ts = strtotime($manifest['published_at']);
@@ -91,7 +100,12 @@ include 'templates/header.php';
                     <p class="text-on-surface-variant font-body-md opacity-60">Gerenciamento de releases, sincronização de versões e auditoria de nodes.</p>
                 </div>
                 <button 
-                    @click="executeAction('publicar_release')"
+                    @click="
+                        let v = prompt('Qual é o número desta nova versão? (ex: 1.1.5)', '<?= $next_version ?>');
+                        if(v !== null && v.trim() !== '') {
+                            executeAction('publicar_release', { version: v.trim() });
+                        }
+                    "
                     :disabled="loading"
                     class="px-5 py-2.5 rounded-lg bg-primary text-on-primary font-bold hover:opacity-90 transition-all flex items-center gap-2 text-sm shadow-xl shadow-primary/20 disabled:opacity-50">
                     <span class="material-symbols-outlined text-sm" :class="loading ? 'animate-spin' : ''" x-text="loading ? 'sync' : 'publish'">publish</span>
@@ -151,7 +165,12 @@ include 'templates/header.php';
                     
                     <div class="space-y-6">
                         <button 
-                            @click="executeAction('publicar_release')"
+                            @click="
+                                let v = prompt('Qual é o número desta nova versão? (ex: 1.1.5)', '<?= $next_version ?>');
+                                if(v !== null && v.trim() !== '') {
+                                    executeAction('publicar_release', { version: v.trim() });
+                                }
+                            "
                             :disabled="loading"
                             class="w-full py-6 bg-primary text-on-primary rounded-2xl font-black text-sm flex items-center justify-center gap-4 hover:scale-[1.02] active:scale-95 transition-all shadow-2xl shadow-primary/20 disabled:opacity-50">
                             <span class="material-symbols-outlined text-2xl" :class="loading ? 'animate-spin' : ''" x-text="loading ? 'sync' : 'publish'">publish</span>
