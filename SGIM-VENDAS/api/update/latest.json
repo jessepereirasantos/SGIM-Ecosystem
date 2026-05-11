@@ -1,9 +1,11 @@
 {
   "version": "1.1.2",
-  "url": "https://escolateologicaeloha.com.br/downloads/SGIM-CLIENTE-RESTAURADO.zip",
-  "sha256": "auto-generated-by-master",
+  "url": "",
+  "sha256": "",
+  "package": "",
   "release_date": "2026-05-09",
-  "notes": "Restauração Total: Sidebar completa, Módulo Financeiro corrigido e Segurança Multi-Congregação ativada.",
+  "notes": "Aguardando pr\u00f3xima publica\u00e7\u00e3o via OTA Master para gerar SHA256 e URL reais.",
+  "files_count": 0,
   "changed_files": [
     "includes/header.php",
     "financeiro.php",
@@ -11,3 +13,4 @@
     "config/database.php"
   ]
 }
+

@@ -1,27 +1,26 @@
 <?php
 /**
- * SGIM Autoloader (PSR-4 Style)
+ * SGIM Autoloader (PSR-4 Multi-Namespace)
+ * Cobre: App\, SGIM\OTA\Drivers\, SGIM\OTA\
  */
 spl_autoload_register(function ($class) {
-    // Namespace prefix
-    $prefix = 'App\\';
-    // Base directory for the namespace prefix
-    $base_dir = __DIR__ . '/';
+    // Mapa de namespaces → diretórios (ordem: mais específico primeiro)
+    $namespaces = [
+        'SGIM\\OTA\\Drivers\\' => dirname(__DIR__) . '/includes/system/drivers/',
+        'SGIM\\OTA\\'          => dirname(__DIR__) . '/includes/system/',
+        'App\\'                => __DIR__ . '/',
+    ];
 
-    // Does the class use the namespace prefix?
-    $len = strlen($prefix);
-    if (strncmp($prefix, $class, $len) !== 0) {
-        return;
-    }
-
-    // Get the relative class name
-    $relative_class = substr($class, $len);
-
-    // Replace namespace separators with directory separators, add .php
-    $file = $base_dir . str_replace('\\', '/', $relative_class) . '.php';
-
-    // If the file exists, require it
-    if (file_exists($file)) {
-        require $file;
+    foreach ($namespaces as $prefix => $base_dir) {
+        $len = strlen($prefix);
+        if (strncmp($prefix, $class, $len) !== 0) {
+            continue;
+        }
+        $relative_class = substr($class, $len);
+        $file = $base_dir . str_replace('\\', '/', $relative_class) . '.php';
+        if (file_exists($file)) {
+            require $file;
+            return;
+        }
     }
 });

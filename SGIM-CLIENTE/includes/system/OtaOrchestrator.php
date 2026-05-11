@@ -11,10 +11,11 @@ use Exception;
 
 class OtaOrchestrator {
     private $basePath;
+    private $masterUrl; // ✅ FIX: recebido via construtor, não hardcoded
     private $config = [
-        "dry_run" => false,
-        "activation_enabled" => true,
-        "manual_approval_required" => false
+        "dry_run"                   => false,
+        "activation_enabled"        => true,
+        "manual_approval_required"  => false
     ];
     
     private $downloadEngine;
@@ -23,13 +24,15 @@ class OtaOrchestrator {
     private $activationDriver;
     private $capabilityManager;
 
-    public function __construct($pdo, $basePath) {
-        $this->basePath = rtrim($basePath, '/') . '/';
-        $this->downloadEngine = new OtaDownloadEngine($this->basePath);
+    public function __construct($pdo, $basePath, $masterUrl = 'https://escolateologicaeloha.com.br') {
+        $this->basePath  = rtrim($basePath, '/') . '/';
+        $this->masterUrl = rtrim($masterUrl, '/');
+
+        $this->downloadEngine   = new OtaDownloadEngine($this->basePath);
         $this->extractionEngine = new OtaExtractionEngine($this->basePath);
-        $this->migrationEngine = new OtaMigrationEngine($pdo, $this->basePath);
+        $this->migrationEngine  = new OtaMigrationEngine($pdo, $this->basePath);
         
-        // INTEGRAÇÃO ADAPTATIVA 10D
+        // INTEGRACAO ADAPTATIVA 10D
         $this->capabilityManager = new OtaCapabilityManager($this->basePath);
         $capabilities = $this->capabilityManager->generateReport();
         
@@ -113,9 +116,15 @@ class OtaOrchestrator {
     }
 
     private function discovery() {
-        $json = @file_get_contents("https://escolateologicaeloha.com.br/api/update/latest.json");
-        if (!$json) throw new Exception("Falha ao consultar Master.");
-        return json_decode($json, true);
+        // ✅ FIX: Usa masterUrl recebido via construtor (não hardcoded)
+        $url  = $this->masterUrl . '/api/update/latest.json';
+        $json = @file_get_contents($url);
+        if (!$json) throw new Exception("Falha ao consultar Master em: $url");
+        $manifest = json_decode($json, true);
+        if (!$manifest || !isset($manifest['version'])) {
+            throw new Exception("Manifesto JSON inválido recebido de: $url");
+        }
+        return $manifest;
     }
 
     private function updateState($key, $data) {

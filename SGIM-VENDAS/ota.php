@@ -28,12 +28,17 @@ include 'templates/header.php';
 <div class="flex" x-data="{ 
     loading: false, 
     statusMsg: '',
-    async executeAction(action) {
+    async executeAction(action, extraData = {}) {
         this.loading = true;
         this.statusMsg = 'Processando...';
         
         let fd = new FormData();
         fd.append('acao', action);
+        
+        // Adiciona dados extras (ex: cliente_path)
+        for (let key in extraData) {
+            fd.append(key, extraData[key]);
+        }
         
         try {
             let res = await fetch('api/ota_action.php', { method: 'POST', body: fd });
@@ -41,7 +46,7 @@ include 'templates/header.php';
             
             if(data.status === 'success') {
                 this.statusMsg = data.message;
-                setTimeout(() => { this.statusMsg = ''; this.loading = false; }, 3000);
+                setTimeout(() => { this.statusMsg = ''; this.loading = false; location.reload(); }, 3000);
             } else {
                 alert(data.message);
                 this.loading = false;
@@ -51,6 +56,7 @@ include 'templates/header.php';
             this.loading = false;
         }
     }
+
 }">
     <?php include 'sidebar.php'; ?>
 
@@ -136,23 +142,35 @@ include 'templates/header.php';
                     </table>
                 </div>
 
-                <!-- OTA Toolbox -->
+                <!-- OTA Toolbox (SIMPLIFICADA) -->
                 <div class="glass-card p-8 rounded-xl">
-                    <h3 class="text-title-sm font-bold text-on-surface mb-6 italic">Orchestrator Tools</h3>
-                    <div class="space-y-4">
-                        <button class="w-full py-4 bg-surface-container border border-outline-variant/20 rounded-xl text-on-surface font-bold text-xs flex items-center justify-between px-6 hover:border-primary/50 transition-all">
-                            <span>Hardening Audit</span>
-                            <span class="material-symbols-outlined text-emerald-500">verified</span>
-                        </button>
+                    <h3 class="text-title-sm font-bold text-on-surface mb-2 italic">Publicação de Release</h3>
+                    <p class="text-[10px] text-on-surface-variant opacity-60 mb-6">
+                        Instruções: Faça upload dos novos arquivos para a pasta <code class="bg-surface-container px-1 rounded text-primary">SGIM-VENDAS/source_cliente/</code> via FTP/cPanel e clique no botão abaixo.
+                    </p>
+                    
+                    <div class="space-y-6">
                         <button 
-                            @click="executeAction('gerar_instalador')"
+                            @click="executeAction('publicar_release')"
                             :disabled="loading"
-                            class="w-full py-4 bg-surface-container border border-outline-variant/20 rounded-xl text-on-surface font-bold text-xs flex items-center justify-between px-6 hover:border-primary/50 transition-all disabled:opacity-50">
-                            <span x-text="loading ? 'GERANDO...' : 'Geração de Instalador'">Geração de Instalador</span>
-                            <span class="material-symbols-outlined text-primary text-sm" :class="loading ? 'animate-spin' : ''" x-text="loading ? 'sync' : 'build'">build</span>
+                            class="w-full py-6 bg-primary text-on-primary rounded-2xl font-black text-sm flex items-center justify-center gap-4 hover:scale-[1.02] active:scale-95 transition-all shadow-2xl shadow-primary/20 disabled:opacity-50">
+                            <span class="material-symbols-outlined text-2xl" :class="loading ? 'animate-spin' : ''" x-text="loading ? 'sync' : 'publish'">publish</span>
+                            <span x-text="loading ? 'GERANDO ATUALIZAÇÃO...' : 'GERAR E PUBLICAR ATUALIZAÇÃO AGORA'">GERAR E PUBLICAR ATUALIZAÇÃO AGORA</span>
                         </button>
+                        
+                        <div class="bg-surface-container/30 border border-outline-variant/10 rounded-xl p-4">
+                            <p class="text-[9px] text-on-surface-variant/50 uppercase tracking-widest mb-2 font-bold">O que este botão faz?</p>
+                            <ul class="text-[10px] text-on-surface-variant/70 space-y-2">
+                                <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[12px] text-emerald-500">check_circle</span> Compacta os arquivos em ZIP</li>
+                                <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[12px] text-emerald-500">check_circle</span> Gera assinatura de segurança (SHA256)</li>
+                                <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[12px] text-emerald-500">check_circle</span> Notifica todos os sistemas clientes</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
+
+
+
             </div>
         </div>
     </main>

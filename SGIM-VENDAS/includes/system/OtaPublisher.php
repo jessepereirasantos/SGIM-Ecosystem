@@ -17,11 +17,16 @@ class OtaPublisher {
     private $logsPath;
 
     public function __construct($basePath) {
-        $this->basePath = rtrim($basePath, '/') . '/';
-        $this->manifestPath = $this->basePath . 'api/update/latest.json';
-        $this->packagePath = $this->basePath . 'api/update/packages/';
+        $this->basePath      = rtrim($basePath, '/') . '/';
+        $this->manifestPath  = $this->basePath . 'api/update/latest.json';
+        $this->packagePath   = $this->basePath . 'api/update/packages/';
         $this->workspacePath = $this->basePath . 'shared/system/workspace/';
-        $this->logsPath = $this->basePath . 'shared/system/logs/';
+        $this->logsPath      = $this->basePath . 'shared/system/logs/';
+
+        // Garante existência dos diretórios críticos
+        foreach ([$this->packagePath, $this->workspacePath, $this->logsPath] as $dir) {
+            if (!is_dir($dir)) mkdir($dir, 0755, true);
+        }
     }
 
     /**
@@ -87,15 +92,19 @@ class OtaPublisher {
     }
 
     private function atomicPublishManifest($manifest) {
-        $tempManifest = $this->basePath . 'shared/system/manifests/latest_tmp.json';
-        
-        // Escreve com LOCK_EX
-        file_put_contents($tempManifest, json_encode($manifest, JSON_PRETTY_PRINT), LOCK_EX);
+        // CORREÇÃO: file_put_contents direto com LOCK_EX.
+        // O rename() cross-directory falha em hospedagem compartilhada (HostGator).
+        $result = file_put_contents(
+            $this->manifestPath,
+            json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
+            LOCK_EX
+        );
 
-        // Rename Atômico
-        if (!rename($tempManifest, $this->manifestPath)) {
-            throw new Exception("Falha no Swap Atômico do Manifesto.");
+        if ($result === false) {
+            throw new Exception("Falha ao gravar manifesto em: " . $this->manifestPath);
         }
+
+        $this->log("Manifesto gravado em: " . $this->manifestPath . " (" . $result . " bytes)");
     }
 
     private function log($message) {
