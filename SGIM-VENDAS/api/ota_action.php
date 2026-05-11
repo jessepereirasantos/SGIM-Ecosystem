@@ -22,12 +22,13 @@ $acao = $_POST['acao'] ?? '';
 switch ($acao) {
     case 'publicar_release':
         $logFile = dirname(__DIR__) . '/shared/system/logs/release_publish_log.json';
-        $logDir  = dirname($logFile);
-        if (!is_dir($logDir)) mkdir($logDir, 0755, true);
+        $logDir = dirname($logFile);
+        if (!is_dir($logDir))
+            mkdir($logDir, 0755, true);
 
         try {
             // ✅ FIX: Auto-incrementa a versão a partir do latest.json atual
-            $manifestPath   = dirname(__DIR__) . '/api/update/latest.json';
+            $manifestPath = dirname(__DIR__) . '/api/update/latest.json';
             $currentManifest = file_exists($manifestPath)
                 ? json_decode(file_get_contents($manifestPath), true)
                 : [];
@@ -38,18 +39,21 @@ switch ($acao) {
 
             // ✅ FIX: Garante que o diretório de destino dos pacotes exista
             $packagesDir = dirname(__DIR__) . '/api/update/packages/';
-            if (!is_dir($packagesDir)) mkdir($packagesDir, 0755, true);
+            if (!is_dir($packagesDir))
+                mkdir($packagesDir, 0755, true);
 
             $sourceDir = dirname(__DIR__) . '/source_cliente/';
             if (!is_dir($sourceDir) || count(scandir($sourceDir)) <= 2) {
                 throw new Exception("Diretório source_cliente/ está vazio ou não existe. Sincronize o código do SGIM-CLIENTE antes de publicar.");
             }
 
-            $tmpDir  = dirname(__DIR__) . '/shared/system/workspace/';
-            if (!is_dir($tmpDir)) mkdir($tmpDir, 0755, true);
+            $tmpDir = dirname(__DIR__) . '/shared/system/workspace/';
+            if (!is_dir($tmpDir))
+                mkdir($tmpDir, 0755, true);
 
             $zipFile = $tmpDir . 'SGIM-CLIENTE-v' . $version . '.zip';
-            if (file_exists($zipFile)) unlink($zipFile);
+            if (file_exists($zipFile))
+                unlink($zipFile);
 
             // 1. Gera o ZIP com a versão atualizada
             $zip = new ZipArchive();
@@ -65,17 +69,23 @@ switch ($acao) {
 
             foreach ($files as $name => $file) {
                 if (!$file->isDir()) {
-                    $filePath     = $file->getRealPath();
+                    $filePath = $file->getRealPath();
                     $relativePath = substr($filePath, strlen(realpath($sourceDir)) + 1);
                     $relativePath = str_replace('\\', '/', $relativePath);
 
                     // Exclui arquivos sensíveis e de ambiente
-                    if (strpos($relativePath, 'config/db_config.php') !== false) continue;
-                    if (strpos($relativePath, 'config/db.php') !== false) continue;
-                    if (strpos($relativePath, '.installed') !== false) continue;
-                    if (strpos($relativePath, '.git') !== false) continue;
-                    if (strpos($relativePath, 'shared/') !== false) continue;
-                    if (strpos($relativePath, 'releases/') !== false) continue;
+                    if (strpos($relativePath, 'config/db_config.php') !== false)
+                        continue;
+                    if (strpos($relativePath, 'config/db.php') !== false)
+                        continue;
+                    if (strpos($relativePath, '.installed') !== false)
+                        continue;
+                    if (strpos($relativePath, '.git') !== false)
+                        continue;
+                    if (strpos($relativePath, 'shared/') !== false)
+                        continue;
+                    if (strpos($relativePath, 'releases/') !== false)
+                        continue;
 
                     $zip->addFile($filePath, $relativePath);
                     $filesAdded++;
@@ -100,53 +110,69 @@ switch ($acao) {
 
             // 3. ✅ FIX: Enriquece manifesto com URL CORRETA (packages/) e SHA256 real
             $manifest = json_decode(file_get_contents($manifestPath), true);
-            $manifest['url']          = 'https://escolateologicaeloha.com.br/api/update/packages/' . ($manifest['package'] ?? '');
-            $manifest['sha256']       = $sha256; // SHA256 real, não placeholder!
-            $manifest['notes']        = "v{$version}: Release automática gerada em " . date('d/m/Y H:i');
+            $manifest['url'] = 'https://escolateologicaeloha.com.br/api/update/packages/' . ($manifest['package'] ?? '');
+            $manifest['sha256'] = $sha256; // SHA256 real, não placeholder!
+            $manifest['notes'] = "v{$version}: Release automática gerada em " . date('d/m/Y H:i');
             $manifest['release_date'] = date('Y-m-d');
-            $manifest['files_count']  = $filesAdded;
+            $manifest['files_count'] = $filesAdded;
             file_put_contents($manifestPath, json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
 
             // 4. Telemetria
             $logs = file_exists($logFile) ? json_decode(file_get_contents($logFile), true) : [];
-            if (!is_array($logs)) $logs = [];
+            if (!is_array($logs))
+                $logs = [];
             $logs[] = [
-                'timestamp'           => date('c'),
-                'acao'                => 'publicar_release',
-                'version_anterior'    => $currentVersion,
-                'version_nova'        => $version,
-                'manifest_path'       => $manifestPath,
-                'zip_path'            => $zipFile,
-                'zip_size_bytes'      => filesize($zipFile),
-                'files_no_zip'        => $filesAdded,
-                'sha256'              => $sha256,
-                'download_url'        => $manifest['url'],
-                'package_name'        => ($manifest['package'] ?? 'N/A'),
-                'status'              => 'success',
+                'timestamp' => date('c'),
+                'acao' => 'publicar_release',
+                'version_anterior' => $currentVersion,
+                'version_nova' => $version,
+                'manifest_path' => $manifestPath,
+                'zip_path' => $zipFile,
+                'zip_size_bytes' => filesize($zipFile),
+                'files_no_zip' => $filesAdded,
+                'sha256' => $sha256,
+                'download_url' => $manifest['url'],
+                'package_name' => ($manifest['package'] ?? 'N/A'),
+                'status' => 'success',
             ];
             file_put_contents($logFile, json_encode(array_slice($logs, -100), JSON_PRETTY_PRINT), LOCK_EX);
 
+            // 5. ✅ ATUALIZAÇÃO DO INSTALADOR COMERCIAL (sgim_master.zip)
+            // Garante que novos clientes já nasçam na v1.1.5+
+            $comZip = dirname(__DIR__) . '/sgim_master.zip';
+            if (file_exists($comZip)) @unlink($comZip);
+            $cZip = new ZipArchive();
+            if ($cZip->open($comZip, ZipArchive::CREATE) === TRUE) {
+                $cFiles = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($sourceDir, RecursiveDirectoryIterator::SKIP_DOTS), RecursiveIteratorIterator::LEAVES_ONLY);
+                foreach ($cFiles as $cf) {
+                    if (!$cf->isDir()) {
+                        $cp = $cf->getRealPath();
+                        $cr = substr($cp, strlen(realpath($sourceDir)) + 1);
+                        $cr = str_replace('\\', '/', $cr);
+                        if (strpos($cr, 'db_config.php') !== false || strpos($cr, '.installed') !== false || strpos($cr, '.git') !== false) continue;
+                        $cZip->addFile($cp, $cr);
+                    }
+                }
+                $cZip->close();
+            }
+
             echo json_encode([
                 'status'         => 'success',
-                'message'        => "✅ Release v{$version} publicada! ({$filesAdded} arquivos). SHA256 real gravado.",
-                'version_anterior' => $currentVersion,
+                'message'        => "✅ Release v{$version} publicada e Instalador Comercial atualizado!",
                 'version_nova'   => $version,
-                'zip_size'       => filesize($zipFile),
-                'files_count'    => $filesAdded,
-                'sha256'         => $sha256,
-                'download_url'   => $manifest['url'],
-                'manifest'       => $manifest,
+                'sha256'         => $sha256
             ]);
 
         } catch (Exception $e) {
             $logs = file_exists($logFile) ? json_decode(file_get_contents($logFile), true) : [];
-            if (!is_array($logs)) $logs = [];
+            if (!is_array($logs))
+                $logs = [];
             $logs[] = [
                 'timestamp' => date('c'),
-                'acao'      => 'publicar_release',
-                'version'   => ($version ?? 'unknown'),
-                'status'    => 'error',
-                'error'     => $e->getMessage(),
+                'acao' => 'publicar_release',
+                'version' => ($version ?? 'unknown'),
+                'status' => 'error',
+                'error' => $e->getMessage(),
             ];
             file_put_contents($logFile, json_encode(array_slice($logs, -100), JSON_PRETTY_PRINT), LOCK_EX);
             echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
@@ -159,7 +185,8 @@ switch ($acao) {
         // caminhos internos do cPanel incorretos no HostGator.
         try {
             $destDir = dirname(__DIR__) . '/source_cliente/';
-            if (!is_dir($destDir)) mkdir($destDir, 0755, true);
+            if (!is_dir($destDir))
+                mkdir($destDir, 0755, true);
 
             // O admin informa o path absoluto via form (ou via config no banco)
             $clienteDir = trim($_POST['cliente_path'] ?? '');
@@ -175,13 +202,13 @@ switch ($acao) {
 
             if (!$clienteDir || !is_dir($clienteDir)) {
                 echo json_encode([
-                    'status'  => 'error',
+                    'status' => 'error',
                     'message' => '⚠ Path do SGIM-CLIENTE não configurado. ' .
-                                 'Envie o campo "cliente_path" com o caminho absoluto no servidor, ' .
-                                 'ou cadastre a chave "sgim_cliente_path" na tabela configuracoes do banco. ' .
-                                 'Exemplo: /home/seuuser/public_html/sgim-cliente',
+                        'Envie o campo "cliente_path" com o caminho absoluto no servidor, ' .
+                        'ou cadastre a chave "sgim_cliente_path" na tabela configuracoes do banco. ' .
+                        'Exemplo: /home/seuuser/public_html/sgim-cliente',
                     'destino' => $destDir,
-                    'hint'    => 'Use o cPanel File Manager para localizar o caminho absoluto do SGIM-CLIENTE.',
+                    'hint' => 'Use o cPanel File Manager para localizar o caminho absoluto do SGIM-CLIENTE.',
                 ]);
                 break;
             }
@@ -202,13 +229,18 @@ switch ($acao) {
 
                 $skip = false;
                 foreach ($excluir as $ex) {
-                    if (strpos($relativePath, $ex) !== false) { $skip = true; break; }
+                    if (strpos($relativePath, $ex) !== false) {
+                        $skip = true;
+                        break;
+                    }
                 }
-                if ($skip) continue;
+                if ($skip)
+                    continue;
 
                 $destPath = $destDir . $relativePath;
                 if ($item->isDir()) {
-                    if (!is_dir($destPath)) mkdir($destPath, 0755, true);
+                    if (!is_dir($destPath))
+                        mkdir($destPath, 0755, true);
                 } else {
                     copy($item->getPathname(), $destPath);
                     $count++;
@@ -216,11 +248,11 @@ switch ($acao) {
             }
 
             echo json_encode([
-                'status'            => 'success',
-                'message'           => "✅ source_cliente/ sincronizado. $count arquivos copiados.",
+                'status' => 'success',
+                'message' => "✅ source_cliente/ sincronizado. $count arquivos copiados.",
                 'arquivos_copiados' => $count,
-                'origem'            => $clienteDir,
-                'destino'           => $destDir,
+                'origem' => $clienteDir,
+                'destino' => $destDir,
             ]);
         } catch (Exception $e) {
             echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
@@ -228,10 +260,26 @@ switch ($acao) {
         break;
 
     case 'gerar_instalador':
-        echo json_encode([
-            'status'  => 'success',
-            'message' => 'Instalador oficial gerado. Use a ação "publicar_release" para criar o pacote de atualização.'
-        ]);
+        try {
+            $sourceDir = dirname(__DIR__) . '/source_cliente/'; 
+            $zipFile = dirname(__DIR__) . '/sgim_master.zip';
+            if (file_exists($zipFile)) @unlink($zipFile);
+            $zip = new ZipArchive();
+            if ($zip->open($zipFile, ZipArchive::CREATE) !== TRUE) throw new Exception("Falha ao criar ZIP.");
+            $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($sourceDir, RecursiveDirectoryIterator::SKIP_DOTS), RecursiveIteratorIterator::LEAVES_ONLY);
+            foreach ($files as $f) {
+                if (!$f->isDir()) {
+                    $p = $f->getRealPath();
+                    $r = str_replace('\\', '/', substr($p, strlen(realpath($sourceDir)) + 1));
+                    if (strpos($r, 'db_config.php') !== false || strpos($r, '.installed') !== false) continue;
+                    $zip->addFile($p, $r);
+                }
+            }
+            $zip->close();
+            echo json_encode(['status' => 'success', 'message' => '✅ Instalador Comercial (sgim_master.zip) reconstruído com sucesso!']);
+        } catch (Exception $e) {
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
         break;
 
     default:
