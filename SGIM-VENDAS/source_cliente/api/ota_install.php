@@ -239,11 +239,21 @@ if ($pdo instanceof PDO) {
             // Divide por ponto e vírgula para executar múltiplas queries
             $queries = array_filter(array_map('trim', explode(';', $sql)));
             foreach ($queries as $q) {
-                if (!empty($q)) $pdo->exec($q);
+                if (!empty($q)) {
+                    try {
+                        $pdo->exec($q);
+                    } catch (Throwable $eq) {
+                        otaLog("AVISO: Falha na query de migration: " . $eq->getMessage(), $logFile);
+                    }
+                }
             }
             otaLog("Migrations aplicadas com sucesso.", $logFile);
         }
+    } catch (Throwable $e) {
+        otaLog("AVISO: Falha geral nas migrations: " . $e->getMessage(), $logFile);
+    }
 
+    try {
         $stmt = $pdo->prepare("UPDATE configuracoes SET valor = ? WHERE chave = 'versao_sistema'");
 
         $updated = $stmt->execute([$manifest['version']]);
