@@ -2,9 +2,24 @@
 require_once 'config/database.php';
 $current_page = 'ota';
 
-// 🛠️ Dados OTA (Sincronizado com v1.1.2)
-$current_version = "v1.1.2";
-$last_update = date("d/m/Y");
+// 🛠️ Dados OTA (lidos do manifesto oficial)
+$manifestPath = __DIR__ . '/api/update/latest.json';
+$manifest = [];
+if (file_exists($manifestPath)) {
+    $decoded = json_decode(@file_get_contents($manifestPath), true);
+    if (is_array($decoded)) $manifest = $decoded;
+}
+
+$current_version = 'v' . ($manifest['version'] ?? 'N/A');
+$last_update = 'N/A';
+if (!empty($manifest['published_at'])) {
+    $ts = strtotime($manifest['published_at']);
+    if ($ts) $last_update = date('d/m/Y', $ts);
+} elseif (!empty($manifest['release_date'])) {
+    $ts = strtotime($manifest['release_date']);
+    if ($ts) $last_update = date('d/m/Y', $ts);
+}
+
 $active_nodes = 1;
 
 include 'templates/header.php';
@@ -106,10 +121,10 @@ include 'templates/header.php';
                             <tr class="hover:bg-surface-variant/5 transition-colors">
                                 <td class="px-8 py-6">
                                     <div class="flex items-center gap-4">
-                                        <div class="size-10 bg-surface-container-highest rounded-lg flex items-center justify-center text-primary font-mono font-bold">1.1.2</div>
+                                        <div class="size-10 bg-surface-container-highest rounded-lg flex items-center justify-center text-primary font-mono font-bold"><?= htmlspecialchars($manifest['version'] ?? 'N/A') ?></div>
                                         <div>
-                                            <p class="text-sm font-bold text-white">Restauração Estrutural Total</p>
-                                            <p class="text-[10px] text-on-surface-variant opacity-60">Sidebar, Financeiro e Blindagem Multi-Congregação</p>
+                                            <p class="text-sm font-bold text-white"><?= htmlspecialchars(($manifest['notes'] ?? '') ? 'Release Atual' : 'Release Atual') ?></p>
+                                            <p class="text-[10px] text-on-surface-variant opacity-60"><?= htmlspecialchars($manifest['notes'] ?? '') ?></p>
                                         </div>
                                     </div>
                                 </td>
