@@ -3,11 +3,12 @@
  * SGIM - Motor OTA v5.0 (Reconstructed)
  * Endpoint local consultado pelo frontend do cliente.
  */
+header('Content-Type: application/json; charset=utf-8');
 error_reporting(0); 
 ini_set('display_errors', 0);
 
 // RASTREADOR DE PULSO INICIAL (Garante log antes de qualquer crash)
-file_put_contents(__DIR__ . '/ota_pulse.log', "[" . date('c') . "] Polling Recebido do Frontend!\n", FILE_APPEND);
+@file_put_contents(__DIR__ . '/ota_pulse.log', "[" . date('c') . "] Polling Recebido do Frontend!\n", FILE_APPEND);
 
 require_once 'src/autoload.php';
 require_once 'config/database.php'; 
@@ -154,15 +155,14 @@ try {
     $logs[] = $telemetry;
     file_put_contents($logFile, json_encode(array_slice($logs, -50), JSON_PRETTY_PRINT));
 
-    header('Content-Type: application/json');
     echo json_encode([
         'status' => 'success',
-        'has_update' => $hasUpdate,
-        'current_version' => $telemetry['versao_local'],
-        'latest_version' => $manifest['version'],
-        'notes' => $manifest['notes'] ?? '',
+        'has_update' => (bool)$hasUpdate,
+        'current_version' => (string)$telemetry['versao_local'],
+        'latest_version' => (string)$manifest['version'],
+        'notes' => (string)($manifest['notes'] ?? ''),
         'manifest' => $manifest
-    ], JSON_PRETTY_PRINT);
+    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
 } catch (Exception $e) {
     $telemetry['motivo_falha'] = $e->getMessage();
@@ -171,6 +171,5 @@ try {
     $logs[] = $telemetry;
     file_put_contents($logFile, json_encode(array_slice($logs, -50), JSON_PRETTY_PRINT));
 
-    header('Content-Type: application/json');
-    echo json_encode(['status' => 'error', 'message' => $e->getMessage()], JSON_PRETTY_PRINT);
+    echo json_encode(['status' => 'error', 'message' => $e->getMessage()], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 }
