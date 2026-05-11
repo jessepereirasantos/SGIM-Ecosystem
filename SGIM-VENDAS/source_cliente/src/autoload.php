@@ -8,6 +8,7 @@ spl_autoload_register(function ($class) {
     $namespaces = [
         'SGIM\\OTA\\Drivers\\' => dirname(__DIR__) . '/includes/system/drivers/',
         'SGIM\\OTA\\'          => dirname(__DIR__) . '/includes/system/',
+        'SGIM\\Auth\\'         => __DIR__ . '/Auth/',
         'App\\'                => __DIR__ . '/',
     ];
 
@@ -24,3 +25,11 @@ spl_autoload_register(function ($class) {
         }
     }
 });
+
+// Inicialização Global do Sistema de Acesso (ERP Ministerial)
+if (session_status() === PHP_SESSION_NONE) session_start();
+$access = null;
+if (isset($_SESSION['user_id']) && isset($pdo)) {
+    $access = new \SGIM\Auth\AccessManager($pdo, $_SESSION['user_id']);
+}
+

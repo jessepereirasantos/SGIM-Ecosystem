@@ -228,10 +228,24 @@ if ($failed) {
     otaLog("FALHAS: " . implode(', ', array_slice($failed, 0, 20)), $logFile);
 }
 
-// ─── 9. ATUALIZA VERSÃO NO BANCO ─────────────────────────────────────────────
+// ─── 9. ATUALIZA VERSÃO E EXECUTA MIGRATIONS ──────────────────────────────────
 if ($pdo instanceof PDO) {
     try {
+        // Executa Migrations se existirem
+        $migrationFile = $extractDir . '/database/migrations_v1.sql';
+        if (file_exists($migrationFile)) {
+            otaLog("Detectada migration SQL: migrations_v1.sql. Executando...", $logFile);
+            $sql = file_get_contents($migrationFile);
+            // Divide por ponto e vírgula para executar múltiplas queries
+            $queries = array_filter(array_map('trim', explode(';', $sql)));
+            foreach ($queries as $q) {
+                if (!empty($q)) $pdo->exec($q);
+            }
+            otaLog("Migrations aplicadas com sucesso.", $logFile);
+        }
+
         $stmt = $pdo->prepare("UPDATE configuracoes SET valor = ? WHERE chave = 'versao_sistema'");
+
         $updated = $stmt->execute([$manifest['version']]);
         if (!$updated || $stmt->rowCount() === 0) {
             // Linha não existia — insere
@@ -248,7 +262,13 @@ if ($pdo instanceof PDO) {
 @unlink($zipFile);
 otaLog("=== INSTALAÇÃO CONCLUÍDA ===", $logFile);
 
+// ✅ LOG DE AUDITORIA (Histórico de Sucesso)
+$auditLog = __DIR__ . '/../shared/system/logs/ota_audit.log';
+$auditMsg = "[" . date('c') . "] SUCCESS: v{$currentVersion} -> v{$manifest['version']} | Files: $copied | User: {$_SESSION['user_id']}\n";
+@file_put_contents($auditLog, $auditMsg, FILE_APPEND | LOCK_EX);
+
 $output = [
+
     'status'         => 'success',
     'message'        => "✅ Atualização v{$manifest['version']} instalada com sucesso! $copied arquivos atualizados.",
     'version_antiga' => $currentVersion,
