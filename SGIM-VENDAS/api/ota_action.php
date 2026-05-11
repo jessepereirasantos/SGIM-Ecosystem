@@ -139,7 +139,8 @@ switch ($acao) {
 
             // 5. ✅ ATUALIZAÇÃO DO INSTALADOR COMERCIAL (sgim_master.zip)
             // Garante que novos clientes já nasçam na v1.1.5+
-            $comZip = dirname(__DIR__) . '/sgim_master.zip';
+            $comZip = dirname(__DIR__) . '/downloads/sgim_master.zip';
+
             if (file_exists($comZip)) @unlink($comZip);
             $cZip = new ZipArchive();
             if ($cZip->open($comZip, ZipArchive::CREATE) === TRUE) {
@@ -262,7 +263,8 @@ switch ($acao) {
     case 'gerar_instalador':
         try {
             $sourceDir = dirname(__DIR__) . '/source_cliente/'; 
-            $zipFile = dirname(__DIR__) . '/sgim_master.zip';
+            $zipFile = dirname(__DIR__) . '/downloads/sgim_master.zip';
+
             if (file_exists($zipFile)) @unlink($zipFile);
             $zip = new ZipArchive();
             if ($zip->open($zipFile, ZipArchive::CREATE) !== TRUE) throw new Exception("Falha ao criar ZIP.");
