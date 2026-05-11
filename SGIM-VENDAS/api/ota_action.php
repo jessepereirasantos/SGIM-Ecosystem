@@ -42,9 +42,15 @@ switch ($acao) {
             if (!is_dir($packagesDir))
                 mkdir($packagesDir, 0755, true);
 
-            $sourceDir = dirname(__DIR__) . '/source_cliente/';
+            // ✅ FIX: Aponta diretamente para o código REAL validado (SGIM-CLIENTE raiz)
+            $sourceDir = dirname(dirname(__DIR__)) . '/SGIM-CLIENTE/';
+            if (!is_dir($sourceDir)) {
+                // Fallback de segurança para source_cliente interno, se a estrutura real não existir
+                $sourceDir = dirname(__DIR__) . '/source_cliente/';
+            }
+            
             if (!is_dir($sourceDir) || count(scandir($sourceDir)) <= 2) {
-                throw new Exception("Diretório source_cliente/ está vazio ou não existe. Sincronize o código do SGIM-CLIENTE antes de publicar.");
+                throw new Exception("Diretório do cliente ($sourceDir) está vazio ou não existe.");
             }
 
             $tmpDir = dirname(__DIR__) . '/shared/system/workspace/';
@@ -262,7 +268,11 @@ switch ($acao) {
 
     case 'gerar_instalador':
         try {
-            $sourceDir = dirname(__DIR__) . '/source_cliente/'; 
+            // ✅ FIX: Aponta diretamente para o código REAL validado (SGIM-CLIENTE raiz)
+            $sourceDir = dirname(dirname(__DIR__)) . '/SGIM-CLIENTE/';
+            if (!is_dir($sourceDir)) {
+                $sourceDir = dirname(__DIR__) . '/source_cliente/'; 
+            }
             $zipFile = dirname(__DIR__) . '/downloads/sgim_master.zip';
 
             if (file_exists($zipFile)) @unlink($zipFile);

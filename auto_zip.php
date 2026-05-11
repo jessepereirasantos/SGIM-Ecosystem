@@ -5,8 +5,14 @@
  * Deve ser executado sempre que houver mudanças no código do cliente.
  */
 
-$sourceDir = realpath(__DIR__ . '/../SGIM-CLIENTE');
-$destZip = realpath(__DIR__ . '/../SGIM-VENDAS/downloads') . DIRECTORY_SEPARATOR . 'sgim_master.zip';
+$sourceDir = realpath(__DIR__ . '/SGIM-CLIENTE');
+$destDownloadsDir = realpath(__DIR__ . '/SGIM-VENDAS/downloads');
+if (!$destDownloadsDir) {
+    // Caso a pasta não exista, usar caminho absoluto e criar
+    $destDownloadsDir = __DIR__ . '/SGIM-VENDAS/downloads';
+    if (!is_dir($destDownloadsDir)) mkdir($destDownloadsDir, 0755, true);
+}
+$destZip = $destDownloadsDir . DIRECTORY_SEPARATOR . 'sgim_master.zip';
 
 echo "Iniciando compactação automática...\n";
 echo "Origem: $sourceDir\n";
@@ -39,6 +45,11 @@ foreach ($files as $name => $file) {
         // Pular pastas de backup ou temporárias se existirem
         if (strpos($relativePath, 'backups' . DIRECTORY_SEPARATOR) === 0) continue;
         if (strpos($relativePath, '.git' . DIRECTORY_SEPARATOR) === 0) continue;
+        
+        // Pular configurações e estado de instalação
+        if (strpos($relativePath, 'config' . DIRECTORY_SEPARATOR . 'db_config.php') === 0) continue;
+        if (strpos($relativePath, '.installed') === 0) continue;
+        if (strpos($relativePath, 'debug_') === 0) continue;
 
         $zip->addFile($filePath, $relativePath);
         $count++;

@@ -70,6 +70,18 @@ class OtaPublisher {
             // 6. Publicação Atômica (Rename)
             $this->atomicPublishManifest($manifest);
 
+            // 7. Atualizar ZIP Comercial de Vendas Automaticamente
+            $commercialZipPath = $this->basePath . 'downloads/sgim_master.zip';
+            $commercialDownloadsDir = dirname($commercialZipPath);
+            if (!is_dir($commercialDownloadsDir)) {
+                mkdir($commercialDownloadsDir, 0755, true);
+            }
+            if (!copy($zipPath, $commercialZipPath)) {
+                $this->log("AVISO: Falha ao atualizar ZIP Comercial em downloads/sgim_master.zip");
+            } else {
+                $this->log("ZIP Comercial atualizado com sucesso em downloads/sgim_master.zip");
+            }
+
             $this->log("Versão $version publicada com sucesso. ID: $releaseId");
             return true;
 
