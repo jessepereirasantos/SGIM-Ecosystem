@@ -20,3 +20,7 @@ SGIM-VENDAS/cliente-atualizacao/config/db_config.php
 # Arquivos de sistema
 .DS_Store
 Thumbs.db
+
+# Ignorar o manifesto do OTA e pacotes para não sobrescrever a versão real do servidor
+SGIM-VENDAS/api/update/latest.json
+SGIM-VENDAS/api/update/packages/
