@@ -46,8 +46,8 @@ class OtaPublisher {
             $sha256 = hash_file('sha256', $zipPath);
             $releaseId = bin2hex(random_bytes(8));
 
-            // 4. Mover Pacote Final
-            $packageName = "sgim_release_{$version}_{$releaseId}.zip";
+            // 4. Mover Pacote Final (Nome PADRONIZADO para evitar 404)
+            $packageName = "SGIM-CLIENTE-v{$version}.zip";
             $finalPackagePath = $this->packagePath . $packageName;
             
             if (!copy($zipPath, $finalPackagePath)) {
