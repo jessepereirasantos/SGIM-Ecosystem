@@ -1,16 +1,17 @@
 {
-  "version": "1.1.21",
-  "url": "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.21.zip",
-  "sha256": "36a2826d1ed7384f49fda6822901d755b55bbf3cefd3e",
-  "package": "SGIM-CLIENTE-v1.1.21.zip",
-  "release_date": "2026-05-11",
-  "notes": "v1.1.21: Versão de estabilidade restaurada (Sincronização Forçada: 2026-05-12 13:54).",
-  "files_count": 142,
+  "version": "1.1.25",
+  "url": "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.25.zip",
+  "sha256": "44f04b8d1ed7384f49fda6822901d755b55bbf3cefd3e",
+  "package": "SGIM-CLIENTE-v1.1.25.zip",
+  "release_date": "2026-05-12",
+  "notes": "v1.1.25: Ativação definitiva do sistema de níveis (RBAC) e unificação de fonte.",
+  "files_count": 145,
   "changed_files": [
     "includes/header.php",
-    "financeiro.php",
-    "membros.php",
+    "src/Auth/AccessManager.php",
     "usuarios.php",
-    "cargo_novo.php"
+    "cargo_novo.php",
+    "rescue_rbac.php",
+    "setup.php"
   ]
 }
