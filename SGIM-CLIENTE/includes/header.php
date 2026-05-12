@@ -36,9 +36,11 @@ if (isset($_SESSION['user_id'])) {
         $access = new \SGIM\Auth\AccessManager($pdo, $_SESSION['user_id']);
         
         // 🚨 CHAVE MESTRA: Se for o admin principal mas o banco ainda não vinculou o cargo
-        // concedemos acesso total para que ele possa usar as novas telas.
-        if (empty($access->getCargoId()) && ($_SESSION['user_id'] == 1 || $_SESSION['user_nivel'] == 'admin')) {
+        // ou se as tabelas estiverem vazias, forçamos o acesso e tentamos um resgate silencioso.
+        if (empty($access->getCargoId()) && ($_SESSION['user_id'] == 1 || ($_SESSION['user_nivel'] ?? '') == 'admin')) {
             $access->forceGlobal(); 
+            // Tenta vincular o cargo 1 no banco se estiver faltando
+            $pdo->prepare("UPDATE usuarios SET cargo_id = 1 WHERE id = ?")->execute([$_SESSION['user_id']]);
         }
 
         // Busca info para o cabeçalho
