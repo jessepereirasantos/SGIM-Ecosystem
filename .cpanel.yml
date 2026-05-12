@@ -1,6 +1,14 @@
 ---
 deployment:
   tasks:
-    - /usr/bin/rsync -av --exclude='.git' SGIM-VENDAS/ /home1/hg9a3205/public_html/
-    - /usr/bin/rsync -av --exclude='.git' SGIM-CLIENTE/includes/system/ /home1/hg9a3205/public_html/includes/system/
-    - /bin/chmod 755 /home1/hg9a3205/public_html/shared
+    # 1. Sincroniza o Motor de Vendas/Master
+    - /usr/bin/rsync -av --delete --exclude='.git' SGIM-VENDAS/ /home1/hg9a3205/public_html/
+    
+    # 2. Sincroniza o Motor do Cliente (O DNA do sistema)
+    # IMPORTANTE: Esta pasta é a fonte da verdade para o OTA e para o ZIP Comercial.
+    - /usr/bin/rsync -av --delete --exclude='.git' SGIM-CLIENTE/ /home1/hg9a3205/public_html/SGIM-CLIENTE/
+    
+    # 3. Permissões Críticas
+    - /bin/chmod 755 /home1/hg9a3205/public_html/downloads
+    - /bin/chmod 755 /home1/hg9a3205/public_html/api/update/packages
+    - /bin/chmod 755 /home1/hg9a3205/public_html/SGIM-CLIENTE/database
