@@ -1,14 +1,10 @@
 {
-  "version": "1.1.29",
-  "url": "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.29.zip",
-  "sha256": "cb5055dd1ed7384f49fda6822901d755b55bbf3cefd3e",
-  "package": "SGIM-CLIENTE-v1.1.29.zip",
+  "version": "1.1.28",
+  "url": "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.28.zip",
+  "sha256": "68bda20d1ed7384f49fda6822901d755b55bbf3cefd3e",
+  "package": "SGIM-CLIENTE-v1.1.28.zip",
   "release_date": "2026-05-12",
-  "notes": "v1.1.29: RBAC Funcional - Imunidade Administrativa ID 1, Sementes Granulares e Refinamento Visual de Matriz.",
-  "files_count": 147,
-  "changed_files": [
-    "src/Auth/AccessManager.php",
-    "rescue_rbac.php",
-    "cargo_novo.php"
-  ]
+  "notes": "v1.1.28: Estabilização do sistema (Aguardando geração de novo pacote).",
+  "files_count": 145,
+  "changed_files": []
 }
