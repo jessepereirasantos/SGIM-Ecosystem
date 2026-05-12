@@ -10,14 +10,33 @@ if (file_exists($manifestPath)) {
     if (is_array($decoded)) $manifest = $decoded;
 }
 
-$current_version = 'v' . ($manifest['version'] ?? 'N/A');
+// 🛡️ BLOQUEIO DO FLIPERAMA: Descoberta Dinâmica da Última Versão Real (via arquivos)
+$packagesDir = __DIR__ . '/api/update/packages/';
+$highest_version = '1.1.0'; // Base mínima
+if (is_dir($packagesDir)) {
+    $files = scandir($packagesDir);
+    foreach ($files as $file) {
+        if (preg_match('/sgim_release_([0-9]+\.[0-9]+\.[0-9]+)_/', $file, $matches)) {
+            if (version_compare($matches[1], $highest_version, '>')) {
+                $highest_version = $matches[1];
+            }
+        }
+    }
+}
+
+// Sincroniza o manifesto se ele estiver atrasado em relação aos arquivos físicos
+if (empty($manifest['version']) || version_compare($highest_version, $manifest['version'], '>')) {
+    $manifest['version'] = $highest_version;
+}
+
+$current_version = 'v' . ($manifest['version'] ?? $highest_version);
 $clean_version = str_replace('v', '', $current_version);
-if ($clean_version === 'N/A') {
-    $next_version = '1.0.0';
-} else {
-    $parts = explode('.', $clean_version);
-    $parts[2] = (isset($parts[2]) ? (int)$parts[2] : 0) + 1;
+$parts = explode('.', $clean_version);
+if (count($parts) >= 3) {
+    $parts[2] = (int)$parts[2] + 1;
     $next_version = implode('.', $parts);
+} else {
+    $next_version = '1.1.0';
 }
 
 $last_update = 'N/A';
