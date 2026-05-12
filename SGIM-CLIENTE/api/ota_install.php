@@ -236,12 +236,21 @@ if ($pdo instanceof PDO) {
         if (file_exists($migrationFile)) {
             otaLog("Detectada migration SQL: migrations_v1.sql. Executando...", $logFile);
             $sql = file_get_contents($migrationFile);
-            // Divide por ponto e vírgula para executar múltiplas queries
+            
+            // Divide o arquivo em queries individuais
             $queries = array_filter(array_map('trim', explode(';', $sql)));
+            
             foreach ($queries as $q) {
-                if (!empty($q)) $pdo->exec($q);
+                if (!empty($q)) {
+                    try {
+                        $pdo->exec($q);
+                    } catch (PDOException $e) {
+                        // Loga o erro mas continua para a próxima query (Retrocompatibilidade)
+                        otaLog("Aviso de Migration: " . $e->getMessage() . " em: " . substr($q, 0, 50) . "...", $logFile);
+                    }
+                }
             }
-            otaLog("Migrations aplicadas com sucesso.", $logFile);
+            otaLog("Processamento de Migrations concluído.", $logFile);
         }
 
         $stmt = $pdo->prepare("UPDATE configuracoes SET valor = ? WHERE chave = 'versao_sistema'");
