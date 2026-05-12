@@ -35,6 +35,12 @@ if (isset($_SESSION['user_id'])) {
         require_once __DIR__ . '/../src/Auth/AccessManager.php';
         $access = new \SGIM\Auth\AccessManager($pdo, $_SESSION['user_id']);
         
+        // 🚨 CHAVE MESTRA: Se for o admin principal mas o banco ainda não vinculou o cargo
+        // concedemos acesso total para que ele possa usar as novas telas.
+        if (empty($access->getCargoId()) && ($_SESSION['user_id'] == 1 || $_SESSION['user_nivel'] == 'admin')) {
+            $access->forceGlobal(); 
+        }
+
         // Busca info para o cabeçalho
         $stmtUser = $pdo->prepare("SELECT u.nome, c.nome as cargo_nome 
                                  FROM usuarios u 
@@ -44,7 +50,7 @@ if (isset($_SESSION['user_id'])) {
         $uData = $stmtUser->fetch(PDO::FETCH_ASSOC);
         if ($uData) {
             $user_context['nome'] = $uData['nome'];
-            $user_context['cargo'] = $uData['cargo_nome'] ?? 'Membro';
+            $user_context['cargo'] = $uData['cargo_nome'] ?? 'Administrador Total';
         }
     } catch (Throwable $e) {
         error_log("SGIM Auth Error: " . $e->getMessage());

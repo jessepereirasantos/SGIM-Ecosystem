@@ -62,6 +62,17 @@ class AccessManager {
     /**
      * Verifica se o usuário tem permissão para uma ação específica.
      */
+    public function forceGlobal() {
+        $this->escopo = 'global';
+        $this->cargo_id = 1;
+        // Preenche com permissões básicas para garantir que o sidebar renderize tudo
+        $modules = ['membros', 'financeiro', 'congregacoes', 'usuarios', 'comunicacao', 'relatorios', 'configuracoes', 'departamentos', 'eventos'];
+        foreach ($modules as $m) {
+            $this->permissoes[$m]['visualizar'] = true;
+            $this->permissoes[$m]['gerenciar'] = true;
+        }
+    }
+
     public function can($modulo, $acao) {
         // SuperAdmin / Pastor Presidente sempre tem acesso
         if ($this->escopo === 'global') return true;
