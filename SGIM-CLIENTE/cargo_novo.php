@@ -104,31 +104,34 @@ require_once 'includes/header.php';
 
                         <div class="space-y-2">
                             <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest">Escopo de Visão</label>
-                            <select name="escopo" class="w-full px-4 py-3 rounded-xl border border-darkborder bg-darkbg text-white focus:ring-2 focus:ring-brand outline-none appearance-none">
-                                <option value="local">LOCAL (Apenas sua congregação)</option>
-                                <option value="global">GLOBAL (Todo o Ministério)</option>
+                            <select name="escopo" class="w-full px-4 py-3 rounded-xl border border-darkborder bg-darkbg text-white focus:ring-2 focus:ring-brand focus:border-brand outline-none appearance-none cursor-pointer">
+                                <option value="local" class="bg-darkcard">LOCAL (Apenas sua congregação)</option>
+                                <option value="global" class="bg-darkcard">GLOBAL (Todo o Ministério)</option>
                             </select>
-                            <p class="text-[10px] text-gray-500 italic">Cargos globais ignoram filtros de igreja.</p>
+                            <p class="text-[10px] text-gray-400 italic">Cargos globais ignoram filtros de igreja.</p>
                         </div>
 
                         <div class="space-y-2">
                             <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest">Preset de Nível (Sugestão)</label>
-                            <select id="preset_nivel" onchange="applyPreset(this.value)" class="w-full px-4 py-3 rounded-xl border border-brand/20 bg-brand/5 text-brand font-bold focus:ring-2 focus:ring-brand outline-none appearance-none cursor-pointer">
-                                <option value="">Personalizado</option>
-                                <option value="admin_total">Admin Total</option>
-                                <option value="admin_secretaria">Admin Secretaria</option>
-                                <option value="admin_tesouraria">Admin Tesouraria</option>
-                                <option value="pastor_local">Pastor Local</option>
-                                <option value="secretario_local">Secretário Local</option>
-                                <option value="tesoureiro_local">Tesoureiro Local</option>
+                            <select id="preset_nivel" onchange="applyPreset(this.value)" class="w-full px-4 py-3 rounded-xl border-2 border-brand/30 bg-brand/5 text-brand font-black focus:ring-2 focus:ring-brand outline-none appearance-none cursor-pointer transition-all hover:bg-brand/10">
+                                <option value="" class="bg-darkcard">Personalizado</option>
+                                <option value="admin_total" class="bg-darkcard">Admin Total</option>
+                                <option value="admin_secretaria" class="bg-darkcard">Admin Secretaria</option>
+                                <option value="admin_tesouraria" class="bg-darkcard">Admin Tesouraria</option>
+                                <option value="pastor_local" class="bg-darkcard">Pastor Local</option>
+                                <option value="secretario_local" class="bg-darkcard">Secretário Local</option>
+                                <option value="tesoureiro_local" class="bg-darkcard">Tesoureiro Local</option>
                             </select>
                         </div>
                     </div>
                 </div>
 
-                <div class="p-6 rounded-2xl bg-gradient-to-br from-brand/10 to-transparent border border-brand/20">
-                    <h4 class="text-brand font-bold text-sm mb-2">Dica Operacional</h4>
-                    <p class="text-xs text-gray-400 leading-relaxed">
+                <div class="p-6 rounded-2xl bg-gradient-to-br from-brand/20 to-transparent border border-brand/30 shadow-lg shadow-brand/5">
+                    <h4 class="text-brand font-black text-sm mb-2 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">tips_and_updates</span>
+                        Dica Operacional
+                    </h4>
+                    <p class="text-xs text-gray-300 leading-relaxed">
                         Ao selecionar um **Nível Base**, o SGIM marcará automaticamente as permissões recomendadas. Você ainda poderá ajustá-las manualmente à direita.
                     </p>
                 </div>
@@ -139,10 +142,10 @@ require_once 'includes/header.php';
                 <div class="bg-darkcard rounded-2xl border border-darkborder p-8 shadow-xl">
                     <div class="flex items-center justify-between mb-8">
                         <div>
-                            <h3 class="text-xl font-bold text-white">Matriz de Permissões</h3>
-                            <p class="text-sm text-gray-500">Marque os módulos que este cargo terá autoridade para acessar.</p>
+                            <h3 class="text-xl font-bold text-white tracking-tight">Matriz de Permissões</h3>
+                            <p class="text-sm text-gray-400">Marque os módulos que este cargo terá autoridade para acessar.</p>
                         </div>
-                        <button type="button" onclick="toggleAll()" class="text-[10px] font-bold text-brand uppercase hover:underline">Marcar/Desmarcar Todos</button>
+                        <button type="button" onclick="toggleAll()" class="px-4 py-2 rounded-lg bg-white/5 border border-darkborder text-[10px] font-bold text-brand uppercase hover:bg-brand/10 transition-all">Marcar/Desmarcar Todos</button>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -154,32 +157,39 @@ require_once 'includes/header.php';
                         
                         foreach ($modulos as $modulo => $acoes): 
                         ?>
-                            <div class="p-5 rounded-xl bg-darkbg border border-darkborder group hover:border-brand/30 transition-all">
-                                <div class="flex items-center gap-3 mb-4">
-                                    <div class="size-8 rounded-lg bg-brand/10 flex items-center justify-center text-brand">
+                            <div class="p-5 rounded-xl bg-darkbg/50 border border-darkborder group hover:border-brand/40 hover:bg-brand/[0.02] transition-all">
+                                <div class="flex items-center gap-3 mb-5 border-b border-white/5 pb-3">
+                                    <div class="size-8 rounded-lg bg-brand/10 flex items-center justify-center text-brand group-hover:scale-110 transition-transform">
                                         <span class="material-symbols-outlined text-sm">
                                             <?= ($modulo == 'financeiro') ? 'payments' : (($modulo == 'membros') ? 'group' : 'settings') ?>
                                         </span>
                                     </div>
-                                    <h4 class="font-bold text-white capitalize"><?= $modulo ?></h4>
+                                    <h4 class="font-black text-white uppercase tracking-tighter text-sm"><?= $modulo ?></h4>
                                 </div>
                                 
-                                <div class="space-y-3">
+                                <div class="space-y-4">
                                     <?php foreach ($acoes as $acao): ?>
                                         <label class="flex items-center gap-3 cursor-pointer group/item">
                                             <div class="relative flex items-center justify-center">
                                                 <input type="checkbox" name="perms[]" value="<?= $acao['id'] ?>" 
                                                        data-modulo="<?= $modulo ?>" data-acao="<?= $acao['acao'] ?>"
-                                                       class="peer appearance-none size-5 rounded-md border border-darkborder bg-darkcard checked:bg-brand checked:border-brand transition-all">
-                                                <span class="material-symbols-outlined absolute text-[14px] text-black font-bold opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none">check</span>
+                                                       class="peer appearance-none size-5 rounded-md border-2 border-darkborder bg-darkcard checked:bg-brand checked:border-brand transition-all cursor-pointer">
+                                                <span class="material-symbols-outlined absolute text-[14px] text-black font-black opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none">check</span>
                                             </div>
-                                            <span class="text-sm text-gray-400 group-hover/item:text-gray-200 transition-colors">
-                                                <?= ucfirst($acao['acao']) ?> <span class="text-[10px] opacity-40 ml-1">- <?= $acao['descricao'] ?></span>
-                                            </span>
+                                            <div class="flex flex-col">
+                                                <span class="text-sm font-bold text-gray-200 group-hover/item:text-brand transition-colors">
+                                                    <?= ucfirst($acao['acao']) ?>
+                                                </span>
+                                                <span class="text-[10px] text-gray-500 font-medium leading-none mt-0.5">
+                                                    <?= $acao['descricao'] ?>
+                                                </span>
+                                            </div>
                                         </label>
                                     <?php endforeach; ?>
                                 </div>
                             </div>
+                        <?php endforeach; ?>
+                    </div>
                         <?php endforeach; ?>
                     </div>
                 </div>
