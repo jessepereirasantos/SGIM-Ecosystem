@@ -37,8 +37,8 @@ include '../templates/header.php';
             </div>
             <div class="bg-zinc-900/50 p-6 rounded-[30px] border border-zinc-900 shadow-xl">
                 <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-2">Versão Estável</p>
-                <h3 class="text-2xl font-black text-amber-500">v<?= $highest_version ?></h3>
-                <p class="text-zinc-500 text-[10px] font-bold mt-1">Publicada em <?= $last_update ?></p>
+                <h3 class="text-2xl font-black text-amber-500">v1.1.0</h3>
+                <p class="text-zinc-500 text-[10px] font-bold mt-1">Publicada em 08/05/2026</p>
             </div>
             <div class="bg-zinc-900/50 p-6 rounded-[30px] border border-zinc-900 shadow-xl">
                 <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-2">Clientes Conectados</p>

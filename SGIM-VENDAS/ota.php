@@ -12,11 +12,7 @@ if (file_exists($manifestPath)) {
 
 // 🛡️ BLOQUEIO DO FLIPERAMA: Descoberta Dinâmica da Última Versão Real (via arquivos)
 $packagesDir = __DIR__ . '/api/update/packages/';
-// Busca a versão real no manifesto
-$manifestPath = __DIR__ . '/api/update/latest.json';
-$manifest = file_exists($manifestPath) ? json_decode(file_get_contents($manifestPath), true) : [];
-$highest_version = $manifest['version'] ?? '1.1.0';
-$last_update = isset($manifest['release_date']) ? date('d/m/Y', strtotime($manifest['release_date'])) : 'N/A';
+$highest_version = '1.1.0'; // Base mínima
 if (is_dir($packagesDir)) {
     $files = scandir($packagesDir);
     foreach ($files as $file) {

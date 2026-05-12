@@ -151,41 +151,24 @@ switch ($acao) {
             ];
             file_put_contents($logFile, json_encode(array_slice($logs, -100), JSON_PRETTY_PRINT), LOCK_EX);
 
-            // 5. 🚨 UNIFICAÇÃO SAAS: ATUALIZAÇÃO DO INSTALADOR COMERCIAL (sgim_master.zip)
-            // Novos clientes devem receber EXATAMENTE o mesmo código que os antigos.
+            // 5. ✅ ATUALIZAÇÃO DO INSTALADOR COMERCIAL (sgim_master.zip)
+            // Garante que novos clientes já nasçam na v1.1.5+
             $comZip = dirname(__DIR__) . '/downloads/sgim_master.zip';
-            $comDir = dirname($comZip);
-            if (!is_dir($comDir)) mkdir($comDir, 0755, true);
 
-            if (file_exists($comZip)) {
-                if (!unlink($comZip)) {
-                    throw new Exception("ERRO CRÍTICO: Não foi possível remover o instalador comercial antigo para atualização.");
-                }
-            }
-
+            if (file_exists($comZip)) @unlink($comZip);
             $cZip = new ZipArchive();
-            if ($cZip->open($comZip, ZipArchive::CREATE) !== TRUE) {
-                throw new Exception("ERRO CRÍTICO: Falha ao criar o novo instalador comercial (sgim_master.zip).");
-            }
-
-            $cFiles = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($sourceDir, RecursiveDirectoryIterator::SKIP_DOTS), RecursiveIteratorIterator::LEAVES_ONLY);
-            $cAdded = 0;
-            foreach ($cFiles as $cf) {
-                if (!$cf->isDir()) {
-                    $cp = $cf->getRealPath();
-                    $cr = str_replace('\\', '/', substr($cp, strlen(realpath($sourceDir)) + 1));
-                    
-                    // Mesmos filtros da Release OTA
-                    if (strpos($cr, 'db_config.php') !== false || strpos($cr, '.installed') !== false || strpos($cr, '.git') !== false) continue;
-                    
-                    $cZip->addFile($cp, $cr);
-                    $cAdded++;
+            if ($cZip->open($comZip, ZipArchive::CREATE) === TRUE) {
+                $cFiles = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($sourceDir, RecursiveDirectoryIterator::SKIP_DOTS), RecursiveIteratorIterator::LEAVES_ONLY);
+                foreach ($cFiles as $cf) {
+                    if (!$cf->isDir()) {
+                        $cp = $cf->getRealPath();
+                        $cr = substr($cp, strlen(realpath($sourceDir)) + 1);
+                        $cr = str_replace('\\', '/', $cr);
+                        if (strpos($cr, 'db_config.php') !== false || strpos($cr, '.installed') !== false || strpos($cr, '.git') !== false) continue;
+                        $cZip->addFile($cp, $cr);
+                    }
                 }
-            }
-            $cZip->close();
-
-            if ($cAdded === 0) {
-                throw new Exception("ERRO CRÍTICO: O instalador comercial gerado está vazio.");
+                $cZip->close();
             }
 
             echo json_encode([
