@@ -12,6 +12,8 @@ CREATE TABLE IF NOT EXISTS usuarios (
     email VARCHAR(255) NOT NULL UNIQUE,
     senha VARCHAR(255) NOT NULL,
     nivel_acesso ENUM('admin', 'gerente', 'usuario') DEFAULT 'usuario',
+    congregacao_id INT DEFAULT NULL,
+    cargo_id INT DEFAULT NULL,
     ativo BOOLEAN DEFAULT TRUE,
     two_factor_secret VARCHAR(100) DEFAULT NULL,
     two_factor_enabled BOOLEAN DEFAULT FALSE,
@@ -81,9 +83,25 @@ CREATE TABLE IF NOT EXISTS cargos (
     nome VARCHAR(255) NOT NULL,
     descricao TEXT,
     nivel_hierarquico INT DEFAULT 1,
+    escopo ENUM('global', 'local') DEFAULT 'local',
     departamento_id INT,
     status ENUM('Ativo', 'Inativo') DEFAULT 'Ativo',
     data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Novas Tabelas de Hierarquia e Acessos (RBAC)
+CREATE TABLE IF NOT EXISTS permissoes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    modulo VARCHAR(50) NOT NULL,
+    acao VARCHAR(50) NOT NULL,
+    descricao VARCHAR(255),
+    UNIQUE KEY (modulo, acao)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS cargo_permissoes (
+    cargo_id INT NOT NULL,
+    permissao_id INT NOT NULL,
+    PRIMARY KEY (cargo_id, permissao_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS transacoes (
@@ -130,3 +148,11 @@ CREATE TABLE IF NOT EXISTS comunicacoes (
 
 -- Constraints de FKs removidas para evitar erros de integridade em instalações parciais
 -- As chaves estrangeiras agora são tratadas via lógica PHP (Soft-Constraint)
+
+-- 3. Seed de Dados Iniciais RBAC
+INSERT IGNORE INTO cargos (id, nome, escopo, status) VALUES (1, 'Admin Total', 'global', 'Ativo');
+INSERT IGNORE INTO permissoes (modulo, acao, descricao) VALUES 
+('usuarios', 'visualizar', 'Gestão de Acessos'), 
+('membros', 'visualizar', 'Ver Membros'), 
+('financeiro', 'visualizar', 'Ver Financeiro');
+INSERT IGNORE INTO cargo_permissoes (cargo_id, permissao_id) SELECT 1, id FROM permissoes;
