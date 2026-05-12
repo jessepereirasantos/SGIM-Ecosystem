@@ -22,7 +22,43 @@ try {
 
 $theme_json = json_encode($theme);
 
-// 1. LOGICA DE NOTIFICAÇÃO (SININHO)
+// 1. LOGICA DE ACESSO (RBAC)
+$access = null;
+$user_context = [
+    'nome' => 'Usuário',
+    'cargo' => 'Nível Total',
+    'avatar' => 'person'
+];
+
+if (isset($_SESSION['user_id'])) {
+    try {
+        require_once __DIR__ . '/../src/Auth/AccessManager.php';
+        $access = new \SGIM\Auth\AccessManager($pdo, $_SESSION['user_id']);
+        
+        // 🚨 CHAVE MESTRA: Se for o admin principal mas o banco ainda não vinculou o cargo
+        // ou se as tabelas estiverem vazias, forçamos o acesso e tentamos um resgate silencioso.
+        if (empty($access->getCargoId()) && ($_SESSION['user_id'] == 1 || ($_SESSION['user_nivel'] ?? '') == 'admin')) {
+            $access->forceGlobal(); 
+            // Tenta vincular o cargo 1 no banco se estiver faltando
+            $pdo->prepare("UPDATE usuarios SET cargo_id = 1 WHERE id = ?")->execute([$_SESSION['user_id']]);
+        }
+
+        // Busca info para o cabeçalho
+        $stmtUser = $pdo->prepare("SELECT u.nome, c.nome as cargo_nome 
+                                 FROM usuarios u 
+                                 LEFT JOIN cargos c ON u.cargo_id = c.id 
+                                 WHERE u.id = ?");
+        $stmtUser->execute([$_SESSION['user_id']]);
+        $uData = $stmtUser->fetch(PDO::FETCH_ASSOC);
+        if ($uData) {
+            $user_context['nome'] = $uData['nome'];
+            $user_context['cargo'] = $uData['cargo_nome'] ?? 'Administrador Total';
+        }
+    } catch (Throwable $e) {
+        error_log("SGIM Auth Error: " . $e->getMessage());
+    }
+}
+
 $unreadCount = 0;
 ?>
 <!DOCTYPE html>
@@ -261,32 +297,44 @@ $unreadCount = 0;
                         </div>
                     </a>
                 </div>
-            </div>
-
-            <!-- GRUPO: GESTÃO MINISTERIAL -->
+                    <!-- GRUPO: GESTÃO MINISTERIAL -->
+            <?php if (!$access || $access->can('membros', 'visualizar') || $access->can('congregacoes', 'visualizar') || $access->can('departamentos', 'visualizar') || $access->can('eventos', 'visualizar')): ?>
             <div>
                 <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-3">Ministerial</p>
                 <div class="space-y-1">
+                    <?php if (!$access || $access->can('membros', 'visualizar')): ?>
                     <a href="membros.php" class="sidebar-item <?= ($current_page == 'membros') ? 'active' : '' ?>">
                         <span class="material-symbols-outlined">group</span>
                         <span>Membros</span>
                     </a>
+                    <?php endif; ?>
+
+                    <?php if (!$access || $access->can('congregacoes', 'visualizar')): ?>
                     <a href="congregacoes.php" class="sidebar-item <?= ($current_page == 'congregacoes') ? 'active' : '' ?>">
                         <span class="material-symbols-outlined">church</span>
                         <span>Congregações</span>
                     </a>
+                    <?php endif; ?>
+
+                    <?php if (!$access || $access->can('departamentos', 'visualizar')): ?>
                     <a href="departamentos.php" class="sidebar-item <?= ($current_page == 'departamentos') ? 'active' : '' ?>">
                         <span class="material-symbols-outlined">corporate_fare</span>
                         <span>Departamentos</span>
                     </a>
+                    <?php endif; ?>
+
+                    <?php if (!$access || $access->can('eventos', 'visualizar')): ?>
                     <a href="eventos.php" class="sidebar-item <?= ($current_page == 'eventos') ? 'active' : '' ?>">
                         <span class="material-symbols-outlined">calendar_month</span>
                         <span>Eventos</span>
                     </a>
+                    <?php endif; ?>
                 </div>
             </div>
+            <?php endif; ?>
 
             <!-- GRUPO: SECRETARIA E COMUNICAÇÃO -->
+            <?php if (!$access || $access->can('comunicacao', 'visualizar')): ?>
             <div>
                 <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-3">Secretaria</p>
                 <div class="space-y-1">
@@ -304,8 +352,10 @@ $unreadCount = 0;
                     </a>
                 </div>
             </div>
+            <?php endif; ?>
 
             <!-- GRUPO: FINANCEIRO -->
+            <?php if (!$access || $access->can('financeiro', 'visualizar')): ?>
             <div>
                 <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-3">Tesouraria</p>
                 <div class="space-y-1">
@@ -319,19 +369,33 @@ $unreadCount = 0;
                     </a>
                 </div>
             </div>
+            <?php endif; ?>
 
             <!-- GRUPO: ESTATÍSTICAS E SISTEMA -->
             <div>
                 <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-3">Administração</p>
                 <div class="space-y-1">
+                    <?php if (!$access || $access->can('relatorios', 'visualizar')): ?>
                     <a href="relatorios.php" class="sidebar-item <?= ($current_page == 'relatorios') ? 'active' : '' ?>">
                         <span class="material-symbols-outlined">assessment</span>
                         <span>Relatórios Gerais</span>
                     </a>
+                    <?php endif; ?>
+
+                    <?php if (!$access || $access->can('usuarios', 'visualizar')): ?>
+                    <a href="usuarios.php" class="sidebar-item <?= ($current_page == 'usuarios') ? 'active' : '' ?>">
+                        <span class="material-symbols-outlined">person_pin</span>
+                        <span>Gestão de Usuários</span>
+                    </a>
+                    <?php endif; ?>
+
+                    <?php if (!$access || $access->can('configuracoes', 'visualizar')): ?>
                     <a href="configuracoes.php" class="sidebar-item <?= ($current_page == 'configuracoes') ? 'active' : '' ?>">
                         <span class="material-symbols-outlined">settings</span>
                         <span>Configurações</span>
                     </a>
+                    <?php endif; ?>
+                   </a>
                     <a href="atualizacoes.php" class="sidebar-item <?= ($current_page == 'atualizacoes') ? 'active' : '' ?>">
                         <span class="material-symbols-outlined">system_update</span>
                         <div class="flex justify-between items-center w-full">
@@ -383,11 +447,16 @@ $unreadCount = 0;
 
                 <div class="flex items-center gap-4">
                     <div class="text-right hidden sm:block">
-                        <p class="text-sm font-bold text-white leading-none">Administrador</p>
-                        <p class="text-[10px] text-[#ffc880] font-bold uppercase mt-1 tracking-tighter">Nível Total</p>
+                        <p class="text-sm font-bold text-white leading-none"><?= htmlspecialchars($user_context['nome']) ?></p>
+                        <p class="text-[10px] text-[#ffc880] font-bold uppercase mt-1 tracking-tighter">
+                            <?= htmlspecialchars($user_context['cargo']) ?>
+                            <?php if ($access && $access->isGlobal()): ?>
+                                <span class="ml-1 text-[8px] px-1 bg-brand/10 rounded">GLOBAL</span>
+                            <?php endif; ?>
+                        </p>
                     </div>
                     <div class="size-12 rounded-2xl bg-gradient-to-br from-[#1e1e1e] to-[#121212] border border-[#1e1e1e] flex items-center justify-center text-[#ffc880] shadow-xl">
-                        <span class="material-symbols-outlined text-2xl">person</span>
+                        <span class="material-symbols-outlined text-2xl"><?= $user_context['avatar'] ?></span>
                     </div>
                 </div>
             </div>

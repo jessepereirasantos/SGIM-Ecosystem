@@ -14,8 +14,13 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-$page_title = 'SGIM - Dashboard Financeiro';
-$current_page = 'financeiro';
+require_once 'includes/header.php'; 
+
+// 🛡️ PROTEÇÃO DE ROTA (RBAC)
+if ($access && !$access->can('financeiro', 'visualizar')) {
+    echo "<script>alert('Acesso Negado: Você não tem permissão para ver o Financeiro.'); window.location.href='dashboard.php';</script>";
+    exit;
+}
 
 // Obter somatórias
 $mes_atual = $_GET['mes'] ?? date('m');
@@ -25,28 +30,26 @@ $ano_atual = $_GET['ano'] ?? date('Y');
 $is_sqlite = ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite');
 
 try {
-    $scope_where = "";
-    $scope_params = [];
-    if ($_SESSION['user_nivel'] !== 'admin' && isset($_SESSION['congregacao_id'])) {
-        $scope_where = " AND congregacao_id = " . intval($_SESSION['congregacao_id']);
-    }
+    // 🔍 FILTRO DE ESCOPO (Global vs Local)
+    $scopeFilter = $access ? $access->getScopeFilter() : '';
 
     if ($is_sqlite) {
-        $stmtEntradas = $pdo->query("SELECT COALESCE(SUM(valor), 0) FROM transacoes WHERE tipo = 'entrada' AND strftime('%m', data_cadastro) = '{$mes_atual}' AND strftime('%Y', data_cadastro) = '{$ano_atual}' $scope_where");
-        $stmtSaidas = $pdo->query("SELECT COALESCE(SUM(valor), 0) FROM transacoes WHERE tipo = 'saida' AND strftime('%m', data_cadastro) = '{$mes_atual}' AND strftime('%Y', data_cadastro) = '{$ano_atual}' $scope_where");
+        $stmtEntradas = $pdo->query("SELECT COALESCE(SUM(valor), 0) FROM transacoes WHERE tipo = 'entrada' AND strftime('%m', data_cadastro) = '{$mes_atual}' AND strftime('%Y', data_cadastro) = '{$ano_atual}' $scopeFilter");
+        $stmtSaidas = $pdo->query("SELECT COALESCE(SUM(valor), 0) FROM transacoes WHERE tipo = 'saida' AND strftime('%m', data_cadastro) = '{$mes_atual}' AND strftime('%Y', data_cadastro) = '{$ano_atual}' $scopeFilter");
     } else {
-        $stmtEntradas = $pdo->query("SELECT COALESCE(SUM(valor), 0) FROM transacoes WHERE tipo = 'entrada' AND MONTH(data_cadastro) = {$mes_atual} AND YEAR(data_cadastro) = {$ano_atual} $scope_where");
-        $stmtSaidas = $pdo->query("SELECT COALESCE(SUM(valor), 0) FROM transacoes WHERE tipo = 'saida' AND MONTH(data_cadastro) = {$mes_atual} AND YEAR(data_cadastro) = {$ano_atual} $scope_where");
+        $stmtEntradas = $pdo->query("SELECT COALESCE(SUM(valor), 0) FROM transacoes WHERE tipo = 'entrada' AND MONTH(data_cadastro) = {$mes_atual} AND YEAR(data_cadastro) = {$ano_atual} $scopeFilter");
+        $stmtSaidas = $pdo->query("SELECT COALESCE(SUM(valor), 0) FROM transacoes WHERE tipo = 'saida' AND MONTH(data_cadastro) = {$mes_atual} AND YEAR(data_cadastro) = {$ano_atual} $scopeFilter");
     }
 
     $entradas_mes = $stmtEntradas ? $stmtEntradas->fetchColumn() : 0;
     $saidas_mes = $stmtSaidas ? $stmtSaidas->fetchColumn() : 0;
 
-    $stmtSaldoTotal = $pdo->query("SELECT COALESCE((SELECT SUM(valor) FROM transacoes WHERE tipo = 'entrada' " . str_replace('AND', 'WHERE', $scope_where) . "), 0) - COALESCE((SELECT SUM(valor) FROM transacoes WHERE tipo = 'saida' " . str_replace('AND', 'WHERE', $scope_where) . "), 0)");
+    // Saldo Total respeitando escopo
+    $stmtSaldoTotal = $pdo->query("SELECT COALESCE((SELECT SUM(valor) FROM transacoes WHERE tipo = 'entrada' " . str_replace('AND', 'WHERE', $scopeFilter) . "), 0) - COALESCE((SELECT SUM(valor) FROM transacoes WHERE tipo = 'saida' " . str_replace('AND', 'WHERE', $scopeFilter) . "), 0)");
     $saldo_total = $stmtSaldoTotal ? $stmtSaldoTotal->fetchColumn() : 0;
 
-    // Obter ultimas transações
-    $stmtTransacoes = $pdo->query("SELECT ft.*, m.nome as membro_nome FROM transacoes ft LEFT JOIN membros m ON ft.membro_id = m.id WHERE 1=1 " . str_replace('AND', 'AND ft.', $scope_where) . " ORDER BY ft.data_cadastro DESC, ft.id DESC LIMIT 10");
+    // Obter ultimas transações respeitando escopo
+    $stmtTransacoes = $pdo->query("SELECT ft.*, m.nome as membro_nome FROM transacoes ft LEFT JOIN membros m ON ft.membro_id = m.id WHERE 1=1 " . str_replace('AND', 'AND ft.', $scopeFilter) . " ORDER BY ft.data_cadastro DESC, ft.id DESC LIMIT 10");
     $transacoes = $stmtTransacoes ? $stmtTransacoes->fetchAll(PDO::FETCH_ASSOC) : [];
 } catch (Throwable $t) {
     error_log("Financeiro Data Error: " . $t->getMessage());
@@ -55,8 +58,6 @@ try {
     $saldo_total = 0;
     $transacoes = [];
 }
-
-require_once 'includes/header.php';
 ?>
 
     <?php if (isset($_GET['sucesso']) && $_GET['sucesso'] == 1): ?>

@@ -43,6 +43,11 @@ $current_page = 'membros';
 $filter_status = $_GET['status'] ?? 'Ativo';
 
 require_once 'includes/header.php';
+
+if ($access && !$access->can('membros', 'visualizar')) {
+    echo "<script>alert('Acesso Negado: Você não tem permissão para ver Membros.'); window.location.href='dashboard.php';</script>";
+    exit;
+}
 ?>
 
     <div>
@@ -104,14 +109,14 @@ require_once 'includes/header.php';
                     </thead>
                     <tbody class="divide-y divide-darkborder">
                     <?php
-                    $where = "WHERE m.status = ?";
+                    $filter_status = $_GET['status'] ?? 'Ativo';
+
+                    // 🔍 FILTRO DE ESCOPO (Global vs Local)
+                    $scopeFilter = $access ? $access->getScopeFilter('m') : '';
+                    
+                    $where = "WHERE m.status = ? $scopeFilter";
                     $params = [$filter_status];
                     
-                    if ($_SESSION['user_nivel'] !== 'admin' && isset($_SESSION['congregacao_id'])) {
-                        $where .= " AND m.congregacao_id = ?";
-                        $params[] = $_SESSION['congregacao_id'];
-                    }
-
                     $sql = "SELECT m.*, c.nome as cargo_nome, con.nome as congregacao_nome 
                             FROM membros m 
                             LEFT JOIN cargos c ON m.cargo_id = c.id 

@@ -231,18 +231,29 @@ if ($failed) {
 // ─── 9. ATUALIZA VERSÃO E EXECUTA MIGRATIONS ──────────────────────────────────
 if ($pdo instanceof PDO) {
     try {
-        // Executa Migrations se existirem
-        $migrationFile = $extractDir . '/database/migrations_v1.sql';
-        if (file_exists($migrationFile)) {
-            otaLog("Detectada migration SQL: migrations_v1.sql. Executando...", $logFile);
-            $sql = file_get_contents($migrationFile);
-            // Divide por ponto e vírgula para executar múltiplas queries
-            $queries = array_filter(array_map('trim', explode(';', $sql)));
-            foreach ($queries as $q) {
-                if (!empty($q)) $pdo->exec($q);
+        // 🚨 GARANTIA DE HIERARQUIA (FASE 2) - Execução Direta
+        otaLog("Iniciando Garantia de Estrutura RBAC...", $logFile);
+        $hardcoded_sql = [
+            "CREATE TABLE IF NOT EXISTS permissoes (id INT AUTO_INCREMENT PRIMARY KEY, modulo VARCHAR(50) NOT NULL, acao VARCHAR(50) NOT NULL, descricao VARCHAR(255), UNIQUE KEY (modulo, acao)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+            "CREATE TABLE IF NOT EXISTS cargo_permissoes (cargo_id INT NOT NULL, permissao_id INT NOT NULL, PRIMARY KEY (cargo_id, permissao_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+            "ALTER TABLE usuarios ADD COLUMN congregacao_id INT DEFAULT NULL",
+            "ALTER TABLE usuarios ADD COLUMN cargo_id INT DEFAULT NULL",
+            "ALTER TABLE cargos ADD COLUMN escopo ENUM('global', 'local') DEFAULT 'local'",
+            "INSERT IGNORE INTO cargos (id, nome, escopo, status) VALUES (1, 'Admin Total', 'global', 'Ativo')",
+            "INSERT IGNORE INTO permissoes (modulo, acao, descricao) VALUES ('usuarios', 'visualizar', 'Gestão de Acessos'), ('membros', 'visualizar', 'Ver Membros'), ('financeiro', 'visualizar', 'Ver Financeiro')",
+            "INSERT IGNORE INTO cargo_permissoes (cargo_id, permissao_id) SELECT 1, id FROM permissoes",
+            "UPDATE usuarios SET cargo_id = 1 WHERE id = 1 OR nivel_acesso = 'admin'"
+        ];
+
+        foreach ($hardcoded_sql as $query) {
+            try {
+                $pdo->exec($query);
+            } catch (PDOException $e) {
+                // Ignora se a coluna já existir, mas loga para auditoria
+                otaLog("DB Info: " . $e->getMessage(), $logFile);
             }
-            otaLog("Migrations aplicadas com sucesso.", $logFile);
         }
+        otaLog("Garantia de Estrutura RBAC Concluída.", $logFile);
 
         $stmt = $pdo->prepare("UPDATE configuracoes SET valor = ? WHERE chave = 'versao_sistema'");
 

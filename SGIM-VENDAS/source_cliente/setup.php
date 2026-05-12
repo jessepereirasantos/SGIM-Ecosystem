@@ -202,9 +202,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
             
-            // 3. Criar usuário admin (Aumentando a resiliência)
+            // 3. Criar usuário admin (Vínculo automático com Admin Total Fase 2)
             $senha_hash = password_hash($admin_pass, PASSWORD_DEFAULT);
-            $stmtAdmin = $pdo->prepare("INSERT INTO usuarios (nome, email, senha, nivel_acesso, ativo) VALUES (?, ?, ?, 'admin', 1) ON DUPLICATE KEY UPDATE senha=VALUES(senha)");
+            $stmtAdmin = $pdo->prepare("INSERT INTO usuarios (nome, email, senha, nivel_acesso, cargo_id, ativo) VALUES (?, ?, ?, 'admin', 1, 1) ON DUPLICATE KEY UPDATE cargo_id=1, senha=VALUES(senha)");
             $stmtAdmin->execute([$admin_nome, $admin_email, $senha_hash]);
             // 4. Salvar Configuração (Garante que o diretório existe e tem permissão)
             $config_dir = __DIR__ . '/config';

@@ -105,13 +105,17 @@ $balanco_mes = 0;
 $proximo_evento = null;
 
 if ($pdo) {
+    // 🔍 FILTRO DE ESCOPO (Global vs Local)
+    $scopeFilter = $access ? $access->getScopeFilter() : '';
+
     try {
-        $stmtMembros = $pdo->query("SELECT COUNT(*) FROM membros");
+        $stmtMembros = $pdo->query("SELECT COUNT(*) FROM membros m $scopeFilter");
         $total_membros = $stmtMembros ? (int)$stmtMembros->fetchColumn() : 0;
     } catch (Throwable $t) { $total_membros = 0; }
 
     try {
-        $stmtPendentes = $pdo->query("SELECT COUNT(*) FROM membros WHERE status = 'Inativo'");
+        $wherePendentes = $scopeFilter ? $scopeFilter . " AND status = 'Inativo'" : "WHERE status = 'Inativo'";
+        $stmtPendentes = $pdo->query("SELECT COUNT(*) FROM membros m $wherePendentes");
         $pendentes_aprovacao = $stmtPendentes ? (int)$stmtPendentes->fetchColumn() : 0;
     } catch (Throwable $t) { $pendentes_aprovacao = 0; }
     
