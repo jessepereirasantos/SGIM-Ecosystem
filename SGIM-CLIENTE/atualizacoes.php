@@ -17,7 +17,7 @@ $page_title   = 'SGIM - Central de Atualizações';
 $current_page = 'atualizacoes';
 
 // ── Versão local (banco de dados) ────────────────────────────────────────────
-$currentVersion = '1.1.0';
+$currentVersion = '1.1.41';
 try {
     if ($pdo) {
         $s = $pdo->query("SELECT valor FROM configuracoes WHERE chave = 'versao_sistema'");
