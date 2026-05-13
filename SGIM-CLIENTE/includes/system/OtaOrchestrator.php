@@ -9,6 +9,15 @@ namespace SGIM\OTA;
 
 use Exception;
 
+// Inclusões Manuais (Segurança Máxima)
+require_once __DIR__ . '/OtaDownloadEngine.php';
+require_once __DIR__ . '/OtaExtractionEngine.php';
+require_once __DIR__ . '/OtaMigrationEngine.php';
+require_once __DIR__ . '/OtaCapabilityManager.php';
+require_once __DIR__ . '/OtaManifestValidator.php';
+require_once __DIR__ . '/OtaBackupEngine.php';
+require_once __DIR__ . '/ProtectedPathsPolicy.php';
+
 class OtaOrchestrator {
     private $basePath;
     private $masterUrl; // ✅ FIX: recebido via construtor, não hardcoded
