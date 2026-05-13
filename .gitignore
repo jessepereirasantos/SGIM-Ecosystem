@@ -24,3 +24,8 @@ Thumbs.db
 # Ignorar o manifesto do OTA e pacotes para não sobrescrever a versão real do servidor
 SGIM-VENDAS/api/update/latest.json
 SGIM-VENDAS/api/update/packages/
+
+# Resgate e Tokens
+.rescue_token.php
+SGIM-CLIENTE/.rescue_token.php
+SGIM-VENDAS/source_cliente/.rescue_token.php
