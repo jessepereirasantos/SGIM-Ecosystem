@@ -288,10 +288,10 @@ $unreadCount = 0;
                         <span>Início</span>
                     </a>
 
-                    <!-- 🛡️ TESTE DE FOGO SGIM v1.1.31 -->
+                    <!-- 🛡️ TESTE DE FOGO SGIM v1.1.34 -->
                     <a href="#" style="background: #ffc880 !important; color: black !important; border-radius: 8px; margin: 5px; font-weight: 900 !important;" class="sidebar-item">
                         <span class="material-symbols-outlined" style="color: black !important;">terminal</span>
-                        <span style="color: black !important;">TESTE-SGIM-v31</span>
+                        <span style="color: black !important;">TESTE-SGIM-v1.1.34</span>
                     </a>
                     <a href="novidades.php" class="sidebar-item <?= ($current_page == 'novidades') ? 'active' : '' ?>">
                         <span class="material-symbols-outlined">campaign</span>

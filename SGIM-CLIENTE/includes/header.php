@@ -4,9 +4,17 @@
  */
 // Fallback Seguro (Padrão Premium SGIM)
 $theme = [
-    'logo_url' => '', 'cor_brand' => '#ffc880', 'cor_brand_dark' => '#d4a35d', 'cor_brand_light' => '#ffd9a8',
-    'darkbg' => '#050505', 'darkcard' => '#121212', 'darkborder' => '#1e1e1e',
-    'lightbg' => '#F3F4F6', 'lightcard' => '#FFFFFF', 'lightborder' => '#E5E7EB', 'modo_padrao' => 'dark'
+    'logo_url' => '',
+    'cor_brand' => '#ffc880',
+    'cor_brand_dark' => '#d4a35d',
+    'cor_brand_light' => '#ffd9a8',
+    'darkbg' => '#050505',
+    'darkcard' => '#121212',
+    'darkborder' => '#1e1e1e',
+    'lightbg' => '#F3F4F6',
+    'lightcard' => '#FFFFFF',
+    'lightborder' => '#E5E7EB',
+    'modo_padrao' => 'dark'
 ];
 
 try {
@@ -14,7 +22,8 @@ try {
     if (isset($pdo) && $pdo) {
         $themeModel = new ThemeModel($pdo);
         $dbTheme = $themeModel->getTheme();
-        if ($dbTheme) $theme = array_merge($theme, $dbTheme);
+        if ($dbTheme)
+            $theme = array_merge($theme, $dbTheme);
     }
 } catch (Throwable $e) {
     error_log("SGIM Theme Warning: Usando fallback devido a erro: " . $e->getMessage());
@@ -34,11 +43,11 @@ if (isset($_SESSION['user_id'])) {
     try {
         require_once __DIR__ . '/../src/Auth/AccessManager.php';
         $access = new \SGIM\Auth\AccessManager($pdo, $_SESSION['user_id']);
-        
+
         // 🚨 CHAVE MESTRA: Se for o admin principal mas o banco ainda não vinculou o cargo
         // ou se as tabelas estiverem vazias, forçamos o acesso e tentamos um resgate silencioso.
         if (empty($access->getCargoId()) && ($_SESSION['user_id'] == 1 || ($_SESSION['user_nivel'] ?? '') == 'admin')) {
-            $access->forceGlobal(); 
+            $access->forceGlobal();
             // Tenta vincular o cargo 1 no banco se estiver faltando
             $pdo->prepare("UPDATE usuarios SET cargo_id = 1 WHERE id = ?")->execute([$_SESSION['user_id']]);
         }
@@ -62,21 +71,25 @@ if (isset($_SESSION['user_id'])) {
 $unreadCount = 0;
 ?>
 <!DOCTYPE html>
-<html :class="darkMode ? 'dark' : ''" lang="pt-br" x-data="themeManager(<?= htmlspecialchars($theme_json) ?>)" x-init="init()">
+<html :class="darkMode ? 'dark' : ''" lang="pt-br" x-data="themeManager(<?= htmlspecialchars($theme_json) ?>)"
+    x-init="init()">
+
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title><?= $page_title ?? 'SGIM - Dashboard Cliente' ?></title>
-    <link href="https://fonts.googleapis.com" rel="preconnect"/>
-    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    
+
     <script>
         let isDarkMode = localStorage.getItem('sgim_theme') ? localStorage.getItem('sgim_theme') === 'dark' : ('<?= $theme['modo_padrao'] ?>' === 'dark');
-        if(!isDarkMode) {
+        if (!isDarkMode) {
             document.documentElement.style.setProperty('--c-bg', '<?= $theme['lightbg'] ?>');
             document.documentElement.style.setProperty('--c-card', '<?= $theme['lightcard'] ?>');
             document.documentElement.style.setProperty('--c-border', '<?= $theme['lightborder'] ?>');
@@ -103,7 +116,7 @@ $unreadCount = 0;
                 }
             }
         }
-        
+
         document.addEventListener('alpine:init', () => {
             Alpine.data('themeManager', (serverTheme) => ({
                 darkMode: localStorage.getItem('sgim_theme') ? localStorage.getItem('sgim_theme') === 'dark' : (serverTheme.modo_padrao === 'dark'),
@@ -135,23 +148,23 @@ $unreadCount = 0;
                 showNotifications: false,
                 unreadCount: <?= $unreadCount ?? 0 ?>,
                 notifications: <?= isset($notificacoes_json) ? $notificacoes_json : '[]' ?>,
-                
+
                 // --- MOTOR DE POLLING OTA ---
                 otaAvailable: false,
                 otaNotes: '',
                 otaVersion: '',
-                
+
                 async checkOTA() {
                     try {
                         let res = await fetch('ota.php');
                         let data = await res.json();
-                        
+
                         // Se detectar versão maior, dispara frontend
                         if (data.status === 'success' && data.has_update) {
                             this.otaAvailable = true;
                             this.otaVersion = data.latest_version;
                             this.otaNotes = data.notes;
-                            
+
                             // Injeta no Sino
                             this.unreadCount++;
                             this.notifications.unshift({
@@ -160,14 +173,14 @@ $unreadCount = 0;
                                 mensagem: data.notes,
                                 data_criacao: new Date().toISOString(),
                                 visto: 0,
-                                link: 'admin_ota.php' 
+                                link: 'admin_ota.php'
                             });
                         }
-                    } catch (e) { 
-                        console.error('FALHA DE POLLING OTA:', e); 
+                    } catch (e) {
+                        console.error('FALHA DE POLLING OTA:', e);
                     }
                 },
-                
+
                 init() {
                     this.initTheme();
                     this.checkOTA(); // Dispara sondagem ao carregar
@@ -199,9 +212,9 @@ $unreadCount = 0;
             --border-color: #1e1e1e;
         }
 
-        body { 
-            background-color: var(--bg-main); 
-            color: #e5e7eb; 
+        body {
+            background-color: var(--bg-main);
+            color: #e5e7eb;
             font-family: 'Inter', sans-serif;
         }
 
@@ -243,11 +256,13 @@ $unreadCount = 0;
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ffc880">
 </head>
+
 <body class="bg-[#050505] text-gray-100 antialiased min-h-screen flex">
-    
+
     <!-- BANNER OTA FLUTUANTE (Renderizado via Polling) -->
     <template x-if="otaAvailable">
-        <div class="fixed top-6 right-6 z-[100] max-w-sm w-full bg-gradient-to-r from-emerald-900 to-green-900 border border-emerald-500/30 rounded-xl shadow-2xl p-4 animate-bounce">
+        <div
+            class="fixed top-6 right-6 z-[100] max-w-sm w-full bg-gradient-to-r from-emerald-900 to-green-900 border border-emerald-500/30 rounded-xl shadow-2xl p-4 animate-bounce">
             <div class="flex items-start gap-4">
                 <div class="size-10 bg-emerald-500/20 rounded-lg flex items-center justify-center text-emerald-400">
                     <span class="material-symbols-outlined">system_update</span>
@@ -255,7 +270,9 @@ $unreadCount = 0;
                 <div class="flex-1">
                     <h4 class="text-white font-bold text-sm">Atualização v<span x-text="otaVersion"></span></h4>
                     <p class="text-emerald-200 text-xs mt-1 leading-relaxed" x-text="otaNotes"></p>
-                    <a href="atualizacoes.php" class="mt-3 inline-block bg-emerald-500 text-black text-xs font-bold px-4 py-2 rounded shadow hover:bg-emerald-400 transition-colors">ATUALIZAR AGORA</a>
+                    <a href="atualizacoes.php"
+                        class="mt-3 inline-block bg-emerald-500 text-black text-xs font-bold px-4 py-2 rounded shadow hover:bg-emerald-400 transition-colors">ATUALIZAR
+                        AGORA</a>
                 </div>
                 <button @click="otaAvailable = false" class="text-emerald-400 hover:text-white">
                     <span class="material-symbols-outlined text-sm">close</span>
@@ -263,12 +280,13 @@ $unreadCount = 0;
             </div>
         </div>
     </template>
-    
+
     <!-- Sidebar -->
     <aside class="w-72 fixed inset-y-0 left-0 bg-[#050505] border-r border-[#1e1e1e] flex flex-col z-50">
         <div class="p-8 mb-4">
             <div class="flex items-center gap-3">
-                <div class="size-10 bg-gradient-to-br from-[#ffc880] to-[#d4a35d] rounded-xl flex items-center justify-center shadow-lg shadow-[#ffc880]/10">
+                <div
+                    class="size-10 bg-gradient-to-br from-[#ffc880] to-[#d4a35d] rounded-xl flex items-center justify-center shadow-lg shadow-[#ffc880]/10">
                     <span class="material-symbols-outlined text-black font-bold text-2xl">church</span>
                 </div>
                 <div>
@@ -288,135 +306,151 @@ $unreadCount = 0;
                         <span>Início</span>
                     </a>
 
-                    <!-- 🛡️ TESTE DE FOGO SGIM v1.1.31 -->
-                    <a href="#" style="background: #ffc880 !important; color: black !important; border-radius: 8px; margin: 5px; font-weight: 900 !important;" class="sidebar-item">
+                    <!-- 🛡️ TESTE DE FOGO SGIM v1.1.34 -->
+                    <a href="#"
+                        style="background: #ffc880 !important; color: black !important; border-radius: 8px; margin: 5px; font-weight: 900 !important;"
+                        class="sidebar-item">
                         <span class="material-symbols-outlined" style="color: black !important;">terminal</span>
-                        <span style="color: black !important;">TESTE-SGIM-v31</span>
+                        <span style="color: black !important;">TESTE-SGIM-v1.1.34</span>
                     </a>
                     <a href="novidades.php" class="sidebar-item <?= ($current_page == 'novidades') ? 'active' : '' ?>">
                         <span class="material-symbols-outlined">campaign</span>
                         <div class="flex justify-between items-center w-full">
                             <span>Comunicados</span>
                             <?php if ($unreadCount > 0): ?>
-                                <span class="bg-[#ffc880] text-black text-[9px] font-black px-1.5 py-0.5 rounded-full"><?= $unreadCount ?></span>
+                                <span
+                                    class="bg-[#ffc880] text-black text-[9px] font-black px-1.5 py-0.5 rounded-full"><?= $unreadCount ?></span>
                             <?php endif; ?>
                         </div>
                     </a>
                 </div>
-                    <!-- GRUPO: GESTÃO MINISTERIAL -->
-            <?php if (!$access || $access->can('membros', 'visualizar') || $access->can('congregacoes', 'visualizar') || $access->can('departamentos', 'visualizar') || $access->can('eventos', 'visualizar')): ?>
-            <div>
-                <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-3">Ministerial</p>
-                <div class="space-y-1">
-                    <?php if (!$access || $access->can('membros', 'visualizar')): ?>
-                    <a href="membros.php" class="sidebar-item <?= ($current_page == 'membros') ? 'active' : '' ?>">
-                        <span class="material-symbols-outlined">group</span>
-                        <span>Membros</span>
-                    </a>
-                    <?php endif; ?>
+                <!-- GRUPO: GESTÃO MINISTERIAL -->
+                <?php if (!$access || $access->can('membros', 'visualizar') || $access->can('congregacoes', 'visualizar') || $access->can('departamentos', 'visualizar') || $access->can('eventos', 'visualizar')): ?>
+                    <div>
+                        <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-3">Ministerial</p>
+                        <div class="space-y-1">
+                            <?php if (!$access || $access->can('membros', 'visualizar')): ?>
+                                <a href="membros.php" class="sidebar-item <?= ($current_page == 'membros') ? 'active' : '' ?>">
+                                    <span class="material-symbols-outlined">group</span>
+                                    <span>Membros</span>
+                                </a>
+                            <?php endif; ?>
 
-                    <?php if (!$access || $access->can('congregacoes', 'visualizar')): ?>
-                    <a href="congregacoes.php" class="sidebar-item <?= ($current_page == 'congregacoes') ? 'active' : '' ?>">
-                        <span class="material-symbols-outlined">church</span>
-                        <span>Congregações</span>
-                    </a>
-                    <?php endif; ?>
+                            <?php if (!$access || $access->can('congregacoes', 'visualizar')): ?>
+                                <a href="congregacoes.php"
+                                    class="sidebar-item <?= ($current_page == 'congregacoes') ? 'active' : '' ?>">
+                                    <span class="material-symbols-outlined">church</span>
+                                    <span>Congregações</span>
+                                </a>
+                            <?php endif; ?>
 
-                    <?php if (!$access || $access->can('departamentos', 'visualizar')): ?>
-                    <a href="departamentos.php" class="sidebar-item <?= ($current_page == 'departamentos') ? 'active' : '' ?>">
-                        <span class="material-symbols-outlined">corporate_fare</span>
-                        <span>Departamentos</span>
-                    </a>
-                    <?php endif; ?>
+                            <?php if (!$access || $access->can('departamentos', 'visualizar')): ?>
+                                <a href="departamentos.php"
+                                    class="sidebar-item <?= ($current_page == 'departamentos') ? 'active' : '' ?>">
+                                    <span class="material-symbols-outlined">corporate_fare</span>
+                                    <span>Departamentos</span>
+                                </a>
+                            <?php endif; ?>
 
-                    <?php if (!$access || $access->can('eventos', 'visualizar')): ?>
-                    <a href="eventos.php" class="sidebar-item <?= ($current_page == 'eventos') ? 'active' : '' ?>">
-                        <span class="material-symbols-outlined">calendar_month</span>
-                        <span>Eventos</span>
-                    </a>
-                    <?php endif; ?>
-                </div>
-            </div>
-            <?php endif; ?>
-
-            <!-- GRUPO: SECRETARIA E COMUNICAÇÃO -->
-            <?php if (!$access || $access->can('comunicacao', 'visualizar')): ?>
-            <div>
-                <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-3">Secretaria</p>
-                <div class="space-y-1">
-                    <a href="carteirinha_digital.php" class="sidebar-item <?= ($current_page == 'carteirinhas') ? 'active' : '' ?>">
-                        <span class="material-symbols-outlined">badge</span>
-                        <span>Carteirinhas</span>
-                    </a>
-                    <a href="whatsapp.php" class="sidebar-item <?= ($current_page == 'whatsapp') ? 'active' : '' ?>">
-                        <span class="material-symbols-outlined">chat_bubble</span>
-                        <span>WhatsApp</span>
-                    </a>
-                    <a href="comunicacao.php" class="sidebar-item <?= ($current_page == 'comunicacao') ? 'active' : '' ?>">
-                        <span class="material-symbols-outlined">mail</span>
-                        <span>E-mail Marketing</span>
-                    </a>
-                </div>
-            </div>
-            <?php endif; ?>
-
-            <!-- GRUPO: FINANCEIRO -->
-            <?php if (!$access || $access->can('financeiro', 'visualizar')): ?>
-            <div>
-                <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-3">Tesouraria</p>
-                <div class="space-y-1">
-                    <a href="financeiro.php" class="sidebar-item <?= ($current_page == 'financeiro') ? 'active' : '' ?>">
-                        <span class="material-symbols-outlined">payments</span>
-                        <span>Dashboard Financeira</span>
-                    </a>
-                    <a href="financeiro_relatorio.php" class="sidebar-item <?= ($current_page == 'relatorios_fin') ? 'active' : '' ?>">
-                        <span class="material-symbols-outlined">analytics</span>
-                        <span>Relatórios PDF</span>
-                    </a>
-                </div>
-            </div>
-            <?php endif; ?>
-
-            <!-- GRUPO: ESTATÍSTICAS E SISTEMA -->
-            <div>
-                <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-3">Administração</p>
-                <div class="space-y-1">
-                    <?php if (!$access || $access->can('relatorios', 'visualizar')): ?>
-                    <a href="relatorios.php" class="sidebar-item <?= ($current_page == 'relatorios') ? 'active' : '' ?>">
-                        <span class="material-symbols-outlined">assessment</span>
-                        <span>Relatórios Gerais</span>
-                    </a>
-                    <?php endif; ?>
-
-                    <?php if (!$access || $access->can('usuarios', 'visualizar')): ?>
-                    <a href="usuarios.php" class="sidebar-item <?= ($current_page == 'usuarios') ? 'active' : '' ?>">
-                        <span class="material-symbols-outlined">person_pin</span>
-                        <span>Gestão de Usuários</span>
-                    </a>
-                    <?php endif; ?>
-
-                    <?php if (!$access || $access->can('configuracoes', 'visualizar')): ?>
-                    <a href="configuracoes.php" class="sidebar-item <?= ($current_page == 'configuracoes') ? 'active' : '' ?>">
-                        <span class="material-symbols-outlined">settings</span>
-                        <span>Configurações</span>
-                    </a>
-                    <?php endif; ?>
-                   </a>
-                    <a href="atualizacoes.php" class="sidebar-item <?= ($current_page == 'atualizacoes') ? 'active' : '' ?>">
-                        <span class="material-symbols-outlined">system_update</span>
-                        <div class="flex justify-between items-center w-full">
-                            <span>Atualizações</span>
-                            <template x-if="otaAvailable">
-                                <span class="bg-emerald-500 text-black text-[8px] font-black px-1.5 py-0.5 rounded-full animate-pulse">NOVO</span>
-                            </template>
+                            <?php if (!$access || $access->can('eventos', 'visualizar')): ?>
+                                <a href="eventos.php" class="sidebar-item <?= ($current_page == 'eventos') ? 'active' : '' ?>">
+                                    <span class="material-symbols-outlined">calendar_month</span>
+                                    <span>Eventos</span>
+                                </a>
+                            <?php endif; ?>
                         </div>
-                    </a>
-                    <a href="logout.php" class="sidebar-item hover:text-red-400">
-                        <span class="material-symbols-outlined">logout</span>
-                        <span>Sair</span>
-                    </a>
+                    </div>
+                <?php endif; ?>
+
+                <!-- GRUPO: SECRETARIA E COMUNICAÇÃO -->
+                <?php if (!$access || $access->can('comunicacao', 'visualizar')): ?>
+                    <div>
+                        <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-3">Secretaria</p>
+                        <div class="space-y-1">
+                            <a href="carteirinha_digital.php"
+                                class="sidebar-item <?= ($current_page == 'carteirinhas') ? 'active' : '' ?>">
+                                <span class="material-symbols-outlined">badge</span>
+                                <span>Carteirinhas</span>
+                            </a>
+                            <a href="whatsapp.php"
+                                class="sidebar-item <?= ($current_page == 'whatsapp') ? 'active' : '' ?>">
+                                <span class="material-symbols-outlined">chat_bubble</span>
+                                <span>WhatsApp</span>
+                            </a>
+                            <a href="comunicacao.php"
+                                class="sidebar-item <?= ($current_page == 'comunicacao') ? 'active' : '' ?>">
+                                <span class="material-symbols-outlined">mail</span>
+                                <span>E-mail Marketing</span>
+                            </a>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
+                <!-- GRUPO: FINANCEIRO -->
+                <?php if (!$access || $access->can('financeiro', 'visualizar')): ?>
+                    <div>
+                        <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-3">Tesouraria</p>
+                        <div class="space-y-1">
+                            <a href="financeiro.php"
+                                class="sidebar-item <?= ($current_page == 'financeiro') ? 'active' : '' ?>">
+                                <span class="material-symbols-outlined">payments</span>
+                                <span>Dashboard Financeira</span>
+                            </a>
+                            <a href="financeiro_relatorio.php"
+                                class="sidebar-item <?= ($current_page == 'relatorios_fin') ? 'active' : '' ?>">
+                                <span class="material-symbols-outlined">analytics</span>
+                                <span>Relatórios PDF</span>
+                            </a>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
+                <!-- GRUPO: ESTATÍSTICAS E SISTEMA -->
+                <div>
+                    <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-3">Administração
+                    </p>
+                    <div class="space-y-1">
+                        <?php if (!$access || $access->can('relatorios', 'visualizar')): ?>
+                            <a href="relatorios.php"
+                                class="sidebar-item <?= ($current_page == 'relatorios') ? 'active' : '' ?>">
+                                <span class="material-symbols-outlined">assessment</span>
+                                <span>Relatórios Gerais</span>
+                            </a>
+                        <?php endif; ?>
+
+                        <?php if (!$access || $access->can('usuarios', 'visualizar')): ?>
+                            <a href="usuarios.php"
+                                class="sidebar-item <?= ($current_page == 'usuarios') ? 'active' : '' ?>">
+                                <span class="material-symbols-outlined">person_pin</span>
+                                <span>Gestão de Usuários</span>
+                            </a>
+                        <?php endif; ?>
+
+                        <?php if (!$access || $access->can('configuracoes', 'visualizar')): ?>
+                            <a href="configuracoes.php"
+                                class="sidebar-item <?= ($current_page == 'configuracoes') ? 'active' : '' ?>">
+                                <span class="material-symbols-outlined">settings</span>
+                                <span>Configurações</span>
+                            </a>
+                        <?php endif; ?>
+                        </a>
+                        <a href="atualizacoes.php"
+                            class="sidebar-item <?= ($current_page == 'atualizacoes') ? 'active' : '' ?>">
+                            <span class="material-symbols-outlined">system_update</span>
+                            <div class="flex justify-between items-center w-full">
+                                <span>Atualizações</span>
+                                <template x-if="otaAvailable">
+                                    <span
+                                        class="bg-emerald-500 text-black text-[8px] font-black px-1.5 py-0.5 rounded-full animate-pulse">NOVO</span>
+                                </template>
+                            </div>
+                        </a>
+                        <a href="logout.php" class="sidebar-item hover:text-red-400">
+                            <span class="material-symbols-outlined">logout</span>
+                            <span>Sair</span>
+                        </a>
+                    </div>
                 </div>
-            </div>
         </nav>
 
         <!-- Footer da Sidebar (Opcional - Status do Plano) -->
@@ -434,26 +468,31 @@ $unreadCount = 0;
     <!-- Conteúdo Principal -->
     <main class="ml-72 flex-1 flex flex-col min-h-screen relative">
         <!-- Header Superior -->
-        <header class="h-24 flex items-center justify-between px-10 sticky top-0 z-40 bg-[#050505]/80 backdrop-blur-md border-b border-[#1e1e1e]">
+        <header
+            class="h-24 flex items-center justify-between px-10 sticky top-0 z-40 bg-[#050505]/80 backdrop-blur-md border-b border-[#1e1e1e]">
             <div>
                 <h2 class="text-2xl font-bold text-white tracking-tight"><?= $page_title ?? 'Dashboard' ?></h2>
                 <p class="text-xs text-gray-500">Bem-vindo ao SGIM, Administrador.</p>
             </div>
 
             <div class="flex items-center gap-6">
-                <button @click="location.href='atualizacoes.php'" class="size-11 flex items-center justify-center rounded-xl bg-[#121212] border border-[#1e1e1e] text-gray-400 hover:text-[#ffc880] transition-colors relative">
+                <button @click="location.href='atualizacoes.php'"
+                    class="size-11 flex items-center justify-center rounded-xl bg-[#121212] border border-[#1e1e1e] text-gray-400 hover:text-[#ffc880] transition-colors relative">
                     <span class="material-symbols-outlined">notifications</span>
                     <!-- Ponto de Notificação (Sininho) - Reage a Mensagens ou OTA -->
                     <template x-if="unreadCount > 0 || otaAvailable">
-                        <span class="absolute top-2.5 right-2.5 size-2 bg-[#ffc880] rounded-full ring-4 ring-[#050505]"></span>
+                        <span
+                            class="absolute top-2.5 right-2.5 size-2 bg-[#ffc880] rounded-full ring-4 ring-[#050505]"></span>
                     </template>
                 </button>
-                
+
                 <div class="h-12 w-[1px] bg-[#1e1e1e]"></div>
 
                 <div class="flex items-center gap-4">
                     <div class="text-right hidden sm:block">
-                        <p class="text-sm font-bold text-white leading-none"><?= htmlspecialchars($user_context['nome']) ?></p>
+                        <p class="text-sm font-bold text-white leading-none">
+                            <?= htmlspecialchars($user_context['nome']) ?>
+                        </p>
                         <p class="text-[10px] text-[#ffc880] font-bold uppercase mt-1 tracking-tighter">
                             <?= htmlspecialchars($user_context['cargo']) ?>
                             <?php if ($access && $access->isGlobal()): ?>
@@ -461,7 +500,8 @@ $unreadCount = 0;
                             <?php endif; ?>
                         </p>
                     </div>
-                    <div class="size-12 rounded-2xl bg-gradient-to-br from-[#1e1e1e] to-[#121212] border border-[#1e1e1e] flex items-center justify-center text-[#ffc880] shadow-xl">
+                    <div
+                        class="size-12 rounded-2xl bg-gradient-to-br from-[#1e1e1e] to-[#121212] border border-[#1e1e1e] flex items-center justify-center text-[#ffc880] shadow-xl">
                         <span class="material-symbols-outlined text-2xl"><?= $user_context['avatar'] ?></span>
                     </div>
                 </div>
