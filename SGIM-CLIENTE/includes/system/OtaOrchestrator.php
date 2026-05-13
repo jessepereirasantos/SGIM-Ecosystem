@@ -47,7 +47,7 @@ class OtaOrchestrator {
         
         $driverClass = "\\SGIM\\OTA\\Drivers\\" . $capabilities['driver_analysis']['recommended_driver'];
         if (class_exists($driverClass)) {
-            $this->activationDriver = new $driverClass($this->basePath);
+            $this->activationDriver = new $driverClass($this->basePath, $pdo);
         }
     }
 
