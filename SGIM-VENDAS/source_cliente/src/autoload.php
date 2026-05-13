@@ -6,7 +6,6 @@
 spl_autoload_register(function ($class) {
     // Mapa de namespaces → diretórios (ordem: mais específico primeiro)
     $namespaces = [
-        'SGIM\\OTA\\Drivers\\' => dirname(__DIR__) . '/includes/system/drivers/',
         'SGIM\\OTA\\'          => dirname(__DIR__) . '/includes/system/',
         'SGIM\\Auth\\'         => __DIR__ . '/Auth/',
         'App\\'                => __DIR__ . '/',
