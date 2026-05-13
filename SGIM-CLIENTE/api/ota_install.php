@@ -62,6 +62,7 @@ if (!is_dir($extractPath)) {
 
 // 4. PROMOÇÃO REAL (FORÇAR SOBREPOSIÇÃO NA RAIZ)
 function PromoteFiles($src, $dst, $versaoAlvo) {
+    if (!is_dir($src)) return 0;
     $dir = opendir($src);
     @mkdir($dst);
     $count = 0;
@@ -69,7 +70,7 @@ function PromoteFiles($src, $dst, $versaoAlvo) {
     while(false !== ( $file = readdir($dir)) ) {
         if (( $file != '.' ) && ( $file != '..' )) {
             if ( is_dir($src . '/' . $file) ) {
-                // Se a pasta for a própria versão (ex: 1.1.40/), entramos nela mas mantemos o destino na raiz
+                // Se a pasta for a própria versão (ex: 1.1.41/), entramos nela mas mantemos o destino na raiz
                 if ($file === $versaoAlvo) {
                     $count += PromoteFiles($src . '/' . $file, $dst, $versaoAlvo);
                 } else {
@@ -78,7 +79,6 @@ function PromoteFiles($src, $dst, $versaoAlvo) {
             } else {
                 if (copy($src . '/' . $file, $dst . '/' . $file)) {
                     $count++;
-                    // otaLog("MOVED: $file"); // Log opcional para debug
                 }
             }
         }
@@ -93,7 +93,6 @@ otaLog("PROMOÇÃO CONCLUÍDA: $totalCopiados arquivos movidos para a raiz.");
 // 5. ATUALIZAR BANCO DE DADOS
 try {
     if (isset($pdo)) {
-        // Garantir que a versão seja gravada como a versão alvo
         $stmt = $pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES ('versao_sistema', ?) ON DUPLICATE KEY UPDATE valor = ?");
         $stmt->execute([$versaoAlvo, $versaoAlvo]);
         otaLog("BANCO ATUALIZADO: v$versaoAlvo");

@@ -19,7 +19,9 @@ ini_set('memory_limit', '512M');
 ob_start();
 
 // Reset de cache para garantir que o motor novo seja lido
-if(function_exists('opcache_reset')) { opcache_reset(); }
+if (function_exists('opcache_reset')) {
+    opcache_reset();
+}
 
 if (!class_exists('ZipArchive')) {
     echo json_encode(['status' => 'error', 'message' => 'Extensão ZipArchive necessária.']);
@@ -29,11 +31,12 @@ if (!class_exists('ZipArchive')) {
 require_once __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'database.php';
 
 // --- 1. CONFIGURAÇÃO ---
-$masterUrl      = 'https://escolateologicaeloha.com.br';
+$masterUrl = 'https://escolateologicaeloha.com.br';
 define('OTA_VERSION', '1.1.41');
 define('OTA_LOG_FILE', __DIR__ . '/../shared/system/logs/installer.log');
 
-function otaLog($msg) {
+function otaLog($msg)
+{
     $date = date('Y-m-d H:i:s');
     file_put_contents(OTA_LOG_FILE, "[$date] $msg" . PHP_EOL, FILE_APPEND);
 }
@@ -61,15 +64,18 @@ if (!is_dir($extractPath)) {
 }
 
 // 4. PROMOÇÃO REAL (FORÇAR SOBREPOSIÇÃO NA RAIZ)
-function PromoteFiles($src, $dst, $versaoAlvo) {
+function PromoteFiles($src, $dst, $versaoAlvo)
+{
+    if (!is_dir($src))
+        return 0;
     $dir = opendir($src);
     @mkdir($dst);
     $count = 0;
-    
-    while(false !== ( $file = readdir($dir)) ) {
-        if (( $file != '.' ) && ( $file != '..' )) {
-            if ( is_dir($src . '/' . $file) ) {
-                // Se a pasta for a própria versão (ex: 1.1.40/), entramos nela mas mantemos o destino na raiz
+
+    while (false !== ($file = readdir($dir))) {
+        if (($file != '.') && ($file != '..')) {
+            if (is_dir($src . '/' . $file)) {
+                // Se a pasta for a própria versão (ex: 1.1.41/), entramos nela mas mantemos o destino na raiz
                 if ($file === $versaoAlvo) {
                     $count += PromoteFiles($src . '/' . $file, $dst, $versaoAlvo);
                 } else {
@@ -78,7 +84,6 @@ function PromoteFiles($src, $dst, $versaoAlvo) {
             } else {
                 if (copy($src . '/' . $file, $dst . '/' . $file)) {
                     $count++;
-                    // otaLog("MOVED: $file"); // Log opcional para debug
                 }
             }
         }
@@ -93,7 +98,6 @@ otaLog("PROMOÇÃO CONCLUÍDA: $totalCopiados arquivos movidos para a raiz.");
 // 5. ATUALIZAR BANCO DE DADOS
 try {
     if (isset($pdo)) {
-        // Garantir que a versão seja gravada como a versão alvo
         $stmt = $pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES ('versao_sistema', ?) ON DUPLICATE KEY UPDATE valor = ?");
         $stmt->execute([$versaoAlvo, $versaoAlvo]);
         otaLog("BANCO ATUALIZADO: v$versaoAlvo");
@@ -103,15 +107,16 @@ try {
 }
 
 // 6. LIMPEZA DO WORKSPACE
-function rrmdir($dir) {
+function rrmdir($dir)
+{
     if (is_dir($dir)) {
         $objects = scandir($dir);
         foreach ($objects as $object) {
             if ($object != "." && $object != "..") {
-                if (is_dir($dir. DIRECTORY_SEPARATOR .$object) && !is_link($dir."/".$object))
-                    rrmdir($dir. DIRECTORY_SEPARATOR .$object);
+                if (is_dir($dir . DIRECTORY_SEPARATOR . $object) && !is_link($dir . "/" . $object))
+                    rrmdir($dir . DIRECTORY_SEPARATOR . $object);
                 else
-                    unlink($dir. DIRECTORY_SEPARATOR .$object);
+                    unlink($dir . DIRECTORY_SEPARATOR . $object);
             }
         }
         rmdir($dir);
@@ -124,7 +129,9 @@ otaLog("WORKSPACE LIMPO.");
 otaLog("=== OTA v" . OTA_VERSION . " FINALIZADO COM SUCESSO ===");
 
 // 7. RESET OPCache FINAL
-if(function_exists('opcache_reset')) { opcache_reset(); }
+if (function_exists('opcache_reset')) {
+    opcache_reset();
+}
 
 echo json_encode([
     'status' => 'success',
