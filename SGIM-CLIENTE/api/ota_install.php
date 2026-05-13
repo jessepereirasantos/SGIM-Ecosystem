@@ -52,7 +52,7 @@ otaLog("=== INÍCIO OTA v" . OTA_VERSION . " (Alvo: $versaoAlvo) ===");
 
 // 3. CAMINHOS CRÍTICOS
 $installRoot = realpath(__DIR__ . '/../') . DIRECTORY_SEPARATOR;
-$extractPath = $installRoot . 'shared/system/workspace/extract_' . $versaoAlvo . DIRECTORY_SEPARATOR;
+$extractPath = $installRoot . 'releases' . DIRECTORY_SEPARATOR . 'v' . $versaoAlvo . DIRECTORY_SEPARATOR;
 
 if (!is_dir($extractPath)) {
     otaLog("ERRO: Pasta de extração não encontrada: $extractPath");
