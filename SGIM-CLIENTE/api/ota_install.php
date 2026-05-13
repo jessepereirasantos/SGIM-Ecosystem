@@ -161,12 +161,31 @@ foreach ($it as $file) {
     }
 }
 
-// --- 7. FINALIZAÇÃO ---
-if (count($failed) === 0 && $pdo instanceof PDO) {
-    $stmt = $pdo->prepare("UPDATE configuracoes SET valor = ? WHERE chave = 'versao_sistema'");
-    $stmt->execute([$manifest['version']]);
-    otaLog("VERSÃO ATUALIZADA NO BANCO: " . $manifest['version'], $logFile);
-}
+        // Após promoção, remover a pasta versionada que acabou de ser promovida (rollback mantido separadamente)
+        if (!empty($versaoAlvo) && is_dir($basePath . $versaoAlvo)) {
+            $filesOld = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator($basePath . $versaoAlvo, RecursiveDirectoryIterator::SKIP_DOTS),
+                RecursiveIteratorIterator::CHILD_FIRST
+            );
+            foreach ($filesOld as $fo) {
+                $fo->isDir() ? rmdir($fo->getRealPath()) : unlink($fo->getRealPath());
+            }
+            rmdir($basePath . $versaoAlvo);
+            otaLog("Pasta versionada removida após promoção: $versaoAlvo/", $logFile);
+        }
+        // Retenção de rollback (mantém duas versões mais recentes)
+        $pastasVersionadas = array_filter(scandir($basePath), function($d) use ($versionPattern) {
+            return is_dir($basePath . $d) && preg_match($versionPattern, $d);
+        });
+        usort($pastasVersionadas, 'version_compare');
+        $mantidas = array_slice($pastasVersionadas, -2);
+        foreach ($mantidas as $m) {
+            otaLog("RETENÇÃO: Pasta mantida (rollback): $m/", $logFile);
+        }
+        // Opcional: remover versões excedentes (já tratamos acima)
+
+        // Fim da retenção
+
 
 @unlink($zipFile);
 otaLog("=== OTA CONCLUÍDO === Copiados: $copied | Falhas: " . count($failed), $logFile);
