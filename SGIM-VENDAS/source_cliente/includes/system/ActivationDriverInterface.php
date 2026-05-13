@@ -4,7 +4,7 @@
  * Define o contrato obrigatório para qualquer estratégia de ativação.
  */
 
-namespace SGIM\OTA\Drivers;
+namespace SGIM\OTA;
 
 interface ActivationDriverInterface {
     /**
