@@ -96,8 +96,9 @@ class OtaOrchestrator {
         try {
             $this->log("COMANDO MANUAL: Ativando versão $version");
             $versionPath = $this->basePath . "releases/v" . $version . "/";
-            $manifest = json_decode(file_get_contents($versionPath . 'release_manifest.json'), true);
-
+            $manifestPath = $versionPath . 'release_manifest.json';
+            $manifest = file_exists($manifestPath) ? json_decode(file_get_contents($manifestPath), true) : [];
+            
             if ($this->activationDriver->activate($versionPath, $manifest)) {
                 $this->updateState('activation', ["version" => $version, "status" => "ACTIVE"]);
                 return true;
