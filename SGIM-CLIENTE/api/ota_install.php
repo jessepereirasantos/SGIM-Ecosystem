@@ -42,6 +42,7 @@ try {
     }
 
     // 2. Validação de existência física antes de chamar o orquestrador
+    $releasesDir = $basePath . 'releases/';
     $versionPath = $releasesDir . 'v' . $versaoAlvo . '/';
     if (!is_dir($versionPath)) {
         throw new Exception("Pasta v$versaoAlvo não encontrada em: $versionPath");
