@@ -74,6 +74,10 @@ class OtaOrchestrator {
 
             $versionPath = $this->basePath . "releases/v" . $manifest['version'] . "/";
             $this->extractionEngine->extract($manifest['version'], $this->basePath . "shared/system/downloads/release_{$manifest['version']}.zip");
+            
+            // Persistir o manifesto na pasta recém-criada para que o commitUpdate possa ler depois!
+            file_put_contents($versionPath . 'release_manifest.json', json_encode($manifest, JSON_PRETTY_PRINT));
+            
             $this->updateState('extraction', ["version" => $manifest['version'], "status" => "SUCCESS"]);
 
             // 4. Driver Staging (Backup + Impact Report)
