@@ -101,47 +101,72 @@ switch ($acao) {
             if (!is_dir($tmpDir))
                 mkdir($tmpDir, 0755, true);
 
-            $zipFile = $tmpDir . 'SGIM-CLIENTE-v' . $version . '.zip';
-            if (file_exists($zipFile))
-                unlink($zipFile);
+            // CAMADA 1: ESTABILIZAÇÃO DO ZIP (Master)
+            $profilerLog = dirname(__DIR__) . '/shared/system/logs/zip_profiler.log';
+            $startTime = microtime(true);
+            $startMem = memory_get_usage();
+            
+            // 1. Local de Build Isolado (Prevenção de Auto-Inclusão)
+            $tempZip = sys_get_temp_dir() . '/ota_build_' . uniqid() . '.zip';
+            
+            file_put_contents($profilerLog, "[" . date('Y-m-d H:i:s') . "] START ZIP | RAM: " . round($startMem/1024/1024, 2) . "MB\n");
 
-            // 1. Gera o ZIP com a versão atualizada
             $zip = new ZipArchive();
-            if ($zip->open($zipFile, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== TRUE) {
-                throw new Exception("Falha ao abrir criação do pacote ZIP OTA.");
+            if ($zip->open($tempZip, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== TRUE) {
+                throw new Exception("Falha ao criar ZIP temporário em: " . $tempZip);
             }
 
-            $filesAdded = 0;
-            $files = new RecursiveIteratorIterator(
-                new RecursiveDirectoryIterator($sourceDir, RecursiveDirectoryIterator::SKIP_DOTS),
-                RecursiveIteratorIterator::LEAVES_ONLY
-            );
+            // 2. Filtro de Origem (Bloqueio REAL na entrada de diretórios)
+            $excludeDirs = ['shared', 'releases', 'workspace', 'downloads', 'backups', 'node_modules', 'vendor', '.git'];
+            
+            $directory = new RecursiveDirectoryIterator($sourceDir, RecursiveDirectoryIterator::SKIP_DOTS);
+            
+            $filter = new RecursiveCallbackFilterIterator($directory, function ($current, $key, $iterator) use ($excludeDirs) {
+                if ($current->isDir()) {
+                    return !in_array($current->getFilename(), $excludeDirs);
+                }
+                return true;
+            });
 
-            foreach ($files as $name => $file) {
+            $files = new RecursiveIteratorIterator($filter);
+            $files->setMaxDepth(10); // Trava de Segurança contra recursão profunda
+            
+            $filesAdded = 0;
+            $memLimit = (int)ini_get('memory_limit') * 1024 * 1024;
+            if ($memLimit <= 0) $memLimit = 256 * 1024 * 1024; 
+
+            foreach ($files as $file) {
+                // Monitoramento de RAM (80% threshold)
+                if (memory_get_usage() > ($memLimit * 0.8)) {
+                    $zip->close();
+                    @unlink($tempZip);
+                    throw new Exception("FAIL_SAFE: Memória excedeu 80% do limite ($memLimit). Processo abortado.");
+                }
+
                 if (!$file->isDir()) {
                     $filePath = $file->getRealPath();
-                    $relativePath = substr($filePath, strlen(realpath($sourceDir)) + 1);
-                    $relativePath = str_replace('\\', '/', $relativePath);
-
-                    // Exclui arquivos sensíveis e de ambiente
-                    if (strpos($relativePath, 'config/db_config.php') !== false)
-                        continue;
-                    if (strpos($relativePath, 'config/db.php') !== false)
-                        continue;
-                    if (strpos($relativePath, '.installed') !== false)
-                        continue;
-                    if (strpos($relativePath, '.git') !== false)
-                        continue;
-                    if (strpos($relativePath, 'shared/') !== false)
-                        continue;
-                    if (strpos($relativePath, 'releases/') !== false)
-                        continue;
+                    $relativePath = str_replace('\\', '/', substr($filePath, strlen(realpath($sourceDir)) + 1));
 
                     $zip->addFile($filePath, $relativePath);
                     $filesAdded++;
+
+                    if ($filesAdded % 50 === 0) {
+                        $elapsed = microtime(true) - $startTime;
+                        $msg = sprintf("[%d] RAM: %.2fMB | TIME: %.2fs | FILE: %s\n", $filesAdded, memory_get_usage()/1024/1024, $elapsed, $relativePath);
+                        file_put_contents($profilerLog, $msg, FILE_APPEND);
+                    }
                 }
             }
             $zip->close();
+            
+            // Move para o workspace para o OtaPublisher processar
+            $zipFile = $tmpDir . 'SGIM-CLIENTE-v' . $version . '.zip';
+            if (file_exists($zipFile)) @unlink($zipFile);
+            rename($tempZip, $zipFile);
+
+            $totalTime = microtime(true) - $startTime;
+            file_put_contents($profilerLog, "[SUCCESS] Total: $filesAdded arquivos | Tempo: {$totalTime}s\n", FILE_APPEND);
+
 
             if (!file_exists($zipFile) || $filesAdded === 0) {
                 throw new Exception("ZIP gerado está vazio ou não foi encontrado. Arquivos adicionados: $filesAdded");
