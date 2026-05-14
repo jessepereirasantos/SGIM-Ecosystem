@@ -50,15 +50,24 @@ switch ($acao) {
             if (!is_dir($packagesDir))
                 mkdir($packagesDir, 0755, true);
 
-            // ✅ FIX: Aponta diretamente para o código REAL validado (SGIM-CLIENTE raiz)
+            // DETERMINISMO v2.0: Origem única, imutável e sem fallback heurístico.
             $sourceDir = dirname(dirname(__DIR__)) . '/SGIM-CLIENTE/';
+            
             if (!is_dir($sourceDir)) {
-                // Fallback de segurança para source_cliente interno, se a estrutura real não existir
-                $sourceDir = dirname(__DIR__) . '/source_cliente/';
+                throw new Exception("ALERTA ARQUITETURAL: Pasta base SGIM-CLIENTE não encontrada no caminho obrigatório. Fallbacks abolidos.");
             }
             
-            if (!is_dir($sourceDir) || count(scandir($sourceDir)) <= 2) {
-                throw new Exception("Diretório do cliente ($sourceDir) está vazio ou não existe.");
+            // VALIDAÇÃO PRÉ-VOO (CONTRATO RÍGIDO DE ESTRUTURA)
+            $vitalFiles = [
+                'index.php',
+                'includes/system/OtaOrchestrator.php',
+                'api/health/version.php'
+            ];
+            
+            foreach ($vitalFiles as $vf) {
+                if (!file_exists($sourceDir . $vf)) {
+                    throw new Exception("REJEIÇÃO DE PACOTE: Estrutura inválida. Faltando arquivo vital na raiz: $vf. O ZIP deve ser plano, sem wrapper folders.");
+                }
             }
 
             $tmpDir = dirname(__DIR__) . '/shared/system/workspace/';
@@ -276,10 +285,10 @@ switch ($acao) {
 
     case 'gerar_instalador':
         try {
-            // ✅ FIX: Aponta diretamente para o código REAL validado (SGIM-CLIENTE raiz)
+            // DETERMINISMO v2.0: Origem única
             $sourceDir = dirname(dirname(__DIR__)) . '/SGIM-CLIENTE/';
             if (!is_dir($sourceDir)) {
-                $sourceDir = dirname(__DIR__) . '/source_cliente/'; 
+                throw new Exception("Diretório SGIM-CLIENTE não encontrado.");
             }
             $zipFile = dirname(__DIR__) . '/downloads/sgim_master.zip';
 
