@@ -54,7 +54,7 @@ try {
     if ($orchestrator->commitUpdate($versaoAlvo)) {
         echo json_encode(['status' => 'success', 'message' => 'Sistema atualizado para v' . $versaoAlvo]);
     } else {
-        $logFile = $basePath . 'shared/system/logs/driver.log';
+        $logFile = $basePath . 'shared/system/logs/activation.log';
         $lastLog = file_exists($logFile) ? trim(implode(' | ', array_slice(file($logFile), -3))) : 'Log interno indisponível';
         echo json_encode(['status' => 'error', 'message' => 'ERRO ATÔMICO: ' . $lastLog]);
     }
