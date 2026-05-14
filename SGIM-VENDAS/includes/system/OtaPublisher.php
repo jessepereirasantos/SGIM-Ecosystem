@@ -42,11 +42,8 @@ class OtaPublisher {
             // 2. Extrair em Workspace para Validar Estrutura
             $this->validatePackageStructure($zipPath);
 
-            // 3. Gerar Hash SHA-256 do ZIP Original
-            $sha256 = hash_file('sha256', $zipPath);
-            $releaseId = bin2hex(random_bytes(8));
+            // 4. Copiar ZIP para packages/ e calcular hash (ver abaixo)
 
-            // 4. Mover Pacote Final (Nome PADRONIZADO para evitar 404)
             $packageName = "SGIM-CLIENTE-v{$version}.zip";
             $finalPackagePath = $this->packagePath . $packageName;
             
@@ -54,7 +51,13 @@ class OtaPublisher {
                 throw new Exception("Falha ao mover pacote para diretório oficial.");
             }
 
-            // 5. Gerar Manifesto Temporário
+            // 3. Gerar Hash SHA-256 do ARQUIVO FINAL EM /packages/ (mesmo arquivo que o cliente baixa)
+            // CRÍTICO: hash deve ser do arquivo publicado, não do temporário no workspace.
+            $sha256 = hash_file('sha256', $finalPackagePath);
+            $this->log("SHA256 calculado do pacote final: $sha256 (arquivo: $finalPackagePath)");
+            $releaseId = bin2hex(random_bytes(8));
+
+            // 5. Gerar Manifesto
             $manifest = [
                 "version" => $version,
                 "release_id" => $releaseId,
