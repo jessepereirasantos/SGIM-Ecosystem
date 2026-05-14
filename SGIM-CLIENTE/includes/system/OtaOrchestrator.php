@@ -61,10 +61,17 @@ class OtaOrchestrator {
             $this->updateState('discovery', ["last_manifest" => $manifest]);
             
             // 2. Download & Verify SHA256
-            $this->downloadEngine->downloadPackage($manifest['url'], $manifest['sha256'], $manifest['version']);
+            $downloadOk = $this->downloadEngine->downloadPackage($manifest['url'], $manifest['sha256'], $manifest['version']);
+            if ($downloadOk !== true) {
+                // Lê o log para capturar o motivo exato da falha
+                $logFile = $this->basePath . 'shared/system/logs/download.log';
+                $lastLog = file_exists($logFile) ? implode('', array_slice(file($logFile), -5)) : 'Log indisponível';
+                throw new Exception("DOWNLOAD FALHOU (hash mismatch ou erro de rede). Últimas entradas do log:\n" . $lastLog);
+            }
             $this->updateState('download', ["version" => $manifest['version'], "status" => "SUCCESS"]);
 
             // 3. Extraction & Structural Validation
+
             $versionPath = $this->basePath . "releases/v" . $manifest['version'] . "/";
             $this->extractionEngine->extract($manifest['version'], $this->basePath . "shared/system/downloads/release_{$manifest['version']}.zip");
             $this->updateState('extraction', ["version" => $manifest['version'], "status" => "SUCCESS"]);
