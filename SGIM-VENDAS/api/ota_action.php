@@ -2,6 +2,8 @@
 /**
  * SGIM MASTER - API DE AÇÕES OTA (Controller oficial)
  */
+use SGIM\OTA\OtaPublisher;
+
 ob_start();
 
 register_shutdown_function(function() {
@@ -33,6 +35,7 @@ header('Content-Type: application/json; charset=utf-8');
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
+
 try {
 /*
 if (!isset($_SESSION['admin_logged']) || $_SESSION['admin_logged'] !== true) {
@@ -42,7 +45,6 @@ if (!isset($_SESSION['admin_logged']) || $_SESSION['admin_logged'] !== true) {
 */
 
 require_once __DIR__ . '/../includes/system/OtaPublisher.php';
-use SGIM\OTA\OtaPublisher;
 
 $acao = $_POST['acao'] ?? '';
 
