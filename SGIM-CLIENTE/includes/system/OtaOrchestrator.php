@@ -41,13 +41,9 @@ class OtaOrchestrator {
         $this->extractionEngine = new OtaExtractionEngine($this->basePath);
         $this->migrationEngine  = new OtaMigrationEngine($pdo, $this->basePath);
         
-        // INTEGRACAO ADAPTATIVA 10D
-        $this->capabilityManager = new OtaCapabilityManager($this->basePath);
-        $capabilities = $this->capabilityManager->generateReport();
-        
-        $driverClass = "\\SGIM\\OTA\\Drivers\\" . $capabilities['driver_analysis']['recommended_driver'];
-        if (class_exists($driverClass)) {
-            $this->activationDriver = new $driverClass($this->basePath, $pdo);
+        // FORÇAR DRIVER (Segurança Máxima para HostGator)
+        if (!$this->activationDriver) {
+            $this->activationDriver = new \SGIM\OTA\Drivers\SharedHostingDriver($this->basePath, $pdo);
         }
     }
 
@@ -56,7 +52,8 @@ class OtaOrchestrator {
      */
     public function updateLifecycle() {
         try {
-            $this->log("Iniciando Ciclo Integrado (Driver: " . get_class($this->activationDriver) . ")");
+            $driverName = $this->activationDriver ? get_class($this->activationDriver) : 'NENHUM';
+            $this->log("Iniciando Ciclo Integrado (Driver: " . $driverName . ")");
 
             // 1. Discovery (Manifest)
             $manifest = $this->discovery();
