@@ -70,17 +70,30 @@ include 'templates/header.php';
         
         try {
             let res = await fetch('api/ota_action.php', { method: 'POST', body: fd });
-            let data = await res.json();
+            let rawData = await res.text();
             
-            if(data.status === 'success') {
-                this.statusMsg = data.message;
-                setTimeout(() => { this.statusMsg = ''; this.loading = false; location.reload(); }, 3000);
-            } else {
-                alert(data.message);
+            console.log({
+                status: res.status,
+                headers: [...res.headers.entries()],
+                body: rawData
+            });
+            
+            try {
+                let data = JSON.parse(rawData);
+                if(data.status === 'success') {
+                    this.statusMsg = data.message;
+                    setTimeout(() => { this.statusMsg = ''; this.loading = false; location.reload(); }, 3000);
+                } else {
+                    alert(data.message);
+                    this.loading = false;
+                }
+            } catch (jsonErr) {
+                console.error("RAW RESPONSE DO PHP:", rawData);
+                alert("FALHA DE PARSER JSON! O PHP RETORNOU LIXO OU ERRO FATAL:\n\n" + rawData);
                 this.loading = false;
             }
         } catch (e) {
-            alert('Erro de conexão com a API OTA');
+            alert('Erro de rede: ' + e.message);
             this.loading = false;
         }
     }

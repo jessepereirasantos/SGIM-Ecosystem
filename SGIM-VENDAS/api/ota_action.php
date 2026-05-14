@@ -1,12 +1,39 @@
 <?php
 /**
  * SGIM MASTER - API DE AÇÕES OTA (Controller oficial)
- * Usa OtaPublisher.php internamente para publicação atômica.
  */
-session_start();
-header('Content-Type: application/json');
+ob_start();
 
-// TRAVA REMOVIDA TEMPORARIAMENTE PARA VALIDAÇÃO DO COMANDANTE
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error !== null) {
+        $buffer = ob_get_clean();
+        file_put_contents(
+            __DIR__.'/fatal.log',
+            print_r($error, true) . "\nBUFFER: " . $buffer,
+            FILE_APPEND
+        );
+        header('Content-Type: application/json; charset=utf-8');
+        http_response_code(500);
+        echo json_encode([
+            'status'  => 'error',
+            'success' => false,
+            'fatal'   => 'SHUTDOWN: ' . $error['message'],
+            'buffer'  => $buffer,
+            'file'    => $error['file'],
+            'line'    => $error['line']
+        ]);
+        exit;
+    }
+});
+
+session_start();
+header('Content-Type: application/json; charset=utf-8');
+
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+try {
 /*
 if (!isset($_SESSION['admin_logged']) || $_SESSION['admin_logged'] !== true) {
     echo json_encode(['status' => 'error', 'message' => 'Não autorizado: Admin session not found']);
@@ -313,7 +340,20 @@ switch ($acao) {
 
     default:
         echo json_encode(['status' => 'error', 'message' => 'Ação inválida']);
-        break;
+} catch(Throwable $e) {
+    $buffer = ob_get_clean();
+    http_response_code(500);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([
+        'status'  => 'error',
+        'success' => false,
+        'buffer'  => $buffer,
+        'fatal'   => $e->getMessage(),
+        'file'    => $e->getFile(),
+        'line'    => $e->getLine(),
+        'trace'   => $e->getTraceAsString()
+    ]);
+    exit;
 }
 
 
