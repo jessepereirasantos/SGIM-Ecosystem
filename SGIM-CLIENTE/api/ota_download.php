@@ -7,6 +7,21 @@ ini_set('display_errors', 0);
 ignore_user_abort(true); // Continua mesmo se o navegador fechar
 set_time_limit(600);    // 10 minutos
 
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error !== null && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+        header('Content-Type: application/json; charset=utf-8');
+        http_response_code(500);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'FATAL DOWNLOAD ERROR: ' . $error['message'],
+            'file' => $error['file'],
+            'line' => $error['line']
+        ]);
+        exit;
+    }
+});
+
 session_start();
 header('Content-Type: application/json; charset=utf-8');
 
