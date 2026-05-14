@@ -1,6 +1,6 @@
 <?php
 /**
- * SGIM OTA - SHARED HOSTING DRIVER v1.1.42 (ZERO-NULL PROTECTION)
+ * SGIM OTA - SHARED HOSTING DRIVER v1.1.43 (SMART PROMOTER)
  */
 
 namespace SGIM\OTA\Drivers;
@@ -29,46 +29,56 @@ class SharedHostingDriver implements ActivationDriverInterface {
     }
 
     public function validateEnvironment(): bool { return true; }
-
-    public function prepareActivation($versionPath, $manifest): bool {
-        $this->log("Staging para v" . ($manifest['version'] ?? 'unknown'));
-        return true; 
-    }
+    public function prepareActivation($vPath, $m): bool { return true; }
 
     public function activate($versionPath, $manifest): bool {
         try {
-            // 1. Determinar Versão (Fallback se manifesto falhar)
-            $version = $manifest['version'] ?? null;
-            if (!$version) {
-                // Tenta extrair do caminho da pasta (ex: releases/v1.1.46/ -> 1.1.46)
-                if (preg_match('/v(\d+\.\d+\.\d+)/', $versionPath, $matches)) {
-                    $version = $matches[1];
-                }
+            $version = $manifest['version'] ?? 'unknown';
+            if ($version === 'unknown' && preg_match('/v(\d+\.\d+\.\d+)/', $versionPath, $matches)) {
+                $version = $matches[1];
             }
 
-            if (!$version) {
-                throw new Exception("Falha crítica: Versão alvo não identificada no Manifesto nem no Caminho.");
-            }
+            $this->log("Iniciando Promoção Inteligente para v$version");
 
-            $this->log("Iniciando Promoção Real para v$version");
+            // DETETIVE: Encontrar a verdadeira pasta dos arquivos
+            $actualSrc = $this->findDeepSource($versionPath);
+            $this->log("Pasta de origem identificada: $actualSrc");
+
+            // 2. Promover Arquivos da pasta correta
+            $total = $this->recursivePromote($actualSrc, $this->basePath, $version);
             
-            // 2. Promover Arquivos
-            $total = $this->recursivePromote($versionPath, $this->basePath, $version);
-            
-            // 3. Sincronizar Banco (Apenas se tiver versão válida)
+            // 3. Sincronizar Banco
             if ($this->pdo instanceof PDO && $total > 0) {
                 $stmt = $this->pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES ('versao_sistema', ?) ON DUPLICATE KEY UPDATE valor = ?");
                 $stmt->execute([$version, $version]);
-                $this->log("BANCO ATUALIZADO: v$version ($total arquivos)");
+                $this->log("SUCESSO: v$version ativa ($total arquivos movidos)");
             }
 
             if (function_exists('opcache_reset')) opcache_reset();
-
             return true;
         } catch (Exception $e) {
             $this->log("FALHA NO COMMIT: " . $e->getMessage());
             return false;
         }
+    }
+
+    /**
+     * Tenta encontrar onde os arquivos realmente estão (corrige ZIPs aninhados)
+     */
+    private function findDeepSource($path) {
+        $files = array_diff(scandir($path), ['.', '..']);
+        // Se a pasta só tem UMA subpasta (tipo SGIM-CLIENTE ou source_cliente), entra nela
+        if (count($files) === 1) {
+            $sub = reset($files);
+            if (is_dir($path . $sub)) {
+                return $path . $sub . '/';
+            }
+        }
+        // Se encontrar a pasta 'includes', 'api' ou 'config', este é o lugar certo
+        if (in_array('includes', $files) || in_array('api', $files)) {
+            return $path;
+        }
+        return $path;
     }
 
     private function recursivePromote($src, $dst, $version) {
