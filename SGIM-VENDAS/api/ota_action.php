@@ -364,7 +364,9 @@ switch ($acao) {
 
     default:
         echo json_encode(['status' => 'error', 'message' => 'Ação inválida']);
+    } // fecha switch
 } catch (Throwable $e) {
+
     $buffer = ob_get_clean();
     http_response_code(500);
     header('Content-Type: application/json; charset=utf-8');
