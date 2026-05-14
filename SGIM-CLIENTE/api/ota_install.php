@@ -54,7 +54,9 @@ try {
     if ($orchestrator->commitUpdate($versaoAlvo)) {
         echo json_encode(['status' => 'success', 'message' => 'Sistema atualizado para v' . $versaoAlvo]);
     } else {
-        echo json_encode(['status' => 'error', 'message' => 'Falha no commit da v' . $versaoAlvo . '. Tente rodar o ota_diagnostic.php']);
+        $logFile = $basePath . 'shared/system/logs/driver.log';
+        $lastLog = file_exists($logFile) ? trim(implode(' | ', array_slice(file($logFile), -3))) : 'Log interno indisponível';
+        echo json_encode(['status' => 'error', 'message' => 'ERRO ATÔMICO: ' . $lastLog]);
     }
 
 } catch (Throwable $e) {
