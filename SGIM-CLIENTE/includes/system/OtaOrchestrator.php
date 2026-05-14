@@ -17,6 +17,7 @@ require_once __DIR__ . '/OtaCapabilityManager.php';
 require_once __DIR__ . '/OtaManifestValidator.php';
 require_once __DIR__ . '/OtaBackupEngine.php';
 require_once __DIR__ . '/ProtectedPathsPolicy.php';
+require_once __DIR__ . '/drivers/SharedHostingDriver.php';
 
 class OtaOrchestrator {
     private $basePath;
