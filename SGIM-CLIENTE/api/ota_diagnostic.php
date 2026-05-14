@@ -1,48 +1,39 @@
 <?php
 /**
- * SGIM OTA - DIAGNÓSTICO DE INTEGRIDADE v1.1.41
- * Este script valida se a atualização ocorreu de fato no sistema.
+ * SGIM OTA - PERÍCIA TÉCNICA v1.1.41
  */
 header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/../config/database.php';
 
-$report = [
-    "timestamp" => date('c'),
-    "checkpoints" => []
-];
+$report = ["checkpoints" => []];
 
-// 1. Verificação de Versão no Banco
-try {
-    $stmt = $pdo->query("SELECT valor FROM configuracoes WHERE chave = 'versao_sistema'");
-    $dbVersion = $stmt->fetchColumn();
-    $report['checkpoints']['database_version'] = $dbVersion ?: "NÃO ENCONTRADA";
-} catch (Exception $e) {
-    $report['checkpoints']['database_version'] = "ERRO: " . $e->getMessage();
-}
+// 1. Versão no Banco
+$stmt = $pdo->query("SELECT valor FROM configuracoes WHERE chave = 'versao_sistema'");
+$report['checkpoints']['db_version'] = $stmt->fetchColumn();
 
-// 2. Verificação de Arquivos na Raiz
-$testFile = __DIR__ . '/../includes/system/ActivationDriverInterface.php';
-$report['checkpoints']['interface_file_exists'] = file_exists($testFile);
-if (file_exists($testFile)) {
-    $content = file_get_contents($testFile);
-    $report['checkpoints']['interface_has_protection'] = strpos($content, 'interface_exists') !== false;
-    $report['checkpoints']['interface_namespace'] = strpos($content, 'namespace SGIM\OTA;') !== false ? "CORRETO (SGIM\OTA)" : "ERRADO";
-}
-
-// 3. Verificação de Releases
+// 2. Scan da pasta de Releases
 $releasesDir = __DIR__ . '/../releases/';
-if (is_dir($releasesDir)) {
-    $report['checkpoints']['available_releases'] = array_values(array_diff(scandir($releasesDir), ['.', '..']));
-} else {
-    $report['checkpoints']['available_releases'] = "PASTA RELEASES NÃO EXISTE";
+$releases = array_diff(scandir($releasesDir), ['.', '..', 'base']);
+$report['checkpoints']['folders_in_releases'] = array_values($releases);
+
+foreach ($releases as $rel) {
+    $path = $releasesDir . $rel . '/';
+    $files = is_dir($path) ? array_diff(scandir($path), ['.', '..']) : "NÃO É DIRETÓRIO";
+    $report['checkpoints']['content_of_' . $rel] = [
+        "is_dir" => is_dir($path),
+        "file_count" => is_array($files) ? count($files) : 0,
+        "has_manifest" => is_array($files) && in_array('release_manifest.json', $files),
+        "sample_files" => is_array($files) ? array_slice($files, 0, 5) : []
+    ];
 }
 
-// 4. Verificação de Logs Recentes
+// 3. Leitura do Activation Log (O segredo do erro)
 $logFile = __DIR__ . '/../shared/system/logs/activation.log';
 if (file_exists($logFile)) {
-    $report['checkpoints']['last_log_lines'] = explode("\n", shell_exec("tail -n 10 " . escapeshellarg($logFile)));
+    $lines = explode("\n", trim(file_get_contents($logFile)));
+    $report['checkpoints']['activation_log_tail'] = array_slice($lines, -15);
 } else {
-    $report['checkpoints']['last_log_lines'] = "LOG NÃO ENCONTRADO";
+    $report['checkpoints']['activation_log_tail'] = "LOG NÃO ENCONTRADO";
 }
 
 echo json_encode($report, JSON_PRETTY_PRINT);
