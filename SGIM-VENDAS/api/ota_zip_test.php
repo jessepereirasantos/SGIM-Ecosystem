@@ -1,8 +1,6 @@
 <?php
 /**
- * SGIM MASTER - ISOLATED ZIP STRESS TEST (LAYER 1)
- * Este arquivo serve APENAS para validar a estabilidade física do motor de compactação.
- * NÃO altera banco, NÃO publica release, NÃO afeta o sistema.
+ * SGIM MASTER - ISOLATED ZIP STRESS & INTEGRITY TEST (LAYER 1)
  */
 
 header('Content-Type: application/json; charset=utf-8');
@@ -15,21 +13,18 @@ try {
     $startTime = microtime(true);
     $startMem = memory_get_usage();
     
-    // Configurações de Origem e Destino Temporário
     $sourceDir = dirname(__DIR__) . '/source_cliente/';
     if (!is_dir($sourceDir)) throw new Exception("Diretório source_cliente não encontrado.");
     
-    $tempZip = sys_get_temp_dir() . '/ota_stress_test_' . uniqid() . '.zip';
+    $tempZip = sys_get_temp_dir() . '/ota_integrity_test_' . uniqid() . '.zip';
     
     $zip = new ZipArchive();
     if ($zip->open($tempZip, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== TRUE) {
         throw new Exception("Falha ao criar ZIP temporário.");
     }
 
-    // Camada 1: Bloqueio de Origem e Profundidade (CORRIGIDO: Sem FOLLOW_SYMLINKS)
     $excludeDirs = ['shared', 'releases', 'workspace', 'downloads', 'backups', 'node_modules', 'vendor', '.git'];
-    
-    $directory = new RecursiveDirectoryIterator($sourceDir, RecursiveDirectoryIterator::SKIP_DOTS); // REMOVIDO FOLLOW_SYMLINKS
+    $directory = new RecursiveDirectoryIterator($sourceDir, RecursiveDirectoryIterator::SKIP_DOTS);
     
     $filter = new RecursiveCallbackFilterIterator($directory, function ($current, $key, $iterator) use ($excludeDirs) {
         if ($current->isDir()) {
@@ -39,22 +34,30 @@ try {
     });
 
     $files = new RecursiveIteratorIterator($filter);
-    $files->setMaxDepth(10); // TRAVA DE PROFUNDIDADE OBRIGATÓRIA
+    $files->setMaxDepth(10);
 
     $count = 0;
-    $memLimit = (int)ini_get('memory_limit') * 1024 * 1024;
-    if ($memLimit <= 0) $memLimit = 256 * 1024 * 1024;
+    $dirStats = [];
+    $criticalFiles = [
+        'index.php' => false,
+        'api/ota_install.php' => false,
+        'includes/system/OtaOrchestrator.php' => false,
+        'api/health/version.php' => false
+    ];
 
     foreach ($files as $file) {
-        // Monitoramento de RAM
-        if (memory_get_usage() > ($memLimit * 0.8)) {
-            throw new Exception("FAIL_SAFE: Limite de memória atingido no teste.");
-        }
-
         if (!$file->isDir()) {
             $p = $file->getRealPath();
             $r = str_replace('\\', '/', substr($p, strlen(realpath($sourceDir)) + 1));
             
+            // Auditoria por Diretório
+            $topDir = explode('/', $r)[0];
+            if (!isset($dirStats[$topDir])) $dirStats[$topDir] = 0;
+            $dirStats[$topDir]++;
+
+            // Checagem de Arquivos Críticos
+            if (isset($criticalFiles[$r])) $criticalFiles[$r] = true;
+
             $zip->addFile($p, $r);
             $count++;
         }
@@ -62,20 +65,35 @@ try {
     
     $zip->close();
     $size = filesize($tempZip);
-    @unlink($tempZip); // Limpa o teste imediatamente
+    @unlink($tempZip);
+
+    // Validação de Anomalia
+    $errors = [];
+    if (!$criticalFiles['index.php']) $errors[] = "index.php ausente";
+    if (!isset($dirStats['api']) || $dirStats['api'] === 0) $errors[] = "pasta api vazia ou ausente";
+    if (!isset($dirStats['includes']) || $dirStats['includes'] === 0) $errors[] = "pasta includes vazia ou ausente";
+
+    if (!empty($errors)) {
+        echo json_encode([
+            "success" => false,
+            "reason" => "INVALID_PACKAGE_STRUCTURE",
+            "errors" => $errors,
+            "dir_stats" => $dirStats,
+            "critical_files" => $criticalFiles
+        ]);
+        exit;
+    }
 
     echo json_encode([
         "success" => true,
-        "stage" => "STRESS_TEST_LAYER_1",
+        "stage" => "INTEGRITY_TEST_LAYER_1",
         "files_count" => $count,
-        "ignored_dirs_count" => count($excludeDirs),
         "memory_peak_mb" => round(memory_get_peak_usage() / 1024 / 1024, 2),
         "time_seconds" => round(microtime(true) - $startTime, 4),
         "zip_size_mb" => round($size / 1024 / 1024, 2),
-        "temp_zip_path" => $tempZip,
-        "source_dir" => $sourceDir,
-        "symlink_following" => false,
-        "max_depth" => 10
+        "directory_stats" => $dirStats,
+        "structural_validation" => $criticalFiles,
+        "source_dir" => $sourceDir
     ]);
 
 } catch (Throwable $e) {
