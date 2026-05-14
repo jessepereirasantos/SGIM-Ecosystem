@@ -1,29 +1,18 @@
 <?php
 /**
- * SGIM OTA - MASTER PATCH v1.1.43
- * Este script restaura a integridade total do sistema OTA.
+ * SGIM OTA - BULLDOZER PATCH v1.1.44
+ * Localiza a raiz do sistema em qualquer nível de profundidade e promove.
  */
 header('Content-Type: text/plain; charset=utf-8');
 
 $root = __DIR__ . '/';
-echo "Iniciando Patch de Integridade SGIM OTA...\n\n";
+echo "Iniciando BULLDOZER PATCH SGIM OTA...\n\n";
 
 // 1. Criar pastas necessárias
-$folders = [
-    'includes/system',
-    'includes/system/drivers',
-    'api',
-    'shared/system/logs',
-    'shared/system/state'
-];
-foreach ($folders as $f) {
-    if (!is_dir($root . $f)) {
-        mkdir($root . $f, 0755, true);
-        echo "Pasta criada: $f\n";
-    }
-}
+$folders = ['includes/system', 'includes/system/drivers', 'api', 'shared/system/logs'];
+foreach ($folders as $f) { if (!is_dir($root . $f)) mkdir($root . $f, 0755, true); }
 
-// 2. Conteúdo dos arquivos (Versões Finais e Blindadas)
+// 2. Conteúdo dos arquivos (Versão Bulldozer)
 $files = [
     'includes/system/ActivationDriverInterface.php' => '<?php
 namespace SGIM\OTA;
@@ -50,8 +39,11 @@ class SharedHostingDriver implements ActivationDriverInterface {
         $version = $manifest["version"] ?? null;
         if (!$version && preg_match("/v(\d+\.\d+\.\d+)/", $versionPath, $ms)) $version = $ms[1];
         if (!$version) return false;
-        $actualSrc = $this->findDeepSource($versionPath);
+        
+        // BULLDOZER: Procura a pasta que contém a "includes" ou "api"
+        $actualSrc = $this->bulldozerSource($versionPath);
         $total = $this->recursivePromote($actualSrc, $this->basePath);
+        
         if ($this->pdo instanceof PDO && $total > 0) {
             $stmt = $this->pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES (\"versao_sistema\", ?) ON DUPLICATE KEY UPDATE valor = ?");
             $stmt->execute([$version, $version]);
@@ -59,9 +51,16 @@ class SharedHostingDriver implements ActivationDriverInterface {
         if (function_exists("opcache_reset")) opcache_reset();
         return true;
     }
-    private function findDeepSource($path) {
-        $files = array_diff(scandir($path), [".", ".."]);
-        if (count($files) === 1 && is_dir($path . reset($files))) return $path . reset($files) . "/";
+    private function bulldozerSource($path) {
+        if (!is_dir($path)) return $path;
+        $items = array_diff(scandir($path), [".", ".."]);
+        if (in_array("includes", $items) || in_array("api", $items)) return $path;
+        foreach ($items as $item) {
+            if (is_dir($path . $item)) {
+                $sub = $this->bulldozerSource($path . $item . "/");
+                if ($sub !== ($path . $item . "/")) return $sub;
+            }
+        }
         return $path;
     }
     private function recursivePromote($src, $dst) {
@@ -90,53 +89,38 @@ class OtaOrchestrator {
         $this->activationDriver = new \SGIM\OTA\Drivers\SharedHostingDriver($this->basePath, $pdo);
     }
     public function updateLifecycle() {
-        $manifest = $this->discovery();
-        if (!$manifest) return "FAIL_DISCOVERY";
-        return "READY_FOR_COMMIT";
-    }
-    private function discovery() {
         $url = $this->masterUrl . "/api/update/latest.json";
         $data = @file_get_contents($url);
-        return $data ? json_decode($data, true) : null;
+        return $data ? "READY_FOR_COMMIT" : "FAIL_DISCOVERY";
     }
     public function commitUpdate($version) {
         $versionPath = $this->basePath . "releases/v" . $version . "/";
-        $manifestPath = $versionPath . "release_manifest.json";
-        $manifest = file_exists($manifestPath) ? json_decode(file_get_contents($manifestPath), true) : ["version" => $version];
-        return $this->activationDriver->activate($versionPath, $manifest);
+        return $this->activationDriver->activate($versionPath, ["version" => $version]);
     }
 }',
 
     'api/ota_download.php' => '<?php
-error_reporting(E_ALL); ini_set("display_errors", 0);
 require_once __DIR__ . "/../config/database.php";
 require_once __DIR__ . "/../includes/system/OtaOrchestrator.php";
-$masterUrl = "https://escolateologicaeloha.com.br";
-$orchestrator = new \SGIM\OTA\OtaOrchestrator($pdo, __DIR__ . "/../", $masterUrl);
+$orchestrator = new \SGIM\OTA\OtaOrchestrator($pdo, __DIR__ . "/../", "https://escolateologicaeloha.com.br");
 $res = $orchestrator->updateLifecycle();
 header("Content-Type: application/json");
 echo json_encode(["status" => ($res == "READY_FOR_COMMIT" ? "success" : "error"), "message" => $res]);',
 
     'api/ota_install.php' => '<?php
-error_reporting(E_ALL); ini_set("display_errors", 0);
 require_once __DIR__ . "/../config/database.php";
 require_once __DIR__ . "/../includes/system/OtaOrchestrator.php";
 $releases = array_diff(scandir(__DIR__ . "/../releases/"), [".", "..", "base"]);
 rsort($releases);
-$versao = !empty($releases) ? str_replace("v", "", $releases[0]) : null;
+$v = !empty($releases) ? str_replace("v", "", $releases[0]) : null;
 $orchestrator = new \SGIM\OTA\OtaOrchestrator($pdo, __DIR__ . "/../", "https://escolateologicaeloha.com.br");
-$ok = $versao ? $orchestrator->commitUpdate($versao) : false;
+$ok = $v ? $orchestrator->commitUpdate($v) : false;
 header("Content-Type: application/json");
-echo json_encode(["status" => ($ok ? "success" : "error"), "message" => ($ok ? "v$versao OK" : "Fail")]);'
+echo json_encode(["status" => ($ok ? "success" : "error"), "message" => ($ok ? "v$v OK" : "Fail")]);'
 ];
 
-// 3. Escrever os arquivos
 foreach ($files as $path => $content) {
-    if (file_put_contents($root . $path, $content)) {
-        echo "Arquivo restaurado: $path\n";
-    } else {
-        echo "ERRO ao restaurar: $path\n";
-    }
+    if (file_put_contents($root . $path, $content)) echo "OK: $path\n";
 }
 
-echo "\nPATCH CONCLUÍDO COM SUCESSO. SISTEMA OTA INTEGRADO.";
+echo "\nBULLDOZER PATCH CONCLUÍDO.";
