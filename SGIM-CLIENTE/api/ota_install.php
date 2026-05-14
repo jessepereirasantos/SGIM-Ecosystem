@@ -28,20 +28,17 @@ try {
     require_once $sysDir . 'OtaOrchestrator.php';
     require_once $sysDir . 'drivers/SharedHostingDriver.php';
 
-    // 1. Detecção da Versão
-    $versaoAlvo = null;
-    $releasesDir = $basePath . 'releases/';
-    
-    if (is_dir($releasesDir)) {
-        $releases = array_diff(scandir($releasesDir), ['.', '..', 'base']);
-        rsort($releases);
-        if (!empty($releases)) {
-            $versaoAlvo = str_replace('v', '', $releases[0]);
-        }
+    // 1. Identificação Determinística da Versão (Fim da heurística de rsort)
+    $stateFile = $basePath . 'shared/system/state/current_state.json';
+    if (!file_exists($stateFile)) {
+        throw new Exception("ESTADO CORROMPIDO: Arquivo de estado transacional ausente. O pipeline atômico exige um download validado prévio.");
     }
+    
+    $state = json_decode(file_get_contents($stateFile), true);
+    $versaoAlvo = $state['extraction']['version'] ?? null;
 
     if (!$versaoAlvo) {
-        throw new Exception("Não foi possível detectar versão na pasta: $releasesDir");
+        throw new Exception("ESTADO INVÁLIDO: Versão alvo não encontrada no registro de transação.");
     }
 
     // 2. Validação de existência física antes de chamar o orquestrador

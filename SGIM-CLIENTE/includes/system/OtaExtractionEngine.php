@@ -84,10 +84,11 @@ class OtaExtractionEngine {
     }
 
     private function validateStructure($path) {
-        $vitalFiles = ['index.php']; // Estrutura mínima obrigatória
+        // CONTRATO RÍGIDO v2.0: Fim das heurísticas
+        $vitalFiles = ['index.php', 'api/health/version.php']; 
         foreach ($vitalFiles as $file) {
             if (!file_exists($path . $file)) {
-                throw new Exception("Arquivo vital ausente na extração: $file");
+                throw new Exception("REJEIÇÃO DE PACOTE (CLIENT SIDE): Estrutura inválida. O arquivo vital '$file' está ausente na raiz da extração. O OTA exige um pacote perfeitamente padronizado.");
             }
         }
     }

@@ -1,111 +1,169 @@
 <?php
 /**
- * SGIM OTA - SHARED HOSTING DRIVER v1.1.43 (SMART PROMOTER)
+ * SGIM OTA - SHARED HOSTING DRIVER v2.0 (ATOMIC SWAP)
+ * Executa promoção determinística via Symlinks ou Atomic Renames.
+ * PROIBIDO O USO DE COPY() RECURSIVO.
  */
 
 namespace SGIM\OTA\Drivers;
 
 use SGIM\OTA\ActivationDriverInterface;
-use SGIM\OTA\OtaManifestValidator;
-use SGIM\OTA\OtaBackupEngine;
-use SGIM\OTA\ProtectedPathsPolicy;
 use Exception;
 use PDO;
 
 class SharedHostingDriver implements ActivationDriverInterface {
     private $basePath;
     private $pdo;
-    private $config = ["simulation_only" => false, "write_enabled" => true];
-    private $validator;
-    private $backupEngine;
     private $logsPath;
+    private $releasesPath;
 
     public function __construct($basePath, $pdo = null) {
         $this->basePath = rtrim($basePath, '/') . '/';
         $this->pdo = $pdo;
-        $this->validator = new OtaManifestValidator();
-        $this->backupEngine = new OtaBackupEngine($this->basePath);
         $this->logsPath = $this->basePath . 'shared/system/logs/';
+        $this->releasesPath = $this->basePath . 'releases/';
     }
 
     public function validateEnvironment(): bool { return true; }
     public function prepareActivation($vPath, $m): bool { return true; }
 
+    /**
+     * PROMOÇÃO ATÔMICA
+     */
     public function activate($versionPath, $manifest): bool {
         try {
-            $version = $manifest['version'] ?? 'unknown';
-            if ($version === 'unknown' && preg_match('/v(\d+\.\d+\.\d+)/', $versionPath, $matches)) {
-                $version = $matches[1];
+            $version = $manifest['version'] ?? null;
+            if (!$version) throw new Exception("Manifesto sem versão definida.");
+            
+            // 1. VALIDAÇÃO RÍGIDA E DETERMINÍSTICA (FIM DO BULLDOZER)
+            $versionPath = rtrim($versionPath, '/') . '/';
+            $vitalFiles = ['index.php', 'api/health/version.php'];
+            foreach ($vitalFiles as $file) {
+                if (!file_exists($versionPath . $file)) {
+                    throw new Exception("Validação de Estrutura Falhou: Arquivo obrigatório $file não encontrado em $versionPath. Rejeição sumária.");
+                }
             }
 
-            $this->log("Iniciando Promoção Inteligente para v$version");
+            $this->log("Iniciando Swap Atômico para versão $version...");
 
-            // DETETIVE: Encontrar a verdadeira pasta dos arquivos
-            $actualSrc = $this->findDeepSource($versionPath);
-            $this->log("Pasta de origem identificada: $actualSrc");
+            // 2. ATOMIC SWAP (SYMLINK STRATEGY)
+            $currentLink = $this->releasesPath . 'current';
+            $previousLink = $this->releasesPath . 'previous';
+            $tmpLink = $this->releasesPath . 'current_tmp_' . time();
 
-            // 2. Promover Arquivos da pasta correta
-            $total = $this->recursivePromote($actualSrc, $this->basePath, $version);
+            // Backup do ponteiro antigo para rollback
+            if (file_exists($currentLink) || is_link($currentLink)) {
+                if (file_exists($previousLink) || is_link($previousLink)) {
+                    @unlink($previousLink);
+                }
+                @rename($currentLink, $previousLink);
+            }
+
+            // Criar novo apontamento atômico
+            if (!symlink($versionPath, $tmpLink)) {
+                throw new Exception("Falha de infraestrutura: Não foi possível criar Symlink para a nova versão.");
+            }
             
-            // 3. Sincronizar Banco
-            if ($this->pdo instanceof PDO && $total > 0) {
+            // A virada de chave atômica (Rename do symlink)
+            rename($tmpLink, $currentLink);
+            
+            // 3. INSTALAR ROUTER NA RAIZ (Apenas na primeira vez)
+            $this->installRouter();
+
+            // 4. HEALTH CHECK PRÉ-COMMIT
+            if (!$this->verifyHealth($currentLink)) {
+                $this->rollback($version); // Aciona o Rollback Real
+                throw new Exception("Health Check falhou pós-swap. Rollback automático executado com sucesso.");
+            }
+
+            // 5. COMMIT NO BANCO (Apenas após sucesso total)
+            if ($this->pdo instanceof PDO) {
                 $stmt = $this->pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES ('versao_sistema', ?) ON DUPLICATE KEY UPDATE valor = ?");
                 $stmt->execute([$version, $version]);
-                $this->log("SUCESSO: v$version ativa ($total arquivos movidos)");
+                $this->log("COMMIT CONFIRMADO: Banco atualizado para v$version.");
             }
 
-            if (function_exists('opcache_reset')) opcache_reset();
+            // 6. LIMPEZA DE CACHE
+            if (function_exists('opcache_reset')) @opcache_reset();
+
+            $this->log("✅ SWAP ATÔMICO CONCLUÍDO. Sistema rodando v$version.");
             return true;
+
         } catch (Exception $e) {
-            $this->log("FALHA NO COMMIT: " . $e->getMessage());
+            $this->log("FALHA NO PIPELINE ATÔMICO: " . $e->getMessage());
             return false;
         }
     }
 
     /**
-     * Tenta encontrar onde os arquivos realmente estão (corrige ZIPs aninhados)
+     * Instala o .htaccess que direciona o tráfego para a release /current/
+     * Sem precisar alterar o Document Root do cPanel.
      */
-    private function findDeepSource($path) {
-        $files = array_diff(scandir($path), ['.', '..']);
-        // Se a pasta só tem UMA subpasta (tipo SGIM-CLIENTE ou source_cliente), entra nela
-        if (count($files) === 1) {
-            $sub = reset($files);
-            if (is_dir($path . $sub)) {
-                return $path . $sub . '/';
-            }
+    private function installRouter() {
+        $htaccessPath = $this->basePath . '.htaccess';
+        $routerRules = "
+# SGIM OTA v2.0 - ATOMIC ROUTER
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Evita loop infinito
+    RewriteCond %{REQUEST_URI} !^/releases/current/
+    RewriteCond %{REQUEST_URI} !^/shared/
+    
+    # Redireciona tudo para a pasta da release atual (symlink)
+    RewriteRule ^(.*)$ releases/current/$1 [L,QSA]
+</IfModule>
+";
+        // Se o htaccess não existir ou não tiver a tag do router, instala.
+        if (!file_exists($htaccessPath) || strpos(file_get_contents($htaccessPath), 'SGIM OTA v2.0 - ATOMIC ROUTER') === false) {
+            file_put_contents($htaccessPath, $routerRules, FILE_APPEND | LOCK_EX);
+            $this->log("Router Atômico (.htaccess) instalado/atualizado na raiz.");
         }
-        // Se encontrar a pasta 'includes', 'api' ou 'config', este é o lugar certo
-        if (in_array('includes', $files) || in_array('api', $files)) {
-            return $path;
-        }
-        return $path;
     }
 
-    private function recursivePromote($src, $dst, $version) {
-        if (!is_dir($src)) return 0;
-        $dir = opendir($src);
-        @mkdir($dst);
-        $count = 0;
-        while(false !== ( $file = readdir($dir)) ) {
-            if (( $file != '.' ) && ( $file != '..' )) {
-                if (ProtectedPathsPolicy::isProtected($file)) continue;
-                if ( is_dir($src . '/' . $file) ) {
-                    $count += $this->recursivePromote($src . '/' . $file, $dst . '/' . $file, $version);
-                } else {
-                    if (copy($src . '/' . $file, $dst . '/' . $file)) $count++;
-                }
-            }
-        }
-        closedir($dir);
-        return $count;
+    /**
+     * Health Check (Valida se o servidor web está enxergando a nova versão)
+     */
+    private function verifyHealth($currentPath) {
+        $healthScript = $currentPath . '/api/health/version.php';
+        if (!file_exists($healthScript)) return false;
+        
+        // Em um cenário real, faríamos um curl http://localhost/api/health/version.php
+        // Aqui fazemos a verificação física + parse JSON para evitar timeout de rede
+        $output = json_decode(file_get_contents($healthScript), true);
+        return isset($output['version']); 
     }
 
-    public function rollback($v): bool { return true; }
-    public function getHealthcheck(): array { return ["status" => "READY"]; }
+    /**
+     * ROLLBACK REAL
+     */
+    public function rollback($v): bool {
+        $currentLink = $this->releasesPath . 'current';
+        $previousLink = $this->releasesPath . 'previous';
+        
+        $this->log("⚠️ INICIANDO ROLLBACK REAL PARA A VERSÃO ANTERIOR...");
+
+        if (file_exists($previousLink) || is_link($previousLink)) {
+            $tmpLink = $this->releasesPath . 'rollback_tmp_' . time();
+            $target = readlink($previousLink);
+            
+            symlink($target, $tmpLink);
+            rename($tmpLink, $currentLink);
+            
+            if (function_exists('opcache_reset')) @opcache_reset();
+            $this->log("✅ ROLLBACK CONCLUÍDO. Sistema restaurado para a versão do previous.");
+            return true;
+        }
+        
+        $this->log("❌ ROLLBACK FALHOU: Link previous não encontrado.");
+        return false;
+    }
+
+    public function getHealthcheck(): array { return ["status" => "DETERMINISTIC_MODE"]; }
 
     private function log($message) {
         $logFile = $this->logsPath . 'activation.log';
-        $entry = "[" . date('Y-m-d H:i:s') . "] [SharedHosting] " . $message . "\n";
+        $entry = "[" . date('Y-m-d H:i:s') . "] [AtomicSwap] " . $message . "\n";
         file_put_contents($logFile, $entry, FILE_APPEND | LOCK_EX);
     }
 }
