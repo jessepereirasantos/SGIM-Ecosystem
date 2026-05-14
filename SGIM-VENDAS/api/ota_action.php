@@ -50,11 +50,11 @@ switch ($acao) {
             if (!is_dir($packagesDir))
                 mkdir($packagesDir, 0755, true);
 
-            // DETERMINISMO v2.0: Origem única, imutável e sem fallback heurístico.
-            $sourceDir = dirname(dirname(__DIR__)) . '/SGIM-CLIENTE/';
+            // DETERMINISMO v2.0: A origem oficial do pacote é a pasta interna source_cliente/
+            $sourceDir = dirname(__DIR__) . '/source_cliente/';
             
             if (!is_dir($sourceDir)) {
-                throw new Exception("ALERTA ARQUITETURAL: Pasta base SGIM-CLIENTE não encontrada no caminho obrigatório. Fallbacks abolidos.");
+                throw new Exception("ALERTA ARQUITETURAL: Pasta base source_cliente/ não encontrada no Master. Faça o upload dos arquivos para esta pasta antes de gerar a release.");
             }
             
             // VALIDAÇÃO PRÉ-VOO (CONTRATO RÍGIDO DE ESTRUTURA)
@@ -286,9 +286,9 @@ switch ($acao) {
     case 'gerar_instalador':
         try {
             // DETERMINISMO v2.0: Origem única
-            $sourceDir = dirname(dirname(__DIR__)) . '/SGIM-CLIENTE/';
+            $sourceDir = dirname(__DIR__) . '/source_cliente/';
             if (!is_dir($sourceDir)) {
-                throw new Exception("Diretório SGIM-CLIENTE não encontrado.");
+                throw new Exception("Diretório source_cliente não encontrado.");
             }
             $zipFile = dirname(__DIR__) . '/downloads/sgim_master.zip';
 
