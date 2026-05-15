@@ -29,9 +29,13 @@ class OtaDownloadEngine {
         try {
             $this->log("Iniciando download da versão $version de $url");
 
-            // 1. Abrir arquivo para escrita em Stream (Economia de RAM)
-            $fp = fopen($tmpFile, 'w+');
-            if (!$fp) throw new Exception("Não foi possível criar arquivo temporário no workspace.");
+            // 1. Garantir diretórios (Self-Healing)
+            if (!file_exists($this->workspacePath)) @mkdir($this->workspacePath, 0755, true);
+            if (!file_exists($this->downloadsPath)) @mkdir($this->downloadsPath, 0755, true);
+
+            // 2. Abrir arquivo para escrita em Stream (Economia de RAM)
+            $fp = @fopen($tmpFile, 'w+');
+            if (!$fp) throw new Exception("Não foi possível criar arquivo temporário em: $tmpFile. Verifique permissões.");
 
             $ch = curl_init($url);
             curl_setopt($ch, CURLOPT_TIMEOUT, 300); // 5 minutos de limite
