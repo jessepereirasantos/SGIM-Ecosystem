@@ -1,55 +1,51 @@
 <?php
 /**
- * SGIM CLIENT - GLOBAL HEADER v1.1.54 (FULL MENU RESTORED)
+ * SGIM CLIENT - GLOBAL HEADER v1.1.62 (GOLDEN IMAGE)
  */
 session_start();
 
-// 1. TEMA E VERSÃO (DINÂMICOS)
+// 1. FALLBACK DE TEMA (Garante que o design nunca quebre)
 $theme = [
-    'logo_url' => '',
     'cor_brand' => '#ffc880',
     'cor_brand_dark' => '#d4a35d',
     'cor_brand_light' => '#ffd9a8',
-    'modo_padrao' => 'dark',
     'darkbg' => '#050505',
     'darkcard' => '#121212',
     'darkborder' => '#1e1e1e',
-    'lightbg' => '#F3F4F6',
-    'lightcard' => '#FFFFFF',
-    'lightborder' => '#E5E7EB'
+    'modo_padrao' => 'dark'
 ];
 
-$systemVersion = '0.0.0'; // Default seguro para forçar atualização se o banco falhar
+$systemVersion = '1.1.62';
 
+// 2. CONEXÃO COM O BANCO (Silenciosa e Robusta)
 try {
-    require_once __DIR__ . '/../src/autoload.php';
-    if (isset($pdo) && $pdo) {
-        $themeModel = new ThemeModel($pdo);
-        $dbTheme = $themeModel->getTheme();
-        if ($dbTheme)
-            $theme = array_merge($theme, $dbTheme);
-
-        $sVer = $pdo->query("SELECT valor FROM configuracoes WHERE chave = 'versao_sistema'");
-        $vVer = $sVer ? $sVer->fetchColumn() : false;
-        if ($vVer)
-            $systemVersion = $vVer;
+    $dbPath = __DIR__ . '/../config/database.php';
+    if (file_exists($dbPath)) {
+        include $dbPath;
+        if (isset($pdo)) {
+            $sVer = $pdo->query("SELECT valor FROM configuracoes WHERE chave = 'versao_sistema'");
+            $vVer = $sVer ? $sVer->fetchColumn() : false;
+            if ($vVer) $systemVersion = $vVer;
+            
+            // Tenta carregar tema do banco
+            require_once __DIR__ . '/../src/autoload.php';
+            $themeModel = new ThemeModel($pdo);
+            $dbTheme = $themeModel->getTheme();
+            if ($dbTheme) $theme = array_merge($theme, $dbTheme);
+        }
     }
-} catch (Throwable $e) {
-}
+} catch (Throwable $e) {}
 
-if (!defined('SYSTEM_VERSION'))
-    define('SYSTEM_VERSION', $systemVersion);
+if (!defined('SYSTEM_VERSION')) define('SYSTEM_VERSION', $systemVersion);
 $theme_json = json_encode($theme);
 
-// 2. LOGICA DE ACESSO (RBAC)
+// 3. LOGICA DE ACESSO (RBAC)
 $access = null;
 $user_context = ['nome' => 'Usuário', 'cargo' => 'Nível Total', 'avatar' => 'person'];
-
-if (isset($_SESSION['user_id'])) {
+if (isset($_SESSION['user_id']) && isset($pdo)) {
     try {
         require_once __DIR__ . '/../src/Auth/AccessManager.php';
         $access = new \SGIM\Auth\AccessManager($pdo, $_SESSION['user_id']);
-
         $stmtUser = $pdo->prepare("SELECT u.nome, c.nome as cargo_nome FROM usuarios u LEFT JOIN cargos c ON u.cargo_id = c.id WHERE u.id = ?");
         $stmtUser->execute([$_SESSION['user_id']]);
         $uData = $stmtUser->fetch(PDO::FETCH_ASSOC);
@@ -57,8 +53,7 @@ if (isset($_SESSION['user_id'])) {
             $user_context['nome'] = $uData['nome'];
             $user_context['cargo'] = $uData['cargo_nome'] ?? 'Administrador Total';
         }
-    } catch (Throwable $e) {
-    }
+    } catch (Throwable $e) {}
 }
 
 $unreadCount = 0;
@@ -71,14 +66,13 @@ $unreadCount = 0;
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title><?= $page_title ?? 'SGIM - Dashboard' ?></title>
-    <link href="https://fonts.googleapis.com" rel="preconnect" />
-    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-        rel="stylesheet" />
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    
+    <!-- CSS CRÍTICO (Carregamento Prioritário) -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+
     <script>
         tailwind.config = {
             darkMode: 'class',
