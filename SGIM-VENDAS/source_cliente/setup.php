@@ -268,7 +268,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             
             // 5. Automação Master-Key (Sempre pré-ativado agora no novo fluxo)
-            $stmtLock = $pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES ('license_key', ?), ('license_status', 'active'), ('versao_sistema', '1.1.41') ON DUPLICATE KEY UPDATE valor = VALUES(valor)");
+            $stmtLock = $pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES ('license_key', ?), ('license_status', 'active'), ('versao_sistema', '1.1.54') ON DUPLICATE KEY UPDATE valor = VALUES(valor)");
             $stmtLock->execute([$pre_activated_key]);
             
             // Redirecionamento automático para a dashboard do cliente instalada

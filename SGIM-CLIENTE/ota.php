@@ -1,6 +1,6 @@
 <?php
 /**
- * SGIM CLIENT - OTA POLLING v1.1.41
+ * SGIM CLIENT - OTA POLLING v1.1.54
  */
 require_once __DIR__ . '/config/database.php';
 header('Content-Type: application/json; charset=utf-8');
@@ -12,7 +12,7 @@ function fetchRemoteJson($url) {
     $opts = [
         "http" => [
             "method" => "GET",
-            "header" => "User-Agent: SGIM-Client-v1.1.41\r\n",
+            "header" => "User-Agent: SGIM-Client-v1.1.54\r\n",
             "timeout" => 10
         ]
     ];
@@ -32,7 +32,7 @@ function fetchRemoteJson($url) {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'SGIM-Client-v1.1.41');
+        curl_setopt($ch, CURLOPT_USERAGENT, 'SGIM-Client-v1.1.54');
         $body = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $err = curl_error($ch);
@@ -52,7 +52,7 @@ function fetchRemoteJson($url) {
 
 $telemetry = [
     'timestamp' => date('c'),
-    'versao_local' => '1.1.41',
+    'versao_local' => '1.1.54',
     'versao_remota' => '',
     'has_update' => false
 ];
@@ -64,7 +64,7 @@ try {
     $licenseKey = $stmtLic->fetchColumn();
 
     $stmtVersao = $pdo->query("SELECT valor FROM configuracoes WHERE chave = 'versao_sistema'");
-    $currentVersion = $stmtVersao->fetchColumn() ?: '1.1.41';
+    $currentVersion = $stmtVersao->fetchColumn() ?: '1.1.54';
     $telemetry['versao_local'] = $currentVersion;
 
     // URL do Master (Ajuste se necessário)

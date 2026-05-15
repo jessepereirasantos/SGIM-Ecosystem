@@ -1,6 +1,6 @@
 <?php
 /**
- * SGIM CLIENT - GLOBAL HEADER v1.1.41 (FULL MENU RESTORED)
+ * SGIM CLIENT - GLOBAL HEADER v1.1.54 (FULL MENU RESTORED)
  */
 session_start();
 
@@ -19,7 +19,7 @@ $theme = [
     'lightborder' => '#E5E7EB'
 ];
 
-$systemVersion = '1.1.41';
+$systemVersion = '1.1.54';
 
 try {
     require_once __DIR__ . '/../src/autoload.php';

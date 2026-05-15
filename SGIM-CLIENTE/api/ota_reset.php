@@ -1,6 +1,6 @@
 <?php
 /**
- * SGIM OTA - HARD RESET TOOL v1.1.41
+ * SGIM OTA - HARD RESET TOOL v1.1.54
  * Limpa pastas temporárias e logs para destravar o sistema.
  */
 header('Content-Type: text/plain; charset=utf-8');

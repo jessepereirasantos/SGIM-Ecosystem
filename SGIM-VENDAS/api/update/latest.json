@@ -1,7 +1,7 @@
 {
-  "version": "1.1.42",
-  "url": "file:///C:/Users/Silvana%20Barbosa/Desktop/SGIM/SGIM-VENDAS/api/update/packages/sgim_release_1.1.42.zip",
-  "sha256": "6d6611dd277503bc5afa48b3eaa4ce884fcbe1bbd8d0ecc019c33497d12267df",
-  "notes": "VALIDAÇÃO REAL - Resilient Driver Test",
+  "version": "1.1.54",
+  "url": "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.54.zip",
+  "sha256": "",
+  "notes": "v1.1.54: Estabilização de Roteamento e Motor OTA (Senior Architect)",
   "date": "2026-05-15"
 }

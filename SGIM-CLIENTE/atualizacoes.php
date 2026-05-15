@@ -1,6 +1,6 @@
 <?php
 /**
- * SGIM CLIENT - ATUALIZAÇÕES v1.1.41
+ * SGIM CLIENT - ATUALIZAÇÕES v1.1.54
  */
 require_once __DIR__ . '/includes/header.php';
 
@@ -8,7 +8,7 @@ $page_title   = 'SGIM - Central de Atualizações';
 $current_page = 'atualizacoes';
 
 // ── Versão local (banco de dados) ────────────────────────────────────────────
-$currentVersion = '1.1.41';
+$currentVersion = '1.1.54';
 try {
     if ($pdo) {
         $s = $pdo->query("SELECT valor FROM configuracoes WHERE chave = 'versao_sistema'");

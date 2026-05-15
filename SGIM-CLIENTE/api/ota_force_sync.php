@@ -1,6 +1,6 @@
 <?php
 /**
- * SGIM OTA - FORCE DB SYNC v1.1.41
+ * SGIM OTA - FORCE DB SYNC v1.1.54
  * Sincroniza a versão do sistema no banco de dados.
  */
 header('Content-Type: application/json; charset=utf-8');

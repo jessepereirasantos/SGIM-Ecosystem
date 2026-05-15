@@ -1,6 +1,6 @@
 <?php
 /**
- * SGIM CLIENT - API OTA EXTRACT v1.1.41
+ * SGIM CLIENT - API OTA EXTRACT v1.1.54
  */
 session_start();
 header('Content-Type: application/json; charset=utf-8');

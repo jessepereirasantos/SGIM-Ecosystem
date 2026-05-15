@@ -1,6 +1,6 @@
 <?php
 /**
- * SGIM CLIENT - OTA DIRECT INSTALLER v1.1.41 (DEFINITIVE EDITION)
+ * SGIM CLIENT - OTA DIRECT INSTALLER v1.1.54 (DEFINITIVE EDITION)
  * Engenharia Baseada em Evidência: Smart Flatten & Root Overwrite Promotion.
  */
 session_start();
@@ -32,7 +32,7 @@ require_once __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'confi
 
 // --- 1. CONFIGURAÇÃO ---
 $masterUrl = 'https://escolateologicaeloha.com.br';
-define('OTA_VERSION', '1.1.41');
+define('OTA_VERSION', '1.1.54');
 define('OTA_LOG_FILE', __DIR__ . '/../shared/system/logs/installer.log');
 
 function otaLog($msg)
@@ -43,7 +43,7 @@ function otaLog($msg)
 
 // 2. BUSCAR MANIFESTO (Detectar Versão Alvo)
 $manifestPath = __DIR__ . '/../manifest.json';
-$versaoAlvo = '1.1.41'; // Fallback
+$versaoAlvo = '1.1.54'; // Fallback
 if (file_exists($manifestPath)) {
     $manifest = json_decode(file_get_contents($manifestPath), true);
     if (isset($manifest['version'])) {
@@ -75,7 +75,7 @@ function PromoteFiles($src, $dst, $versaoAlvo)
     while (false !== ($file = readdir($dir))) {
         if (($file != '.') && ($file != '..')) {
             if (is_dir($src . '/' . $file)) {
-                // Se a pasta for a própria versão (ex: 1.1.41/), entramos nela mas mantemos o destino na raiz
+                // Se a pasta for a própria versão (ex: 1.1.54/), entramos nela mas mantemos o destino na raiz
                 if ($file === $versaoAlvo) {
                     $count += PromoteFiles($src . '/' . $file, $dst, $versaoAlvo);
                 } else {
