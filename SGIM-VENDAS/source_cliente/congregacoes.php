@@ -1,7 +1,7 @@
 <?php
 ob_start();
 session_start();
-require_once 'config/database.php';
+require_once __DIR__ . '/config/database.php';
 
 // Verificação de Autenticação e Conexão de Banco
 if (!isset($pdo) || $pdo === null) {
@@ -17,7 +17,7 @@ if (!isset($_SESSION['user_id'])) {
 $page_title = 'SGIM - Congregações';
 $current_page = 'congregacoes';
 
-require_once 'includes/header.php';
+require_once __DIR__ . '/includes/header.php';
 ?>
 
     <div class="flex flex-col gap-1 mb-8">
@@ -54,7 +54,7 @@ require_once 'includes/header.php';
                 </thead>
                 <tbody class="divide-y divide-darkborder">
                 <?php
-                require_once 'config/database.php';
+                // Conexão já carregada no topo
                 $stmt = $pdo->query("SELECT * FROM congregacoes ORDER BY nome ASC");
                 $congregacoes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -121,5 +121,5 @@ function confirmarExclusao(id) {
 </script>
 
 <?php
-require_once 'includes/footer.php';
+require_once __DIR__ . '/includes/footer.php';
 ?>

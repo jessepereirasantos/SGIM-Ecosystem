@@ -237,7 +237,7 @@ $unreadCount = 0;
         </div>
 
         <nav class="flex-1 px-4 space-y-6 overflow-y-auto py-4">
-            <!-- GRUPO: PRINCIPAL -->
+            <!-- GRUPO: PAINEL PRINCIPAL -->
             <div>
                 <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Painel</p>
                 <div class="space-y-1">
@@ -245,20 +245,13 @@ $unreadCount = 0;
                         <span class="material-symbols-outlined">dashboard</span>
                         <span>Início</span>
                     </a>
-                    
                     <a href="atualizacoes.php" class="sidebar-item <?= ($current_page == 'atualizacoes') ? 'active' : '' ?>">
                         <span class="material-symbols-outlined">system_update</span>
                         <span>Atualizações</span>
                     </a>
-
                     <a href="novidades.php" class="sidebar-item <?= ($current_page == 'novidades') ? 'active' : '' ?>">
                         <span class="material-symbols-outlined">campaign</span>
-                        <div class="flex justify-between items-center w-full">
-                            <span>Comunicados</span>
-                            <?php if (isset($unreadCount) && $unreadCount > 0): ?>
-                                <span class="bg-brand text-black text-[9px] font-black px-1.5 py-0.5 rounded-full"><?= $unreadCount ?></span>
-                            <?php endif; ?>
-                        </div>
+                        <span>Comunicados</span>
                     </a>
                 </div>
             </div>

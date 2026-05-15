@@ -1,7 +1,7 @@
 <?php
 ob_start();
 session_start();
-require_once 'config/database.php';
+require_once __DIR__ . '/config/database.php';
 
 // Verificação de Autenticação e Conexão de Banco
 if (!isset($pdo) || $pdo === null) {
@@ -42,7 +42,7 @@ $current_page = 'membros';
 
 $filter_status = $_GET['status'] ?? 'Ativo';
 
-require_once 'includes/header.php';
+require_once __DIR__ . '/includes/header.php';
 
 if ($access && !$access->can('membros', 'visualizar')) {
     echo "<script>alert('Acesso Negado: Você não tem permissão para ver Membros.'); window.location.href='dashboard.php';</script>";
@@ -194,5 +194,5 @@ if ($access && !$access->can('membros', 'visualizar')) {
     </div>
 
 <?php
-require_once 'includes/footer.php';
+require_once __DIR__ . '/includes/footer.php';
 ?>

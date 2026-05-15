@@ -8,7 +8,7 @@ if (file_exists($bridge) && strpos(__DIR__, 'releases') === false) {
     exit;
 }
 
-require_once 'config/database.php';
+require_once __DIR__ . '/config/database.php';
 
 // 1. Defesas de Runtime (Evita Erro 500 se helpers faltarem)
 if (!function_exists('ensureColumnExists')) {
@@ -39,7 +39,7 @@ $current_page = 'dashboard';
 
 // BLINDAGEM VISUAL: Garantir que Tailwind carregue mesmo se o header.php falhar no banco
 try {
-    require_once 'includes/header.php';
+    require_once __DIR__ . '/includes/header.php';
 } catch (Throwable $e) {
     // Fallback visual mínimo se o header falhar
     echo "<div style='background:#121212; border-bottom:1px solid #1e1e1e; padding:20px; color:#ffc880; font-family:sans-serif;'>
