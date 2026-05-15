@@ -1,6 +1,13 @@
 <?php
-ob_start();
 session_start();
+
+// AUTO-PONTE: Se existir uma versão mais nova ativa pelo OTA, desvia para ela
+$bridge = __DIR__ . '/releases/current/' . basename(__FILE__);
+if (file_exists($bridge) && strpos(__DIR__, 'releases') === false) {
+    require_once $bridge;
+    exit;
+}
+
 require_once 'config/database.php';
 
 // 1. Defesas de Runtime (Evita Erro 500 se helpers faltarem)

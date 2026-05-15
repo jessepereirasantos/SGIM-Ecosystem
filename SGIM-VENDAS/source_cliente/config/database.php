@@ -38,15 +38,26 @@ if (!$pdo) {
 function ensureColumnExists($pdo, $table, $column, $definition) {
     try {
         if (!($pdo instanceof PDO)) return false;
-        $check = $pdo->query("SHOW COLUMNS FROM `$table` LIKE '$column'");
-        if ($check->rowCount() == 0) {
+        $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        
+        if ($driver === 'sqlite') {
+            $check = $pdo->query("PRAGMA table_info(`$table`)");
+            $columns = $check->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($columns as $col) {
+                if ($col['name'] === $column) return true;
+            }
             $pdo->exec("ALTER TABLE `$table` ADD COLUMN $column $definition");
-            return true;
+        } else {
+            $check = $pdo->query("SHOW COLUMNS FROM `$table` LIKE '$column'");
+            if ($check->rowCount() == 0) {
+                $pdo->exec("ALTER TABLE `$table` ADD COLUMN $column $definition");
+            }
         }
-    } catch (Exception $e) {
-        error_log("Erro ao verificar/adicionar coluna $column na tabela $table: " . $e->getMessage());
+        return true;
+    } catch (Throwable $e) {
+        error_log("Erro de Migração: " . $e->getMessage());
+        return false;
     }
-    return false;
 }
 
 // Flags globais para o sistema
