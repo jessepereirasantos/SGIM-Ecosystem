@@ -58,33 +58,21 @@ class SharedHostingDriver implements ActivationDriverInterface {
                 }
             }
 
-            // 3. SWAP ATÔMICO (PROMOÇÃO FÍSICA - ESTRATÉGIA DE IMPACTO)
-            $this->log("[AtomicSwap] Iniciando PROMOÇÃO FÍSICA para a raiz operacional...");
+            // 3. SWAP ATÔMICO (Symlink - Estratégia de Alta Performance)
+            $currentLink = $this->releasesPath . 'current';
+            $this->log("[AtomicSwap] Vinculando Symlink 'current' para v$version...");
             
-            try {
-                $this->physicalPromotion($versionPath, $this->basePath);
-                $this->log("[AtomicSwap] Promoção física concluída com sucesso.");
-            } catch (Exception $e) {
-                $this->log("[AtomicSwap] FALHA NA PROMOÇÃO: " . $e->getMessage());
-                throw $e;
+            if (file_exists($currentLink) || is_link($currentLink)) {
+                @unlink($currentLink);
+            }
+            
+            if (!@symlink($versionPath, $currentLink)) {
+                // Fallback: Se o symlink falhar, usamos o Router (.htaccess)
+                $this->log("[AtomicSwap] Symlink falhou. Usando Router .htaccess como fallback...");
+                $this->updateRouter($version);
             }
 
-            // 4. LIMPEZA DO ROUTER (Opcional, mas limpa vestígios antigos)
-            $this->cleanupRouter();
-
-            // 5. HEALTH CHECK
-            if (!$this->verifyHealth($this->basePath)) {
-                throw new Exception("Health Check falhou na raiz operacional após promoção.");
-            }
-
-            // 6. COMMIT NO BANCO
-            if ($this->pdo instanceof PDO) {
-                // Sincronizar versão no banco (Garante que a Dashboard leia o valor correto)
-                $stmt = $this->pdo->prepare("REPLACE INTO configuracoes (chave, valor) VALUES ('versao_sistema', ?)");
-                $stmt->execute([$version]);
-            }
-
-            // 7. LIMPEZA DE CACHE
+            // 4. LIMPEZA DE CACHE
             if (function_exists('opcache_reset')) @opcache_reset();
 
             $this->log("✅ ATIVAÇÃO CONCLUÍDA: v$version ativa.");
@@ -99,52 +87,22 @@ class SharedHostingDriver implements ActivationDriverInterface {
     /**
      * Atualiza o Router (.htaccess) para apontar para a versão correta
      */
-    /**
-     * Promove os arquivos da release para a raiz operacional
-     */
-    private function physicalPromotion($source, $dest) {
-        $files = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($source, \RecursiveDirectoryIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::SELF_FIRST
-        );
-
-        foreach ($files as $file) {
-            $relativePath = str_replace('\\', '/', substr($file->getRealPath(), strlen(realpath($source)) + 1));
-            
-            // Ignora caminhos protegidos
-            if ($this->isPathProtected($relativePath)) {
-                continue;
-            }
-
-            $target = $dest . $relativePath;
-
-            if ($file->isDir()) {
-                if (!is_dir($target)) @mkdir($target, 0755, true);
-            } else {
-                if (!is_dir(dirname($target))) @mkdir(dirname($target), 0755, true);
-                if (!@copy($file->getRealPath(), $target)) {
-                    throw new Exception("Falha ao promover arquivo: $relativePath");
-                }
-            }
-        }
-    }
-
-    private function isPathProtected($path) {
-        $protected = ['shared', 'releases', 'db_config.php', 'config/db_config.php', '.htaccess'];
-        foreach ($protected as $p) {
-            if (strpos($path, $p) === 0) return true;
-        }
-        return false;
-    }
-
-    private function cleanupRouter() {
+    private function updateRouter($version) {
         $htaccessPath = $this->basePath . '.htaccess';
-        if (file_exists($htaccessPath)) {
-            $content = file_get_contents($htaccessPath);
-            // Remove as regras do OTA v3.0 e anteriores
-            $content = preg_replace('/# SGIM OTA v[23]\.0 - .*?<\/IfModule>/s', '', $content);
-            file_put_contents($htaccessPath, trim($content), LOCK_EX);
-        }
+        $targetFolder = "releases/v" . $version;
+        
+        $routerRules = "
+# SGIM OTA v2.0 - DYNAMIC ROUTER
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_URI} !^/shared/
+    RewriteCond %{REQUEST_URI} !^/releases/
+    RewriteRule ^(.*)$ $targetFolder/$1 [L,QSA]
+</IfModule>
+";
+        $content = file_exists($htaccessPath) ? file_get_contents($htaccessPath) : "";
+        $content = preg_replace('/# SGIM OTA v[23]\.0 - .*?<\/IfModule>/s', '', $content);
+        file_put_contents($htaccessPath, trim($content) . "\n" . $routerRules, LOCK_EX);
     }
 
     private function recursiveRmdir($dir) {
