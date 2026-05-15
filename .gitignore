@@ -28,4 +28,6 @@ SGIM-VENDAS/api/update/packages/
 # Resgate e Tokens
 .rescue_token.php
 SGIM-CLIENTE/.rescue_token.php
-SGIM-VENDAS/source_cliente/.rescue_token.php
+# Pastas de transição OTA
+releases/
+SGIM-CLIENTE/releases/

@@ -58,17 +58,24 @@ class SharedHostingDriver implements ActivationDriverInterface {
                 }
             }
 
-            // 3. ESTRATÉGIA DE SWAP (Router Dinâmico)
-            // Priorizamos o Router pois ele é o mais resiliente em hospedagens compartilhadas.
-            $this->log("[AtomicSwap] Ativando Router dinâmico para v$version...");
-            $this->updateRouter($version);
-            
-            // 4. ESTRATÉGIA DE SWAP (Symlink - Opcional/Alta Performance)
+            // 3. SWAP ATÔMICO (Symlink - Estratégia Principal)
             $currentLink = $this->releasesPath . 'current';
+            $this->log("[AtomicSwap] Criando Symlink 'current' para v$version...");
+            
             if (strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN') {
-                @unlink($currentLink);
-                @symlink($versionPath, $currentLink);
+                if (file_exists($currentLink) || is_link($currentLink)) {
+                    @unlink($currentLink);
+                }
+                if (!@symlink($versionPath, $currentLink)) {
+                    $this->log("[AtomicSwap] Symlink falhou. Usando Fallback de Router direto...");
+                }
             }
+
+            // 4. ATUALIZAÇÃO DO ROUTER (Ponto de Entrada)
+            // O Router deve apontar para 'releases/current' se o symlink funcionar,
+            // ou diretamente para a pasta da versão como fallback.
+            $routerTarget = is_link($currentLink) ? "releases/current" : "releases/v" . $version;
+            $this->updateRouter($routerTarget);
 
             // 5. HEALTH CHECK
             if (!$this->verifyHealth($versionPath)) {
@@ -97,20 +104,28 @@ class SharedHostingDriver implements ActivationDriverInterface {
     /**
      * Atualiza o Router (.htaccess) para apontar para a versão correta
      */
-    private function updateRouter($version) {
+    private function updateRouter($targetFolder) {
         $htaccessPath = $this->basePath . '.htaccess';
-        $targetFolder = "releases/v" . $version;
+        
+        // Determina o RewriteBase automaticamente (para subpastas)
+        $requestUri = $_SERVER['REQUEST_URI'] ?? '';
+        $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+        $baseDir = str_replace('\\', '/', dirname($scriptName));
+        if ($baseDir === '/') $baseDir = '';
         
         $routerRules = "
-# SGIM OTA v2.0 - DYNAMIC ROUTER
+# SGIM OTA v3.0 - ATOMIC ROUTER
 <IfModule mod_rewrite.c>
+    Options +FollowSymLinks
     RewriteEngine On
+    RewriteBase $baseDir/
     
     # Exceções (não redireciona pastas de sistema ou assets compartilhados)
-    RewriteCond %{REQUEST_URI} !^/shared/
-    RewriteCond %{REQUEST_URI} !^/releases/
+    RewriteCond %{REQUEST_URI} !^$baseDir/shared/
+    RewriteCond %{REQUEST_URI} !^$baseDir/releases/
+    RewriteCond %{REQUEST_URI} !^$baseDir/api/
     
-    # Redireciona tudo para a pasta da release ativa
+    # Redireciona tudo para a pasta ativa
     RewriteRule ^(.*)$ $targetFolder/$1 [L,QSA]
 </IfModule>
 ";
