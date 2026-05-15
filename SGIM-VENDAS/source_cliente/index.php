@@ -1,3 +1,4 @@
+<?php
 /**
  * SGIM GATEWAY - BOOTSTRAP BRIDGE
  */
@@ -15,7 +16,7 @@ if (file_exists('src/bootstrap.php')) {
     require_once 'src/bootstrap.php';
     
     if (!isset($_SESSION['user_id'])) {
-        $route = $_GET['route'] ?? '';
+        $route = isset($_GET['route']) ? $_GET['route'] : '';
         if ($route !== 'login') {
             header('Location: login.php');
             exit;

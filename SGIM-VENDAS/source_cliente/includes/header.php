@@ -246,7 +246,10 @@ $unreadCount = 0;
                         <span>Início</span>
                     </a>
                     
-                    <!-- Aba de versão removida definitivamente -->
+                    <a href="atualizacoes.php" class="sidebar-item <?= ($current_page == 'atualizacoes') ? 'active' : '' ?>">
+                        <span class="material-symbols-outlined">system_update</span>
+                        <span>Atualizações</span>
+                    </a>
 
                     <a href="novidades.php" class="sidebar-item <?= ($current_page == 'novidades') ? 'active' : '' ?>">
                         <span class="material-symbols-outlined">campaign</span>
