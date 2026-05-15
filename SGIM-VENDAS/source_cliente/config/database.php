@@ -6,11 +6,14 @@ if (session_status() === PHP_SESSION_NONE) {
 
 $pdo = null;
 
-// Tenta localizar a configuração de banco de dados em locais padrão da HostGator
+// Tenta localizar a configuração de banco de dados (Busca recursiva para cima)
 $possible_configs = [
     __DIR__ . '/db_config.php',
     dirname(__DIR__) . '/db_config.php',
-    __DIR__ . '/../db_config.php'
+    dirname(dirname(__DIR__)) . '/db_config.php',
+    dirname(dirname(dirname(__DIR__))) . '/db_config.php',
+    __DIR__ . '/../db_config.php',
+    '/home1/hg9a3205/public_html/sgim-iade/db_config.php' // Fallback absoluto para HostGator
 ];
 
 foreach ($possible_configs as $config_path) {
