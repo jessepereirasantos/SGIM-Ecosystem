@@ -58,64 +58,31 @@ class SharedHostingDriver implements ActivationDriverInterface {
                 }
             }
 
-            // 3. ESTRATÉGIA DE SWAP (Symlink com Fallback para Rename)
-            $currentLink = $this->releasesPath . 'current';
-            $previousLink = $this->releasesPath . 'previous';
+            // 3. ESTRATÉGIA DE SWAP (Router Dinâmico)
+            // Priorizamos o Router pois ele é o mais resiliente em hospedagens compartilhadas.
+            $this->log("[AtomicSwap] Ativando Router dinâmico para v$version...");
+            $this->updateRouter($version);
             
-            // Tenta Symlink primeiro (Ideal para Linux/cPanel)
-            $useSymlink = true;
-            if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-                $useSymlink = false; // Windows raramente permite symlink via PHP sem privilégios
+            // 4. ESTRATÉGIA DE SWAP (Symlink - Opcional/Alta Performance)
+            $currentLink = $this->releasesPath . 'current';
+            if (strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN') {
+                @unlink($currentLink);
+                @symlink($versionPath, $currentLink);
             }
 
-            if ($useSymlink) {
-                $this->log("Tentando Swap via Symlink...");
-                $tmpLink = $this->releasesPath . 'current_tmp_' . time();
-                
-                if (@symlink($versionPath, $tmpLink)) {
-                    if (file_exists($currentLink) || is_link($currentLink)) {
-                        if (file_exists($previousLink) || is_link($previousLink)) @unlink($previousLink);
-                        @rename($currentLink, $previousLink);
-                    }
-                    if (@rename($tmpLink, $currentLink)) {
-                        $this->log("Swap via Symlink concluído.");
-                    } else {
-                        throw new Exception("Falha ao renomear Symlink temporário.");
-                    }
-                } else {
-                    $this->log("Symlink falhou ou não suportado. Usando estratégia de RENAME...");
-                    $useSymlink = false;
-                }
-            }
-
-            // Fallback: Rename (Copiar não, mover!)
-            if (!$useSymlink) {
-                $this->log("Executando Swap via Inclusão Direta/Router...");
-                // No modo sem symlink, o Router (.htaccess) deve apontar diretamente para a pasta da versão
-                // ou mantemos o 'current' como um diretório real.
-                if (file_exists($currentLink) && !is_link($currentLink)) {
-                    if (file_exists($previousLink)) $this->recursiveRmdir($previousLink);
-                    @rename($currentLink, $previousLink);
-                }
-                
-                // Em vez de symlink, movemos a pasta inteira para 'current'
-                // Mas queremos manter a versão original em /releases/v1.x.x/
-                // Então vamos copiar? Não, copy é lento. 
-                // Vamos usar o Router para apontar para a pasta da versão!
-                $this->updateRouter($version);
-            }
-
-            // 4. HEALTH CHECK
+            // 5. HEALTH CHECK
             if (!$this->verifyHealth($versionPath)) {
                 throw new Exception("Health Check falhou para v$version.");
             }
 
-            // 5. COMMIT NO BANCO
+            // 6. COMMIT NO BANCO
             if ($this->pdo instanceof PDO) {
+                // Sincronizar versão no banco (Garante que a Dashboard leia o valor correto)
                 $stmt = $this->pdo->prepare("REPLACE INTO configuracoes (chave, valor) VALUES ('versao_sistema', ?)");
                 $stmt->execute([$version]);
             }
 
+            // 7. LIMPEZA DE CACHE
             if (function_exists('opcache_reset')) @opcache_reset();
 
             $this->log("✅ ATIVAÇÃO CONCLUÍDA: v$version ativa.");
