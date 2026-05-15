@@ -1,141 +1,64 @@
 <?php
 /**
- * SGIM CLIENT - OTA DIRECT INSTALLER v1.1.54 (DEFINITIVE EDITION)
- * Engenharia Baseada em Evidência: Smart Flatten & Root Overwrite Promotion.
+ * SGIM CLIENT - API OTA INSTALL v1.1.42 (DIAGNOSTIC EDITION)
  */
-session_start();
-header('Content-Type: application/json; charset=utf-8');
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 
-if (!isset($_SESSION['user_id'])) {
-    echo json_encode(['status' => 'error', 'message' => 'Não autorizado.']);
-    exit;
-}
-
-// ✅ AJUSTES DE AMBIENTE
-set_time_limit(600);
-ini_set('memory_limit', '512M');
-ob_start();
-
-// Reset de cache para garantir que o motor novo seja lido
-if (function_exists('opcache_reset')) {
-    opcache_reset();
-}
-
-if (!class_exists('ZipArchive')) {
-    echo json_encode(['status' => 'error', 'message' => 'Extensão ZipArchive necessária.']);
-    exit;
-}
-
-require_once __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'database.php';
-
-// --- 1. CONFIGURAÇÃO ---
-$masterUrl = 'https://escolateologicaeloha.com.br';
-define('OTA_VERSION', '1.1.54');
-define('OTA_LOG_FILE', __DIR__ . '/../shared/system/logs/installer.log');
-
-function otaLog($msg)
-{
-    $date = date('Y-m-d H:i:s');
-    file_put_contents(OTA_LOG_FILE, "[$date] $msg" . PHP_EOL, FILE_APPEND);
-}
-
-// 2. BUSCAR MANIFESTO (Detectar Versão Alvo)
-$manifestPath = __DIR__ . '/../manifest.json';
-$versaoAlvo = '1.1.54'; // Fallback
-if (file_exists($manifestPath)) {
-    $manifest = json_decode(file_get_contents($manifestPath), true);
-    if (isset($manifest['version'])) {
-        $versaoAlvo = $manifest['version'];
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error !== NULL && ($error['type'] === E_ERROR || $error['type'] === E_PARSE)) {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['status' => 'error', 'message' => 'INSTALL CRITICAL: ' . $error['message']]);
     }
-}
+});
 
-otaLog("=== INÍCIO OTA v" . OTA_VERSION . " (Alvo: $versaoAlvo) ===");
+session_start();
+header('Content-Type: application/json; charset=utf-8');
 
-// 3. CAMINHOS CRÍTICOS
-$installRoot = realpath(__DIR__ . '/../') . DIRECTORY_SEPARATOR;
-$extractPath = $installRoot . 'shared/system/workspace/extract_' . $versaoAlvo . DIRECTORY_SEPARATOR;
-
-if (!is_dir($extractPath)) {
-    otaLog("ERRO: Pasta de extração não encontrada: $extractPath");
-    echo json_encode(['status' => 'error', 'message' => 'Arquivos de atualização não encontrados.']);
-    exit;
-}
-
-// 4. PROMOÇÃO REAL (FORÇAR SOBREPOSIÇÃO NA RAIZ)
-function PromoteFiles($src, $dst, $versaoAlvo)
-{
-    if (!is_dir($src))
-        return 0;
-    $dir = opendir($src);
-    @mkdir($dst);
-    $count = 0;
-
-    while (false !== ($file = readdir($dir))) {
-        if (($file != '.') && ($file != '..')) {
-            if (is_dir($src . '/' . $file)) {
-                // Se a pasta for a própria versão (ex: 1.1.54/), entramos nela mas mantemos o destino na raiz
-                if ($file === $versaoAlvo) {
-                    $count += PromoteFiles($src . '/' . $file, $dst, $versaoAlvo);
-                } else {
-                    $count += PromoteFiles($src . '/' . $file, $dst . '/' . $file, $versaoAlvo);
-                }
-            } else {
-                if (copy($src . '/' . $file, $dst . '/' . $file)) {
-                    $count++;
-                }
-            }
-        }
-    }
-    closedir($dir);
-    return $count;
-}
-
-$totalCopiados = PromoteFiles($extractPath, $installRoot, $versaoAlvo);
-otaLog("PROMOÇÃO CONCLUÍDA: $totalCopiados arquivos movidos para a raiz.");
-
-// 5. ATUALIZAR BANCO DE DADOS
 try {
-    if (isset($pdo)) {
-        $stmt = $pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES ('versao_sistema', ?) ON DUPLICATE KEY UPDATE valor = ?");
-        $stmt->execute([$versaoAlvo, $versaoAlvo]);
-        otaLog("BANCO ATUALIZADO: v$versaoAlvo");
+    require_once __DIR__ . '/../config/database.php';
+    require_once __DIR__ . '/../src/autoload.php';
+    
+    $sysDir = __DIR__ . '/../includes/system/';
+    $basePath = realpath(__DIR__ . '/../') . '/';
+
+    // Inclusões Manuais de Segurança
+    require_once $sysDir . 'ActivationDriverInterface.php';
+    require_once $sysDir . 'OtaOrchestrator.php';
+    require_once $sysDir . 'drivers/SharedHostingDriver.php';
+
+    // 1. Identificação Determinística da Versão (Fim da heurística de rsort)
+    $stateFile = $basePath . 'shared/system/state/current_state.json';
+    if (!file_exists($stateFile)) {
+        throw new Exception("ESTADO CORROMPIDO: Arquivo de estado transacional ausente. O pipeline atômico exige um download validado prévio.");
     }
-} catch (Exception $e) {
-    otaLog("ERRO BANCO: " . $e->getMessage());
-}
+    
+    $state = json_decode(file_get_contents($stateFile), true);
+    $versaoAlvo = $state['extraction']['version'] ?? null;
 
-// 6. LIMPEZA DO WORKSPACE
-function rrmdir($dir)
-{
-    if (is_dir($dir)) {
-        $objects = scandir($dir);
-        foreach ($objects as $object) {
-            if ($object != "." && $object != "..") {
-                if (is_dir($dir . DIRECTORY_SEPARATOR . $object) && !is_link($dir . "/" . $object))
-                    rrmdir($dir . DIRECTORY_SEPARATOR . $object);
-                else
-                    unlink($dir . DIRECTORY_SEPARATOR . $object);
-            }
-        }
-        rmdir($dir);
+    if (!$versaoAlvo) {
+        throw new Exception("ESTADO INVÁLIDO: Versão alvo não encontrada no registro de transação.");
     }
+
+    // 2. Validação de existência física antes de chamar o orquestrador
+    $releasesDir = $basePath . 'releases/';
+    $versionPath = $releasesDir . 'v' . $versaoAlvo . '/';
+    if (!is_dir($versionPath)) {
+        throw new Exception("Pasta v$versaoAlvo não encontrada em: $versionPath");
+    }
+
+    $masterUrl = 'https://escolateologicaeloha.com.br';
+    $orchestrator = new \SGIM\OTA\OtaOrchestrator($pdo, $basePath, $masterUrl);
+    
+    if ($orchestrator->commitUpdate($versaoAlvo)) {
+        echo json_encode(['status' => 'success', 'message' => 'Sistema atualizado para v' . $versaoAlvo]);
+    } else {
+        $logFile = $basePath . 'shared/system/logs/activation.log';
+        $lastLog = file_exists($logFile) ? trim(implode(' | ', array_slice(file($logFile), -3))) : 'Log interno indisponível';
+        echo json_encode(['status' => 'error', 'message' => 'ERRO ATÔMICO: ' . $lastLog]);
+    }
+
+} catch (Throwable $e) {
+    echo json_encode(['status' => 'error', 'message' => 'INSTALL EXCEPTION: ' . $e->getMessage()]);
 }
-rrmdir($extractPath);
-otaLog("WORKSPACE LIMPO.");
-
-// Finalizar Log
-otaLog("=== OTA v" . OTA_VERSION . " FINALIZADO COM SUCESSO ===");
-
-// 7. RESET OPCache FINAL
-if (function_exists('opcache_reset')) {
-    opcache_reset();
-}
-
-echo json_encode([
-    'status' => 'success',
-    'message' => 'Sistema atualizado para v' . $versaoAlvo . ' com sucesso!',
-    'version' => $versaoAlvo
-]);
-exit;

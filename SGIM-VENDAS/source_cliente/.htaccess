@@ -2,3 +2,15 @@
 # Desativa o motor de reescrita para esta pasta, garantindo que arquivos físicos 
 # como executar_update.php sejam acessíveis sem interferência do site principal.
 RewriteEngine Off
+
+# SGIM OTA v2.0 - DYNAMIC ROUTER
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Exceções (não redireciona pastas de sistema ou assets compartilhados)
+    RewriteCond %{REQUEST_URI} !^/shared/
+    RewriteCond %{REQUEST_URI} !^/releases/
+    
+    # Redireciona tudo para a pasta da release ativa
+    RewriteRule ^(.*)$ releases/v1.1.42/$1 [L,QSA]
+</IfModule>
