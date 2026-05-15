@@ -57,8 +57,12 @@ class OtaOrchestrator {
             $this->log("Iniciando Ciclo Integrado (Driver: " . $driverName . ")");
 
             // 1. Discovery (Manifest)
-            $manifest = $this->discovery();
-            $this->updateState('discovery', ["last_manifest" => $manifest]);
+            try {
+                $manifest = $this->discovery();
+                $this->updateState('discovery', ["last_manifest" => $manifest]);
+            } catch (Exception $e) {
+                throw new Exception("DISCOVERY STAGE FAIL: " . $e->getMessage());
+            }
             
             // 2. Download & Verify SHA256
             $downloadOk = $this->downloadEngine->downloadPackage($manifest['url'], $manifest['sha256'], $manifest['version']);
@@ -71,14 +75,17 @@ class OtaOrchestrator {
             $this->updateState('download', ["version" => $manifest['version'], "status" => "SUCCESS"]);
 
             // 3. Extraction & Structural Validation
-
-            $versionPath = $this->basePath . "releases/v" . $manifest['version'] . "/";
-            $this->extractionEngine->extract($manifest['version'], $this->basePath . "shared/system/downloads/release_{$manifest['version']}.zip");
-            
-            // Persistir o manifesto na pasta recém-criada para que o commitUpdate possa ler depois!
-            file_put_contents($versionPath . 'release_manifest.json', json_encode($manifest, JSON_PRETTY_PRINT));
-            
-            $this->updateState('extraction', ["version" => $manifest['version'], "status" => "SUCCESS"]);
+            try {
+                $versionPath = $this->basePath . "releases/v" . $manifest['version'] . "/";
+                $this->extractionEngine->extract($manifest['version'], $this->basePath . "shared/system/downloads/release_{$manifest['version']}.zip");
+                
+                // Persistir o manifesto na pasta recém-criada para que o commitUpdate possa ler depois!
+                file_put_contents($versionPath . 'release_manifest.json', json_encode($manifest, JSON_PRETTY_PRINT));
+                
+                $this->updateState('extraction', ["version" => $manifest['version'], "status" => "SUCCESS"]);
+            } catch (Exception $e) {
+                throw new Exception("EXTRACTION STAGE FAIL: " . $e->getMessage());
+            }
 
             // 4. Driver Staging (Backup + Impact Report)
             if ($this->activationDriver) {
