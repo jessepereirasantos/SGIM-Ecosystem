@@ -8,7 +8,7 @@ $page_title   = 'SGIM - Central de Atualizações';
 $current_page = 'atualizacoes';
 
 // ── Versão local (banco de dados) ────────────────────────────────────────────
-$currentVersion = '1.1.54';
+$currentVersion = '0.0.0';
 try {
     if ($pdo) {
         $s = $pdo->query("SELECT valor FROM configuracoes WHERE chave = 'versao_sistema'");
@@ -146,57 +146,5 @@ $masterUrl = 'https://escolateologicaeloha.com.br';
         </div>
     </div>
 </div>
-
-<script>
-document.addEventListener('alpine:init', () => {
-    Alpine.data('otaManager', () => ({
-        atualizando: false,
-        progresso: 0,
-        etapaAtual: 'Preparando ambiente...',
-        
-        async iniciarAtualizacao() {
-            if (!confirm('Deseja iniciar a atualização para v' + this.otaVersion + ' agora?')) return;
-            
-            this.atualizando = true;
-            this.progresso = 10;
-            
-            try {
-                // ETAPA 1: DOWNLOAD
-                this.etapaAtual = 'Baixando pacote v' + this.otaVersion + '...';
-                let resDown = await fetch('api/ota_download.php');
-                let dataDown = await resDown.json();
-                if (dataDown.status !== 'success') throw new Error(dataDown.message);
-                
-                this.progresso = 40;
-                
-                // ETAPA 2: EXTRAÇÃO
-                this.etapaAtual = 'Extraindo arquivos e validando integridade...';
-                let resExt = await fetch('api/ota_extract.php');
-                let dataExt = await resExt.json();
-                if (dataExt.status !== 'success') throw new Error(dataExt.message);
-                
-                this.progresso = 70;
-                
-                // ETAPA 3: INSTALAÇÃO (PROMOÇÃO)
-                this.etapaAtual = 'Aplicando mudanças na raiz operacional...';
-                let resInst = await fetch('api/ota_install.php');
-                let dataInst = await resInst.json();
-                if (dataInst.status !== 'success') throw new Error(dataInst.message);
-                
-                this.progresso = 100;
-                this.etapaAtual = 'Finalizado! Reiniciando sistema...';
-                
-                setTimeout(() => {
-                    location.href = 'dashboard.php?updated=1';
-                }, 2000);
-                
-            } catch (e) {
-                this.atualizando = false;
-                alert('FALHA NA ATUALIZAÇÃO: ' + e.message);
-            }
-        }
-    }));
-});
-</script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

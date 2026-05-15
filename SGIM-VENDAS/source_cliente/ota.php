@@ -5,10 +5,9 @@
 require_once __DIR__ . '/config/database.php';
 header('Content-Type: application/json; charset=utf-8');
 
-function fetchRemoteJson($url)
-{
+function fetchRemoteJson($url) {
     $result = ['body' => null, 'http_code' => 0, 'error' => null];
-
+    
     // Tentativa 1: file_get_contents
     $opts = [
         "http" => [
@@ -19,7 +18,7 @@ function fetchRemoteJson($url)
     ];
     $context = stream_context_create($opts);
     $body = @file_get_contents($url, false, $context);
-
+    
     if ($body !== false) {
         $result['body'] = $body;
         $result['http_code'] = 200;
@@ -38,7 +37,7 @@ function fetchRemoteJson($url)
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $err = curl_error($ch);
         curl_close($ch);
-
+        
         if ($body !== false) {
             $result['body'] = $body;
             $result['http_code'] = $httpCode;
@@ -59,14 +58,13 @@ $telemetry = [
 ];
 
 try {
-    if (!$pdo)
-        throw new Exception("Conexão falhou.");
+    if (!$pdo) throw new Exception("Conexão falhou.");
 
     $stmtLic = $pdo->query("SELECT valor FROM configuracoes WHERE chave = 'license_key'");
     $licenseKey = $stmtLic->fetchColumn();
 
     $stmtVersao = $pdo->query("SELECT valor FROM configuracoes WHERE chave = 'versao_sistema'");
-    $currentVersion = $stmtVersao->fetchColumn() ?: '1.1.54';
+    $currentVersion = $stmtVersao->fetchColumn() ?: '0.0.0';
     $telemetry['versao_local'] = $currentVersion;
 
     // URL do Master (Ajuste se necessário)
@@ -74,14 +72,14 @@ try {
     $checkUrl = $masterUrl . "/api/update/check.php?license=" . urlencode($licenseKey) . "&v=" . urlencode($currentVersion);
 
     $fetch = fetchRemoteJson($checkUrl);
-
+    
     if ($fetch['http_code'] === 200 && $fetch['body']) {
         $data = json_decode($fetch['body'], true);
         if (isset($data['status']) && $data['status'] === 'success') {
             $telemetry['has_update'] = $data['has_update'];
             $telemetry['latest_version'] = $data['latest_version'];
             $telemetry['notes'] = $data['notes'];
-
+            
             echo json_encode([
                 'status' => 'success',
                 'has_update' => $data['has_update'],
@@ -91,7 +89,7 @@ try {
             exit;
         }
     }
-
+    
     echo json_encode(['status' => 'success', 'has_update' => false]);
 } catch (Exception $e) {
     echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);

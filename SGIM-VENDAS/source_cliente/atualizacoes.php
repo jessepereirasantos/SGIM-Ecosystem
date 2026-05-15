@@ -4,20 +4,18 @@
  */
 require_once __DIR__ . '/includes/header.php';
 
-$page_title = 'SGIM - Central de Atualizações';
+$page_title   = 'SGIM - Central de Atualizações';
 $current_page = 'atualizacoes';
 
 // ── Versão local (banco de dados) ────────────────────────────────────────────
-$currentVersion = '1.1.54';
+$currentVersion = '0.0.0';
 try {
     if ($pdo) {
         $s = $pdo->query("SELECT valor FROM configuracoes WHERE chave = 'versao_sistema'");
         $v = $s ? $s->fetchColumn() : false;
-        if ($v)
-            $currentVersion = $v;
+        if ($v) $currentVersion = $v;
     }
-} catch (Throwable $e) {
-}
+} catch (Throwable $e) {}
 
 // ── Master URL ────────────────────────────────────────────────────────────────
 $masterUrl = 'https://escolateologicaeloha.com.br';
@@ -39,8 +37,7 @@ $masterUrl = 'https://escolateologicaeloha.com.br';
             <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">STATUS:</p>
             <div class="flex items-center gap-2 text-yellow-500 font-bold text-sm">
                 <span class="relative flex h-3 w-3">
-                    <span
-                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
                     <span class="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
                 </span>
                 ATUALIZAÇÃO DISPONÍVEL
@@ -51,17 +48,13 @@ $masterUrl = 'https://escolateologicaeloha.com.br';
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <!-- Card: Versão Atual -->
         <div class="bg-darkcard border border-darkborder rounded-3xl p-8 overflow-hidden relative group">
-            <div
-                class="absolute -right-10 -top-10 size-40 bg-brand/5 rounded-full blur-3xl group-hover:bg-brand/10 transition-all">
-            </div>
+            <div class="absolute -right-10 -top-10 size-40 bg-brand/5 rounded-full blur-3xl group-hover:bg-brand/10 transition-all"></div>
             <div class="relative z-10">
                 <div class="flex items-center justify-between mb-8">
                     <h3 class="text-gray-400 font-bold text-sm uppercase tracking-widest">Versões Instaladas</h3>
-                    <span
-                        class="px-3 py-1 bg-brand/10 text-brand text-[10px] font-black rounded-full border border-brand/20">NOVA
-                        VERSÃO DETECTADA</span>
+                    <span class="px-3 py-1 bg-brand/10 text-brand text-[10px] font-black rounded-full border border-brand/20">NOVA VERSÃO DETECTADA</span>
                 </div>
-
+                
                 <div class="flex items-center justify-between gap-12">
                     <div class="space-y-1">
                         <p class="text-[10px] text-gray-500 font-bold uppercase">Versão Local (Instalada)</p>
@@ -79,17 +72,13 @@ $masterUrl = 'https://escolateologicaeloha.com.br';
         <!-- Card: Notas da Versão -->
         <div class="bg-darkcard border border-darkborder rounded-3xl p-8 flex flex-col justify-between">
             <div>
-                <h3 class="text-gray-400 font-bold text-sm uppercase tracking-widest mb-6">Novidades da Versão <span
-                        x-text="otaVersion"></span></h3>
+                <h3 class="text-gray-400 font-bold text-sm uppercase tracking-widest mb-6">Novidades da Versão <span x-text="otaVersion"></span></h3>
                 <div class="p-4 bg-[#050505] border border-darkborder rounded-2xl min-h-[100px]">
-                    <p class="text-sm text-gray-300 leading-relaxed italic"
-                        x-text="otaNotes || 'Consultando melhorias...'"></p>
+                    <p class="text-sm text-gray-300 leading-relaxed italic" x-text="otaNotes || 'Consultando melhorias...'"></p>
                 </div>
             </div>
             <div class="mt-4">
-                <p class="text-[10px] text-gray-500 italic">Pacote: <span class="truncate opacity-50"
-                        x-text="'<?= $masterUrl ?>/api/update/packages/SGIM-CLIENTE-v' + otaVersion + '.zip'"></span>
-                </p>
+                <p class="text-[10px] text-gray-500 italic">Pacote: <span class="truncate opacity-50" x-text="'<?= $masterUrl ?>/api/update/packages/SGIM-CLIENTE-v' + otaVersion + '.zip'"></span></p>
             </div>
         </div>
     </div>
@@ -99,20 +88,19 @@ $masterUrl = 'https://escolateologicaeloha.com.br';
         <div class="absolute inset-0 bg-gradient-to-b from-brand/5 to-transparent opacity-50"></div>
         <div class="relative z-10 max-w-2xl mx-auto space-y-6">
             <h2 class="text-3xl font-black text-white">Instalar Atualização</h2>
-            <p class="text-gray-400 text-sm">O sistema será atualizado de <span
-                    class="text-white font-bold"><?= $currentVersion ?></span> para <span class="text-brand font-bold"
-                    x-text="otaVersion"></span> automaticamente. Seus dados e configurações serão preservados durante o
-                processo.</p>
-
+            <p class="text-gray-400 text-sm">O sistema será atualizado de <span class="text-white font-bold"><?= $currentVersion ?></span> para <span class="text-brand font-bold" x-text="otaVersion"></span> automaticamente. Seus dados e configurações serão preservados durante o processo.</p>
+            
             <div class="pt-6 flex flex-col items-center gap-4">
-                <button @click="iniciarAtualizacao()" :disabled="atualizando"
-                    class="group relative inline-flex items-center gap-3 px-10 py-5 bg-brand text-black font-black rounded-2xl hover:scale-105 transition-all shadow-2xl shadow-brand/20 disabled:opacity-50 disabled:scale-100">
+                <button 
+                    @click="iniciarAtualizacao()"
+                    :disabled="atualizando"
+                    class="group relative inline-flex items-center gap-3 px-10 py-5 bg-brand text-black font-black rounded-2xl hover:scale-105 transition-all shadow-2xl shadow-brand/20 disabled:opacity-50 disabled:scale-100"
+                >
                     <span class="material-symbols-outlined" :class="atualizando ? 'animate-spin' : ''">
                         <template x-if="!atualizando">system_update</template>
                         <template x-if="atualizando">sync</template>
                     </span>
-                    <span class="uppercase tracking-widest text-sm"
-                        x-text="atualizando ? 'Processando...' : 'ATUALIZAR AGORA'"></span>
+                    <span class="uppercase tracking-widest text-sm" x-text="atualizando ? 'Processando...' : 'ATUALIZAR AGORA'"></span>
                 </button>
                 <p class="text-[10px] text-gray-600 font-bold uppercase tracking-widest">Tempo estimado: ~2 minutos</p>
             </div>
@@ -120,16 +108,18 @@ $masterUrl = 'https://escolateologicaeloha.com.br';
     </div>
 
     <!-- Overlay de Progresso (Modal) -->
-    <div x-show="atualizando" x-transition class="fixed inset-0 z-[100] flex items-center justify-center p-6">
+    <div 
+        x-show="atualizando" 
+        x-transition
+        class="fixed inset-0 z-[100] flex items-center justify-center p-6"
+    >
         <div class="absolute inset-0 bg-[#050505]/95 backdrop-blur-xl"></div>
-
-        <div
-            class="relative z-10 w-full max-w-md bg-darkcard border border-darkborder rounded-3xl p-10 shadow-3xl text-center space-y-8">
+        
+        <div class="relative z-10 w-full max-w-md bg-darkcard border border-darkborder rounded-3xl p-10 shadow-3xl text-center space-y-8">
             <div class="flex flex-col items-center gap-4">
                 <div class="size-20 bg-brand/10 rounded-full flex items-center justify-center text-brand relative">
                     <span class="material-symbols-outlined text-4xl animate-spin">sync</span>
-                    <div class="absolute inset-0 border-4 border-brand border-t-transparent rounded-full animate-spin">
-                    </div>
+                    <div class="absolute inset-0 border-4 border-brand border-t-transparent rounded-full animate-spin"></div>
                 </div>
                 <h3 class="text-xl font-bold text-white">Atualizando Sistema</h3>
                 <p class="text-sm text-gray-400" x-text="etapaAtual"></p>
@@ -138,8 +128,10 @@ $masterUrl = 'https://escolateologicaeloha.com.br';
             <!-- Barra de Progresso Visual -->
             <div class="space-y-2">
                 <div class="h-3 w-full bg-[#050505] rounded-full border border-darkborder overflow-hidden">
-                    <div class="h-full bg-brand shadow-[0_0_15px_rgba(255,200,128,0.5)] transition-all duration-500"
-                        :style="'width: ' + progresso + '%'"></div>
+                    <div 
+                        class="h-full bg-brand shadow-[0_0_15px_rgba(255,200,128,0.5)] transition-all duration-500" 
+                        :style="'width: ' + progresso + '%'"
+                    ></div>
                 </div>
                 <div class="flex justify-between text-[10px] font-black text-gray-500 uppercase tracking-widest">
                     <span>Início</span>
@@ -154,57 +146,5 @@ $masterUrl = 'https://escolateologicaeloha.com.br';
         </div>
     </div>
 </div>
-
-<script>
-    document.addEventListener('alpine:init', () => {
-        Alpine.data('otaManager', () => ({
-            atualizando: false,
-            progresso: 0,
-            etapaAtual: 'Preparando ambiente...',
-
-            async iniciarAtualizacao() {
-                if (!confirm('Deseja iniciar a atualização para v' + this.otaVersion + ' agora?')) return;
-
-                this.atualizando = true;
-                this.progresso = 10;
-
-                try {
-                    // ETAPA 1: DOWNLOAD
-                    this.etapaAtual = 'Baixando pacote v' + this.otaVersion + '...';
-                    let resDown = await fetch('api/ota_download.php');
-                    let dataDown = await resDown.json();
-                    if (dataDown.status !== 'success') throw new Error(dataDown.message);
-
-                    this.progresso = 40;
-
-                    // ETAPA 2: EXTRAÇÃO
-                    this.etapaAtual = 'Extraindo arquivos e validando integridade...';
-                    let resExt = await fetch('api/ota_extract.php');
-                    let dataExt = await resExt.json();
-                    if (dataExt.status !== 'success') throw new Error(dataExt.message);
-
-                    this.progresso = 70;
-
-                    // ETAPA 3: INSTALAÇÃO (PROMOÇÃO)
-                    this.etapaAtual = 'Aplicando mudanças na raiz operacional...';
-                    let resInst = await fetch('api/ota_install.php');
-                    let dataInst = await resInst.json();
-                    if (dataInst.status !== 'success') throw new Error(dataInst.message);
-
-                    this.progresso = 100;
-                    this.etapaAtual = 'Finalizado! Reiniciando sistema...';
-
-                    setTimeout(() => {
-                        location.href = 'dashboard.php?updated=1';
-                    }, 2000);
-
-                } catch (e) {
-                    this.atualizando = false;
-                    alert('FALHA NA ATUALIZAÇÃO: ' + e.message);
-                }
-            }
-        }));
-    });
-</script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

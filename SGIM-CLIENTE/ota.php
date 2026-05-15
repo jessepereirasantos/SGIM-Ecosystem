@@ -64,7 +64,7 @@ try {
     $licenseKey = $stmtLic->fetchColumn();
 
     $stmtVersao = $pdo->query("SELECT valor FROM configuracoes WHERE chave = 'versao_sistema'");
-    $currentVersion = $stmtVersao->fetchColumn() ?: '1.1.54';
+    $currentVersion = $stmtVersao->fetchColumn() ?: '0.0.0';
     $telemetry['versao_local'] = $currentVersion;
 
     // URL do Master (Ajuste se necessário)

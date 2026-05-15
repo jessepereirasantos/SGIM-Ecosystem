@@ -19,7 +19,7 @@ $theme = [
     'lightborder' => '#E5E7EB'
 ];
 
-$systemVersion = '1.1.54';
+$systemVersion = '0.0.0'; // Default seguro para forçar atualização se o banco falhar
 
 try {
     require_once __DIR__ . '/../src/autoload.php';
@@ -112,8 +112,54 @@ $unreadCount = 0;
                         if (data.status === 'success' && data.has_update) {
                             this.otaAvailable = true;
                             this.otaVersion = data.latest_version;
+                            this.otaNotes = data.notes;
                         }
                     } catch (e) {}
+                }
+            }));
+
+            Alpine.data('otaManager', () => ({
+                atualizando: false,
+                progresso: 0,
+                etapaAtual: 'Preparando ambiente...',
+                otaVersion: '',
+                otaNotes: '',
+                
+                async init() {
+                    let res = await fetch('ota.php');
+                    let data = await res.json();
+                    if (data.status === 'success') {
+                        this.otaVersion = data.latest_version;
+                        this.otaNotes = data.notes;
+                    }
+                },
+
+                async iniciarAtualizacao() {
+                    if (!confirm('Deseja iniciar a atualização para v' + this.otaVersion + ' agora?')) return;
+                    this.atualizando = true;
+                    this.progresso = 10;
+                    try {
+                        this.etapaAtual = 'Baixando pacote v' + this.otaVersion + '...';
+                        let resDown = await fetch('api/ota_download.php');
+                        let dataDown = await resDown.json();
+                        if (dataDown.status !== 'success') throw new Error(dataDown.message);
+                        this.progresso = 40;
+                        this.etapaAtual = 'Extraindo arquivos e validando integridade...';
+                        let resExt = await fetch('api/ota_extract.php');
+                        let dataExt = await resExt.json();
+                        if (dataExt.status !== 'success') throw new Error(dataExt.message);
+                        this.progresso = 70;
+                        this.etapaAtual = 'Aplicando mudanças na raiz operacional...';
+                        let resInst = await fetch('api/ota_install.php');
+                        let dataInst = await resInst.json();
+                        if (dataInst.status !== 'success') throw new Error(dataInst.message);
+                        this.progresso = 100;
+                        this.etapaAtual = 'Finalizado! Reiniciando sistema...';
+                        setTimeout(() => { location.href = 'dashboard.php?updated=1'; }, 2000);
+                    } catch (e) {
+                        this.atualizando = false;
+                        alert('FALHA NA ATUALIZAÇÃO: ' + e.message);
+                    }
                 }
             }));
         });
