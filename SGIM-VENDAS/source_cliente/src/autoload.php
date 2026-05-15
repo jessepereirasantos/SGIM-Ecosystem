@@ -25,10 +25,3 @@ spl_autoload_register(function ($class) {
     }
 });
 
-// Inicialização Global do Sistema de Acesso (ERP Ministerial)
-if (session_status() === PHP_SESSION_NONE) session_start();
-$access = null;
-if (isset($_SESSION['user_id']) && isset($pdo)) {
-    $access = new \SGIM\Auth\AccessManager($pdo, $_SESSION['user_id']);
-}
-
