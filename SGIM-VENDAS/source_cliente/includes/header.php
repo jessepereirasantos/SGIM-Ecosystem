@@ -188,9 +188,7 @@ $unreadCount = 0;
                 <div class="space-y-1">
                     <a href="dashboard.php" class="sidebar-item <?= ($current_page == 'dashboard') ? 'active' : '' ?>"><span class="material-symbols-outlined">dashboard</span><span>Início</span></a>
                     
-                    <div class="px-4 py-2 mx-2 bg-brand/10 border border-brand/20 rounded-lg mb-2 text-center">
-                        <p class="text-[10px] text-brand font-black uppercase tracking-widest">SGIM v<?= SYSTEM_VERSION ?></p>
-                    </div>
+                    <!-- Aba de versão removida para teste de veracidade -->
 
                     <a href="novidades.php" class="sidebar-item <?= ($current_page == 'novidades') ? 'active' : '' ?>">
                         <span class="material-symbols-outlined">campaign</span>
