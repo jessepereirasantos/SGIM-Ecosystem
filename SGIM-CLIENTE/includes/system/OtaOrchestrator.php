@@ -55,6 +55,11 @@ class OtaOrchestrator {
         try {
             $driverName = $this->activationDriver ? get_class($this->activationDriver) : 'NENHUM';
             $this->log("Iniciando Ciclo Integrado (Driver: " . $driverName . ")");
+            
+            // Garantir diretórios base (Self-Healing)
+            foreach (['shared/system/logs', 'shared/system/state', 'shared/system/downloads', 'releases'] as $dir) {
+                if (!file_exists($this->basePath . $dir)) @mkdir($this->basePath . $dir, 0755, true);
+            }
 
             // 1. Discovery (Manifest)
             try {
