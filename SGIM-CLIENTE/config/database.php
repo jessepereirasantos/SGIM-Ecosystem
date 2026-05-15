@@ -6,7 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 $pdo = null;
 
-// Tenta localizar a configuração de banco de dados (Busca recursiva para cima)
+// Tenta localizar a configuração de banco de dados (Busca recursiva robusta)
 $possible_configs = [
     __DIR__ . '/db_config.php',
     dirname(__DIR__) . '/db_config.php',
