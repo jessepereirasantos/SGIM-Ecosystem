@@ -3,8 +3,11 @@ ob_start();
 session_start();
 require_once 'config/database.php';
 
-// 1. Controle de Acesso Baseado no Estado (db.php agora apenas define flags)
-// Se não estiver configurado E não estiver instalado, manda para o setup
+// 1. Defesas de Runtime (Evita Erro 500 se helpers faltarem)
+if (!function_exists('ensureColumnExists')) {
+    function ensureColumnExists($pdo, $table, $column, $definition) { return true; }
+}
+
 if (!$is_configured && !$is_installed_local) {
     if (ob_get_length()) ob_end_clean();
     header('Location: setup.php');

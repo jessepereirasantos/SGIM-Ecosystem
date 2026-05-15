@@ -27,14 +27,19 @@ try {
             $vVer = $sVer ? $sVer->fetchColumn() : false;
             if ($vVer) $systemVersion = $vVer;
             
-            // Tenta carregar tema do banco
+            // 3. CARREGAMENTO DE MÓDULOS (Seguro)
             $autoPath = __DIR__ . '/../src/autoload.php';
             if (file_exists($autoPath)) {
                 include_once $autoPath;
-                if (class_exists('ThemeModel')) {
-                    $themeModel = new ThemeModel($pdo);
-                    $dbTheme = $themeModel->getTheme();
-                    if ($dbTheme) $theme = array_merge($theme, $dbTheme);
+                
+                // Gerenciador de Acesso
+                if (class_exists('SGIM\Auth\AccessManager')) {
+                    $access = new \SGIM\Auth\AccessManager($pdo, $_SESSION['user_id'] ?? 0);
+                }
+
+                // Motor OTA (Updater)
+                if (class_exists('App\Updater\UpdaterCore')) {
+                    $updater = new \App\Updater\UpdaterCore($pdo, __DIR__ . '/../');
                 }
             }
         }

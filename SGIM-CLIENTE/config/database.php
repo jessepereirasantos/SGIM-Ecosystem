@@ -51,4 +51,5 @@ function ensureColumnExists($pdo, $table, $column, $definition) {
 
 // Flags globais para o sistema
 $is_configured = ($pdo instanceof PDO);
+$is_installed_local = $is_configured; // Assume instalado se estiver configurado
 ?>
