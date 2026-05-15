@@ -67,9 +67,10 @@ class SharedHostingDriver implements ActivationDriverInterface {
             }
             
             if (!@symlink($versionPath, $currentLink)) {
-                // Fallback: Se o symlink falhar, usamos o Router (.htaccess)
-                $this->log("[AtomicSwap] Symlink falhou. Usando Router .htaccess como fallback...");
-                $this->updateRouter($version);
+                // Fallback: Se o symlink falhar, criamos uma ponte física (Pasta com index.php)
+                $this->log("[AtomicSwap] Symlink falhou. Criando ponte física em /releases/current/...");
+                if (!is_dir($currentLink)) @mkdir($currentLink, 0755, true);
+                file_put_contents($currentLink . '/index.php', "<?php require_once '$versionPath/index.php';");
             }
 
             // 4. LIMPEZA DE CACHE
@@ -87,24 +88,6 @@ class SharedHostingDriver implements ActivationDriverInterface {
     /**
      * Atualiza o Router (.htaccess) para apontar para a versão correta
      */
-    private function updateRouter($version) {
-        $htaccessPath = $this->basePath . '.htaccess';
-        $targetFolder = "releases/v" . $version;
-        
-        $routerRules = "
-# SGIM OTA v2.0 - DYNAMIC ROUTER
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-    RewriteCond %{REQUEST_URI} !^/shared/
-    RewriteCond %{REQUEST_URI} !^/releases/
-    RewriteRule ^(.*)$ $targetFolder/$1 [L,QSA]
-</IfModule>
-";
-        $content = file_exists($htaccessPath) ? file_get_contents($htaccessPath) : "";
-        $content = preg_replace('/# SGIM OTA v[23]\.0 - .*?<\/IfModule>/s', '', $content);
-        file_put_contents($htaccessPath, trim($content) . "\n" . $routerRules, LOCK_EX);
-    }
-
     private function recursiveRmdir($dir) {
         if (!is_dir($dir)) return;
         $files = array_diff(scandir($dir), array('.', '..'));
