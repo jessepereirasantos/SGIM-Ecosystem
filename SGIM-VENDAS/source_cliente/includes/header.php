@@ -28,10 +28,15 @@ try {
             if ($vVer) $systemVersion = $vVer;
             
             // Tenta carregar tema do banco
-            require_once __DIR__ . '/../src/autoload.php';
-            $themeModel = new ThemeModel($pdo);
-            $dbTheme = $themeModel->getTheme();
-            if ($dbTheme) $theme = array_merge($theme, $dbTheme);
+            $autoPath = __DIR__ . '/../src/autoload.php';
+            if (file_exists($autoPath)) {
+                include_once $autoPath;
+                if (class_exists('ThemeModel')) {
+                    $themeModel = new ThemeModel($pdo);
+                    $dbTheme = $themeModel->getTheme();
+                    if ($dbTheme) $theme = array_merge($theme, $dbTheme);
+                }
+            }
         }
     }
 } catch (Throwable $e) {}
