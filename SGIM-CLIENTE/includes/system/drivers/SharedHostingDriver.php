@@ -35,90 +35,137 @@ class SharedHostingDriver implements ActivationDriverInterface {
             $version = $manifest['version'] ?? null;
             if (!$version) throw new Exception("Manifesto sem versão definida.");
             
-            // 1. VALIDAÇÃO RÍGIDA E DETERMINÍSTICA (FIM DO BULLDOZER)
+            // 1. VALIDAÇÃO RÍGIDA E DETERMINÍSTICA
             $versionPath = rtrim($versionPath, '/') . '/';
             $vitalFiles = ['index.php', 'api/health/version.php'];
             foreach ($vitalFiles as $file) {
                 if (!file_exists($versionPath . $file)) {
-                    throw new Exception("Validação de Estrutura Falhou: Arquivo obrigatório $file não encontrado em $versionPath. Rejeição sumária.");
+                    throw new Exception("Estrutura Inválida: Arquivo obrigatório $file não encontrado em $versionPath.");
                 }
             }
 
-            $this->log("Iniciando Swap Atômico para versão $version...");
+            $this->log("Iniciando Promoção para versão $version...");
 
-            // 2. ATOMIC SWAP (SYMLINK STRATEGY)
+            // 2. MIGRAR CONFIGURAÇÕES VITAIS
+            $configSource = $this->basePath . 'config/database.php';
+            $configTarget = $versionPath . 'config/database.php';
+            if (file_exists($configSource)) {
+                if (!file_exists(dirname($configTarget))) @mkdir(dirname($configTarget), 0755, true);
+                if (!@copy($configSource, $configTarget)) {
+                    $this->log("AVISO: Falha ao copiar database.php. Tentando continuar...");
+                } else {
+                    $this->log("Configurações (database.php) injetadas na v$version.");
+                }
+            }
+
+            // 3. ESTRATÉGIA DE SWAP (Symlink com Fallback para Rename)
             $currentLink = $this->releasesPath . 'current';
             $previousLink = $this->releasesPath . 'previous';
-            $tmpLink = $this->releasesPath . 'current_tmp_' . time();
+            
+            // Tenta Symlink primeiro (Ideal para Linux/cPanel)
+            $useSymlink = true;
+            if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+                $useSymlink = false; // Windows raramente permite symlink via PHP sem privilégios
+            }
 
-            // Backup do ponteiro antigo para rollback
-            if (file_exists($currentLink) || is_link($currentLink)) {
-                if (file_exists($previousLink) || is_link($previousLink)) {
-                    @unlink($previousLink);
+            if ($useSymlink) {
+                $this->log("Tentando Swap via Symlink...");
+                $tmpLink = $this->releasesPath . 'current_tmp_' . time();
+                
+                if (@symlink($versionPath, $tmpLink)) {
+                    if (file_exists($currentLink) || is_link($currentLink)) {
+                        if (file_exists($previousLink) || is_link($previousLink)) @unlink($previousLink);
+                        @rename($currentLink, $previousLink);
+                    }
+                    if (@rename($tmpLink, $currentLink)) {
+                        $this->log("Swap via Symlink concluído.");
+                    } else {
+                        throw new Exception("Falha ao renomear Symlink temporário.");
+                    }
+                } else {
+                    $this->log("Symlink falhou ou não suportado. Usando estratégia de RENAME...");
+                    $useSymlink = false;
                 }
-                @rename($currentLink, $previousLink);
             }
 
-            // Criar novo apontamento atômico
-            if (!symlink($versionPath, $tmpLink)) {
-                throw new Exception("Falha de infraestrutura: Não foi possível criar Symlink para a nova versão.");
+            // Fallback: Rename (Copiar não, mover!)
+            if (!$useSymlink) {
+                $this->log("Executando Swap via Inclusão Direta/Router...");
+                // No modo sem symlink, o Router (.htaccess) deve apontar diretamente para a pasta da versão
+                // ou mantemos o 'current' como um diretório real.
+                if (file_exists($currentLink) && !is_link($currentLink)) {
+                    if (file_exists($previousLink)) $this->recursiveRmdir($previousLink);
+                    @rename($currentLink, $previousLink);
+                }
+                
+                // Em vez de symlink, movemos a pasta inteira para 'current'
+                // Mas queremos manter a versão original em /releases/v1.x.x/
+                // Então vamos copiar? Não, copy é lento. 
+                // Vamos usar o Router para apontar para a pasta da versão!
+                $this->updateRouter($version);
             }
-            
-            // A virada de chave atômica (Rename do symlink)
-            rename($tmpLink, $currentLink);
-            
-            // 3. INSTALAR ROUTER NA RAIZ (Apenas na primeira vez)
-            $this->installRouter();
 
-            // 4. HEALTH CHECK PRÉ-COMMIT
-            if (!$this->verifyHealth($currentLink)) {
-                $this->rollback($version); // Aciona o Rollback Real
-                throw new Exception("Health Check falhou pós-swap. Rollback automático executado com sucesso.");
+            // 4. HEALTH CHECK
+            if (!$this->verifyHealth($versionPath)) {
+                throw new Exception("Health Check falhou para v$version.");
             }
 
-            // 5. COMMIT NO BANCO (Apenas após sucesso total)
+            // 5. COMMIT NO BANCO
             if ($this->pdo instanceof PDO) {
-                $stmt = $this->pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES ('versao_sistema', ?) ON DUPLICATE KEY UPDATE valor = ?");
-                $stmt->execute([$version, $version]);
-                $this->log("COMMIT CONFIRMADO: Banco atualizado para v$version.");
+                $stmt = $this->pdo->prepare("REPLACE INTO configuracoes (chave, valor) VALUES ('versao_sistema', ?)");
+                $stmt->execute([$version]);
             }
 
-            // 6. LIMPEZA DE CACHE
             if (function_exists('opcache_reset')) @opcache_reset();
 
-            $this->log("✅ SWAP ATÔMICO CONCLUÍDO. Sistema rodando v$version.");
+            $this->log("✅ ATIVAÇÃO CONCLUÍDA: v$version ativa.");
             return true;
 
         } catch (Exception $e) {
-            $this->log("FALHA NO PIPELINE ATÔMICO: " . $e->getMessage());
+            $this->log("ERRO CRÍTICO: " . $e->getMessage());
             return false;
         }
     }
 
     /**
-     * Instala o .htaccess que direciona o tráfego para a release /current/
-     * Sem precisar alterar o Document Root do cPanel.
+     * Atualiza o Router (.htaccess) para apontar para a versão correta
      */
-    private function installRouter() {
+    private function updateRouter($version) {
         $htaccessPath = $this->basePath . '.htaccess';
+        $targetFolder = "releases/v" . $version;
+        
         $routerRules = "
-# SGIM OTA v2.0 - ATOMIC ROUTER
+# SGIM OTA v2.0 - DYNAMIC ROUTER
 <IfModule mod_rewrite.c>
     RewriteEngine On
     
-    # Evita loop infinito
-    RewriteCond %{REQUEST_URI} !^/releases/current/
+    # Exceções (não redireciona pastas de sistema ou assets compartilhados)
     RewriteCond %{REQUEST_URI} !^/shared/
+    RewriteCond %{REQUEST_URI} !^/releases/
     
-    # Redireciona tudo para a pasta da release atual (symlink)
-    RewriteRule ^(.*)$ releases/current/$1 [L,QSA]
+    # Redireciona tudo para a pasta da release ativa
+    RewriteRule ^(.*)$ $targetFolder/$1 [L,QSA]
 </IfModule>
 ";
-        // Se o htaccess não existir ou não tiver a tag do router, instala.
-        if (!file_exists($htaccessPath) || strpos(file_get_contents($htaccessPath), 'SGIM OTA v2.0 - ATOMIC ROUTER') === false) {
-            file_put_contents($htaccessPath, $routerRules, FILE_APPEND | LOCK_EX);
-            $this->log("Router Atômico (.htaccess) instalado/atualizado na raiz.");
+        // Sobrescreve ou cria o router atômico
+        $content = "";
+        if (file_exists($htaccessPath)) {
+            $content = file_get_contents($htaccessPath);
+            // Remove regras antigas do OTA se existirem
+            $content = preg_replace('/# SGIM OTA v2.0 - .*?<\/IfModule>/s', '', $content);
         }
+        
+        file_put_contents($htaccessPath, trim($content) . "\n" . $routerRules, LOCK_EX);
+        $this->log("Router dinâmico atualizado para apontar para $targetFolder.");
+    }
+
+    private function recursiveRmdir($dir) {
+        if (!is_dir($dir)) return;
+        $files = array_diff(scandir($dir), array('.', '..'));
+        foreach ($files as $file) {
+            (is_dir("$dir/$file")) ? $this->recursiveRmdir("$dir/$file") : @unlink("$dir/$file");
+        }
+        return @rmdir($dir);
     }
 
     /**

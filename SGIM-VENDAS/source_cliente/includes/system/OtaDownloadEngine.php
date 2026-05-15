@@ -39,6 +39,8 @@ class OtaDownloadEngine {
             curl_setopt($ch, CURLOPT_FILE, $fp);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
             curl_setopt($ch, CURLOPT_USERAGENT, 'SGIM-OTA-Industrial/1.0');
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Bypass SSL verification for resilience
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 
             $success = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);

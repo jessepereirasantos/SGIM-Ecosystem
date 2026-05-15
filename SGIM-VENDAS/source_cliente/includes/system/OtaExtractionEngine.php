@@ -48,10 +48,15 @@ class OtaExtractionEngine {
             $this->generateHealthReport($tempExtractPath, $version);
 
             // 5. Promoção Atômica para /releases/
-            if (file_exists($finalReleasePath)) $this->recursiveRmdir($finalReleasePath);
+            if (file_exists($finalReleasePath)) {
+                $this->recursiveRmdir($finalReleasePath);
+                // Pequena pausa para o SO liberar handles (comum no Windows)
+                if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') usleep(500000); 
+            }
             
-            if (!rename($tempExtractPath, $finalReleasePath)) {
-                throw new Exception("Falha ao mover release para diretório final.");
+            if (!@rename($tempExtractPath, $finalReleasePath)) {
+                // Fallback: se o rename falhar (ex: cross-device ou lock), tenta mover via copy recursivo ou erro
+                throw new Exception("Falha ao promover release. Verifique permissões de escrita em $finalReleasePath.");
             }
 
             $this->log("Release v$version extraída e validada com sucesso.");
@@ -84,10 +89,11 @@ class OtaExtractionEngine {
     }
 
     private function validateStructure($path) {
-        $vitalFiles = ['index.php']; // Estrutura mínima obrigatória
+        // CONTRATO RÍGIDO v2.0: Fim das heurísticas
+        $vitalFiles = ['index.php', 'api/health/version.php']; 
         foreach ($vitalFiles as $file) {
             if (!file_exists($path . $file)) {
-                throw new Exception("Arquivo vital ausente na extração: $file");
+                throw new Exception("REJEIÇÃO DE PACOTE (CLIENT SIDE): Estrutura inválida. O arquivo vital '$file' está ausente na raiz da extração. O OTA exige um pacote perfeitamente padronizado.");
             }
         }
     }

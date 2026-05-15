@@ -9,6 +9,16 @@ namespace SGIM\OTA;
 
 use Exception;
 
+// Inclusões Manuais (Segurança Máxima)
+require_once __DIR__ . '/OtaDownloadEngine.php';
+require_once __DIR__ . '/OtaExtractionEngine.php';
+require_once __DIR__ . '/OtaMigrationEngine.php';
+require_once __DIR__ . '/OtaCapabilityManager.php';
+require_once __DIR__ . '/OtaManifestValidator.php';
+require_once __DIR__ . '/OtaBackupEngine.php';
+require_once __DIR__ . '/ProtectedPathsPolicy.php';
+require_once __DIR__ . '/drivers/SharedHostingDriver.php';
+
 class OtaOrchestrator {
     private $basePath;
     private $masterUrl; // ✅ FIX: recebido via construtor, não hardcoded
@@ -32,13 +42,9 @@ class OtaOrchestrator {
         $this->extractionEngine = new OtaExtractionEngine($this->basePath);
         $this->migrationEngine  = new OtaMigrationEngine($pdo, $this->basePath);
         
-        // INTEGRACAO ADAPTATIVA 10D
-        $this->capabilityManager = new OtaCapabilityManager($this->basePath);
-        $capabilities = $this->capabilityManager->generateReport();
-        
-        $driverClass = "\\SGIM\\OTA\\Drivers\\" . $capabilities['driver_analysis']['recommended_driver'];
-        if (class_exists($driverClass)) {
-            $this->activationDriver = new $driverClass($this->basePath);
+        // FORÇAR DRIVER (Segurança Máxima para HostGator)
+        if (!$this->activationDriver) {
+            $this->activationDriver = new \SGIM\OTA\Drivers\SharedHostingDriver($this->basePath, $pdo);
         }
     }
 
@@ -47,19 +53,31 @@ class OtaOrchestrator {
      */
     public function updateLifecycle() {
         try {
-            $this->log("Iniciando Ciclo Integrado (Driver: " . get_class($this->activationDriver) . ")");
+            $driverName = $this->activationDriver ? get_class($this->activationDriver) : 'NENHUM';
+            $this->log("Iniciando Ciclo Integrado (Driver: " . $driverName . ")");
 
             // 1. Discovery (Manifest)
             $manifest = $this->discovery();
             $this->updateState('discovery', ["last_manifest" => $manifest]);
             
             // 2. Download & Verify SHA256
-            $this->downloadEngine->downloadPackage($manifest['url'], $manifest['sha256'], $manifest['version']);
+            $downloadOk = $this->downloadEngine->downloadPackage($manifest['url'], $manifest['sha256'], $manifest['version']);
+            if ($downloadOk !== true) {
+                // Lê o log para capturar o motivo exato da falha
+                $logFile = $this->basePath . 'shared/system/logs/download.log';
+                $lastLog = file_exists($logFile) ? implode('', array_slice(file($logFile), -5)) : 'Log indisponível';
+                throw new Exception("DOWNLOAD FALHOU (hash mismatch ou erro de rede). Últimas entradas do log:\n" . $lastLog);
+            }
             $this->updateState('download', ["version" => $manifest['version'], "status" => "SUCCESS"]);
 
             // 3. Extraction & Structural Validation
+
             $versionPath = $this->basePath . "releases/v" . $manifest['version'] . "/";
             $this->extractionEngine->extract($manifest['version'], $this->basePath . "shared/system/downloads/release_{$manifest['version']}.zip");
+            
+            // Persistir o manifesto na pasta recém-criada para que o commitUpdate possa ler depois!
+            file_put_contents($versionPath . 'release_manifest.json', json_encode($manifest, JSON_PRETTY_PRINT));
+            
             $this->updateState('extraction', ["version" => $manifest['version'], "status" => "SUCCESS"]);
 
             // 4. Driver Staging (Backup + Impact Report)
@@ -89,8 +107,9 @@ class OtaOrchestrator {
         try {
             $this->log("COMANDO MANUAL: Ativando versão $version");
             $versionPath = $this->basePath . "releases/v" . $version . "/";
-            $manifest = json_decode(file_get_contents($versionPath . 'release_manifest.json'), true);
-
+            $manifestPath = $versionPath . 'release_manifest.json';
+            $manifest = file_exists($manifestPath) ? json_decode(file_get_contents($manifestPath), true) : [];
+            
             if ($this->activationDriver->activate($versionPath, $manifest)) {
                 $this->updateState('activation', ["version" => $version, "status" => "ACTIVE"]);
                 return true;
@@ -116,13 +135,25 @@ class OtaOrchestrator {
     }
 
     private function discovery() {
-        // ✅ FIX: Usa masterUrl recebido via construtor (não hardcoded)
-        $url  = $this->masterUrl . '/api/update/latest.json';
-        $json = @file_get_contents($url);
-        if (!$json) throw new Exception("Falha ao consultar Master em: $url");
+        $url = $this->masterUrl . '/api/update/latest.json';
+        
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Compatibilidade com SSL legados
+        $json = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
+        curl_close($ch);
+
+        if ($httpCode !== 200) {
+            throw new Exception("Falha ao consultar Master (HTTP $httpCode) em: $url. Erro: $error");
+        }
+
         $manifest = json_decode($json, true);
         if (!$manifest || !isset($manifest['version'])) {
-            throw new Exception("Manifesto JSON inválido recebido de: $url");
+            throw new Exception("Manifesto JSON inválido recebido de: $url. Resposta: " . substr($json, 0, 100));
         }
         return $manifest;
     }

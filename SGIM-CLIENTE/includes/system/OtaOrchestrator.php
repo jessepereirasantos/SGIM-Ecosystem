@@ -135,13 +135,25 @@ class OtaOrchestrator {
     }
 
     private function discovery() {
-        // ✅ FIX: Usa masterUrl recebido via construtor (não hardcoded)
-        $url  = $this->masterUrl . '/api/update/latest.json';
-        $json = @file_get_contents($url);
-        if (!$json) throw new Exception("Falha ao consultar Master em: $url");
+        $url = $this->masterUrl . '/api/update/latest.json';
+        
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Compatibilidade com SSL legados
+        $json = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
+        curl_close($ch);
+
+        if ($httpCode !== 200) {
+            throw new Exception("Falha ao consultar Master (HTTP $httpCode) em: $url. Erro: $error");
+        }
+
         $manifest = json_decode($json, true);
         if (!$manifest || !isset($manifest['version'])) {
-            throw new Exception("Manifesto JSON inválido recebido de: $url");
+            throw new Exception("Manifesto JSON inválido recebido de: $url. Resposta: " . substr($json, 0, 100));
         }
         return $manifest;
     }
