@@ -1,7 +1,7 @@
 {
-  "version": "1.1.64",
-  "url": "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.64.zip",
+  "version": "1.1.65",
+  "url": "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.65.zip",
   "sha256": "",
-  "notes": "v1.1.64: Release automática gerada em 15/05/2026 16:23",
-  "date": "2026-05-15"
+  "notes": "v1.1.65: Remoção da aba duplicada e validação de persistência no banco (OTA Estável)",
+  "date": "2026-05-16"
 }

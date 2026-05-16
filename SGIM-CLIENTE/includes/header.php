@@ -1,6 +1,6 @@
 <?php
 /**
- * SGIM CLIENT - GLOBAL HEADER v1.1.64 (GOLDEN IMAGE)
+ * SGIM CLIENT - GLOBAL HEADER v1.1.65 (GOLDEN IMAGE)
  */
 session_start();
 
@@ -247,10 +247,6 @@ $unreadCount = 0;
                     <a href="dashboard.php" class="sidebar-item <?= ($current_page == 'dashboard') ? 'active' : '' ?>">
                         <span class="material-symbols-outlined">dashboard</span>
                         <span>Início</span>
-                    </a>
-                    <a href="atualizacoes.php" class="sidebar-item <?= ($current_page == 'atualizacoes') ? 'active' : '' ?>">
-                        <span class="material-symbols-outlined">system_update</span>
-                        <span>Atualizações</span>
                     </a>
                     <a href="novidades.php" class="sidebar-item <?= ($current_page == 'novidades') ? 'active' : '' ?>">
                         <span class="material-symbols-outlined">campaign</span>
