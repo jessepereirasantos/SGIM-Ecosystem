@@ -4,7 +4,7 @@
  */
 ob_start();
 session_start();
-require_once 'config/database.php';
+require_once __DIR__ . '/config/database.php';
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
@@ -14,7 +14,7 @@ if (!isset($_SESSION['user_id'])) {
 $page_title   = 'SGIM - Novidades';
 $current_page = 'novidades';
 
-require_once 'includes/header.php';
+require_once __DIR__ . '/includes/header.php';
 ?>
 
 <div class="mb-6">
@@ -34,4 +34,4 @@ require_once 'includes/header.php';
     </div>
 </div>
 
-<?php require_once 'includes/footer.php'; ?>
+<?php require_once __DIR__ . '/includes/footer.php'; ?>

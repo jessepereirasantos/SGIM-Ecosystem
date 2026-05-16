@@ -1,7 +1,7 @@
 <?php
 ob_start();
 session_start();
-require_once 'config/database.php';
+require_once __DIR__ . '/config/database.php';
 
 // Verificação de Autenticação e Conexão de Banco (v1.4.9 logic)
 if (!isset($pdo) || $pdo === null) {
@@ -14,7 +14,7 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-require_once 'includes/header.php'; 
+require_once __DIR__ . '/includes/header.php';
 
 // 🛡️ PROTEÇÃO DE ROTA (RBAC)
 if ($access && !$access->can('financeiro', 'visualizar')) {
@@ -242,5 +242,5 @@ try {
     </div>
 
 <?php
-require_once 'includes/footer.php';
+require_once __DIR__ . '/includes/footer.php';
 ?>

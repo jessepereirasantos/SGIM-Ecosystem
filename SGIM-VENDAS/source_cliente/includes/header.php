@@ -17,31 +17,30 @@ $theme = [
 
 $systemVersion = '1.1.62';
 
-// 2. CONEXÃO COM O BANCO (Silenciosa e Robusta)
+// 2. REUTILIZAR CONEXÃO JÁ CARREGADA (Evita fatal error de redeclaração)
+// O database.php já foi incluído pela página principal (dashboard.php, membros.php, etc.)
+// Apenas buscamos a versão se $pdo já estiver disponível.
 try {
-    $dbPath = __DIR__ . '/../config/database.php';
-    if (file_exists($dbPath)) {
-        include $dbPath;
-        if (isset($pdo)) {
-            $sVer = $pdo->query("SELECT valor FROM configuracoes WHERE chave = 'versao_sistema'");
-            $vVer = $sVer ? $sVer->fetchColumn() : false;
-            if ($vVer) $systemVersion = $vVer;
-            
-            // 3. CARREGAMENTO DE MÓDULOS (Seguro)
-            $autoPath = __DIR__ . '/../src/autoload.php';
-            if (file_exists($autoPath)) {
-                include_once $autoPath;
-                
-                // Gerenciador de Acesso
-                if (class_exists('SGIM\Auth\AccessManager')) {
-                    $access = new \SGIM\Auth\AccessManager($pdo, $_SESSION['user_id'] ?? 0);
-                }
+    if (isset($pdo) && $pdo instanceof PDO) {
+        $sVer = $pdo->query("SELECT valor FROM configuracoes WHERE chave = 'versao_sistema'");
+        $vVer = $sVer ? $sVer->fetchColumn() : false;
+        if ($vVer) $systemVersion = $vVer;
 
-                // Motor OTA (Updater)
-                if (class_exists('App\Updater\UpdaterCore')) {
-                    $updater = new \App\Updater\UpdaterCore($pdo, __DIR__ . '/../');
-                }
+        // Autoload de módulos (Seguro)
+        $autoPath = __DIR__ . '/../src/autoload.php';
+        if (file_exists($autoPath)) {
+            include_once $autoPath;
+
+            // Motor OTA (Updater)
+            if (class_exists('App\\Updater\\UpdaterCore')) {
+                $updater = new \App\Updater\UpdaterCore($pdo, __DIR__ . '/../');
             }
+        }
+    } elseif (!isset($pdo)) {
+        // Fallback: se nenhuma página carregou o banco ainda, carregamos aqui
+        $dbPath = __DIR__ . '/../config/database.php';
+        if (file_exists($dbPath) && !function_exists('ensureColumnExists')) {
+            include_once $dbPath;
         }
     }
 } catch (Throwable $e) {}
@@ -54,7 +53,11 @@ $access = null;
 $user_context = ['nome' => 'Usuário', 'cargo' => 'Nível Total', 'avatar' => 'person'];
 if (isset($_SESSION['user_id']) && isset($pdo)) {
     try {
-        require_once __DIR__ . '/../src/Auth/AccessManager.php';
+        // Usa autoloader (já registrado acima) em vez de require_once para evitar redeclaração
+        if (!class_exists('SGIM\\Auth\\AccessManager')) {
+            $amPath = __DIR__ . '/../src/Auth/AccessManager.php';
+            if (file_exists($amPath)) require_once $amPath;
+        }
         $access = new \SGIM\Auth\AccessManager($pdo, $_SESSION['user_id']);
         $stmtUser = $pdo->prepare("SELECT u.nome, c.nome as cargo_nome FROM usuarios u LEFT JOIN cargos c ON u.cargo_id = c.id WHERE u.id = ?");
         $stmtUser->execute([$_SESSION['user_id']]);

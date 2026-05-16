@@ -1,7 +1,7 @@
 <?php
 ob_start();
 session_start();
-require_once 'config/database.php';
+require_once __DIR__ . '/config/database.php';
 
 // Verificação de Autenticação e Conexão de Banco (v1.4.9 logic)
 if (!isset($pdo) || $pdo === null) {
@@ -45,7 +45,7 @@ try {
 $page_title = 'SGIM - Lista de Eventos';
 $current_page = 'eventos';
 
-require_once 'includes/header.php';
+require_once __DIR__ . '/includes/header.php';
 ?>
     <?php if (isset($_GET['sucesso']) && $_GET['sucesso'] == 1): ?>
         <div class="mb-6 p-4 rounded-twelve bg-green-500/10 border border-green-500/20 text-green-400 flex items-center gap-3">
@@ -180,5 +180,5 @@ require_once 'includes/header.php';
     </div>
 
 <?php
-require_once 'includes/footer.php';
+require_once __DIR__ . '/includes/footer.php';
 ?>

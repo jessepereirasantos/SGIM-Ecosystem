@@ -5,7 +5,7 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-require_once 'config/database.php';
+require_once __DIR__ . '/config/database.php';
 
 // 1. BUSCA LISTA DE USUÁRIOS COM SEUS VÍNCULOS
 $sql = "SELECT u.*, c.nome as cargo_nome, co.nome as congregacao_nome 
@@ -19,7 +19,7 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $page_title = 'SGIM - Gestão de Usuários';
 $current_page = 'usuarios';
 
-require_once 'includes/header.php';
+require_once __DIR__ . '/includes/header.php';
 ?>
 
 <div class="flex items-center justify-between mb-8">
@@ -89,4 +89,4 @@ require_once 'includes/header.php';
     </div>
 </div>
 
-<?php require_once 'includes/footer.php'; ?>
+<?php require_once __DIR__ . '/includes/footer.php'; ?>
