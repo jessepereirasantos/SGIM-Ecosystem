@@ -1,7 +1,7 @@
 {
-  "version": "1.1.54",
-  "url": "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.54.zip",
+  "version": "1.1.64",
+  "url": "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.64.zip",
   "sha256": "",
-  "notes": "v1.1.54: Estabilização de Roteamento e Motor OTA (Senior Architect)",
+  "notes": "v1.1.64: Release automática gerada em 15/05/2026 16:23",
   "date": "2026-05-15"
 }

@@ -12,7 +12,7 @@ function fetchRemoteJson($url) {
     $opts = [
         "http" => [
             "method" => "GET",
-            "header" => "User-Agent: SGIM-Client-v1.1.54\r\n",
+            "header" => "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) SGIM-Engine/1.1\r\n",
             "timeout" => 10
         ]
     ];
@@ -32,7 +32,7 @@ function fetchRemoteJson($url) {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'SGIM-Client-v1.1.54');
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) SGIM-Engine/1.1');
         $body = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $err = curl_error($ch);
@@ -92,5 +92,5 @@ try {
     
     echo json_encode(['status' => 'success', 'has_update' => false]);
 } catch (Exception $e) {
-    echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+    echo json_encode(['status' => 'error', 'message' => 'OTA_FAIL: ' . $e->getMessage()]);
 }

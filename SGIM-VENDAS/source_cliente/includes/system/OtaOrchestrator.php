@@ -123,6 +123,15 @@ class OtaOrchestrator {
             $manifest = file_exists($manifestPath) ? json_decode(file_get_contents($manifestPath), true) : [];
             
             if ($this->activationDriver->activate($versionPath, $manifest)) {
+                // ✅ PERSISTÊNCIA DETERMINÍSTICA: Atualiza a versão no banco de dados local
+                try {
+                    $stmt = $this->migrationEngine->getPDO()->prepare("UPDATE configuracoes SET valor = ? WHERE chave = 'versao_sistema'");
+                    $stmt->execute([$version]);
+                    $this->log("Banco de dados atualizado para v$version.");
+                } catch (Exception $dbEx) {
+                    $this->log("AVISO: Falha ao atualizar versão no banco: " . $dbEx->getMessage());
+                }
+
                 $this->updateState('activation', ["version" => $version, "status" => "ACTIVE"]);
                 return true;
             }

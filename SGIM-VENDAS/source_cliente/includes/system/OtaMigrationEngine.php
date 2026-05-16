@@ -23,6 +23,10 @@ class OtaMigrationEngine {
         $this->ensureBaseline();
     }
 
+    public function getPDO() {
+        return $this->pdo;
+    }
+
     /**
      * Estabelece a fundação de dados (Self-Provisioning)
      */
