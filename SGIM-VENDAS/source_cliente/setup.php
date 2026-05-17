@@ -270,6 +270,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // 5. Automação Master-Key (Sempre pré-ativado agora no novo fluxo)
             $stmtLock = $pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES ('license_key', ?), ('license_status', 'active') ON DUPLICATE KEY UPDATE valor = VALUES(valor)");
             $stmtLock->execute([$pre_activated_key]);
+
+            // 6. CRÍTICO: Registrar a versão instalada no banco de dados
+            // Sem isso, o OTA mostra "0.0.0" para todos os clientes novos.
+            $sgim_version_file = __DIR__ . '/database/schema.sql';
+            $versao_instalada = '1.1.66'; // Versão desta release do instalador
+            $stmtVersao = $pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES ('versao_sistema', ?) ON DUPLICATE KEY UPDATE valor = VALUES(valor)");
+            $stmtVersao->execute([$versao_instalada]);
             
             // Redirecionamento automático para a dashboard do cliente instalada
             header('Location: dashboard.php?installed=1');

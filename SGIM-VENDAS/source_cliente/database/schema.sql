@@ -156,3 +156,8 @@ INSERT IGNORE INTO permissoes (modulo, acao, descricao) VALUES
 ('membros', 'visualizar', 'Ver Membros'), 
 ('financeiro', 'visualizar', 'Ver Financeiro');
 INSERT IGNORE INTO cargo_permissoes (cargo_id, permissao_id) SELECT 1, id FROM permissoes;
+
+-- 4. Seed de Configurações do Sistema (CRÍTICO: define a versão instalada)
+INSERT IGNORE INTO configuracoes (chave, valor) VALUES ('versao_sistema', '1.1.66');
+INSERT IGNORE INTO configuracoes (chave, valor) VALUES ('sistema_nome', 'SGIM');
+INSERT IGNORE INTO configuracoes (chave, valor) VALUES ('tema', 'dark');
