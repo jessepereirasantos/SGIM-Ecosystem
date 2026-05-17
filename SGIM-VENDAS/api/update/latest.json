@@ -2,6 +2,6 @@
   "version": "1.1.68",
   "url": "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.68.zip",
   "sha256": "",
-  "notes": "v1.1.68: CORREÇÃO CRÍTICA - ZIP comercial agora é 100% virgem para novos clientes (sem .installed, sem state/, sem logs do servidor de origem)",
+  "notes": "v1.1.68: Estabilização completa - Fix instalação novo cliente, Fix versão 0.0.0, Fix gateway index.php",
   "date": "2026-05-16"
 }

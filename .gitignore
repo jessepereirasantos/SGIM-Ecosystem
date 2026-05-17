@@ -4,11 +4,15 @@
 node_modules/
 vendor/
 *.log
-*.zip
 *.rar
 tmp/
 temp/
 cache/
+
+# ZIPs de OTA (gerados pelo servidor Master - não rastrear no git, são grandes)
+SGIM-VENDAS/api/update/packages/*.zip
+SGIM-VENDAS/source_cliente/*.zip
+SGIM-CLIENTE/*.zip
 
 # Configurações sensíveis (Não subir para o GitHub por segurança)
 db_config.php
@@ -21,13 +25,10 @@ SGIM-VENDAS/cliente-atualizacao/config/db_config.php
 .DS_Store
 Thumbs.db
 
-# Ignorar o manifesto do OTA e pacotes para não sobrescrever a versão real do servidor
-SGIM-VENDAS/api/update/latest.json
-SGIM-VENDAS/api/update/packages/
-
 # Resgate e Tokens
 .rescue_token.php
 SGIM-CLIENTE/.rescue_token.php
-# Pastas de transição OTA
+
+# Pastas de transição OTA (geradas em runtime no servidor)
 releases/
 SGIM-CLIENTE/releases/
