@@ -194,35 +194,90 @@ switch ($acao) {
             ];
             file_put_contents($logFile, json_encode(array_slice($logs, -100), JSON_PRETTY_PRINT), LOCK_EX);
 
-            // Camada 1 aplicada também no Instalador Comercial
+            // ── GERAÇÃO DO INSTALADOR COMERCIAL (sgim_master.zip) ──────────────
+            // CRÍTICO: Este ZIP é entregue para NOVOS CLIENTES. Deve ser 100% virgem.
+            // Nunca pode conter: .installed, state/, logs/, releases/, db_config.php, SOURCE.zip
             $comZip = dirname(__DIR__) . '/downloads/sgim_master.zip';
             if (file_exists($comZip)) @unlink($comZip);
             $tempComZip = sys_get_temp_dir() . '/installer_build_' . uniqid() . '.zip';
             $cZip = new ZipArchive();
+
+            // Pastas que NUNCA devem ir para o cliente novo
+            $commercialExcludeDirs = [
+                'shared', 'releases', 'workspace', 'downloads', 'backups',
+                'node_modules', 'vendor', '.git', 'state', 'logs'
+            ];
+
+            // Arquivos individuais que NUNCA devem ir para o cliente novo
+            $commercialExcludeFiles = [
+                'db_config.php',     // Credenciais do servidor de desenvolvimento
+                '.installed',        // Trava de instalação - faria o setup ser pulado
+                'SOURCE.zip',        // ZIP interno desnecessário
+                '.rescue_token.php', // Token de resgate do servidor de origem
+                'dryrun_output.json',
+                'dryrun_rescue.log',
+            ];
+
+            // Sufixos de arquivos de desenvolvimento que não devem ir ao cliente
+            $commercialExcludeSuffixes = [
+                '_test.php', '_audit.php', '_debug.php', '_sandbox.php',
+                'ota_v2_blueprint.md', 'FORCAR_PROMOCAO.php',
+            ];
+
             if ($cZip->open($tempComZip, ZipArchive::CREATE | ZipArchive::OVERWRITE) === TRUE) {
                 $cDirectory = new RecursiveDirectoryIterator($sourceDir, RecursiveDirectoryIterator::SKIP_DOTS);
                 $cFilter = new RecursiveCallbackFilterIterator(
                     $cDirectory,
-                    function ($current, $key, $iterator) use ($excludeDirs) {
+                    function ($current, $key, $iterator) use ($commercialExcludeDirs) {
                         if ($current->isDir()) {
-                            return !in_array($current->getFilename(), $excludeDirs);
+                            return !in_array($current->getFilename(), $commercialExcludeDirs);
                         }
                         return true;
                     }
                 );
                 $cFiles = new RecursiveIteratorIterator($cFilter);
                 $cFiles->setMaxDepth(10);
+                $cFilesAdded = 0;
                 foreach ($cFiles as $cf) {
                     if (!$cf->isDir()) {
                         $cp = $cf->getRealPath();
                         $cr = str_replace('\\', '/', substr($cp, strlen(realpath($sourceDir)) + 1));
-                        if (strpos($cr, 'db_config.php') !== false || strpos($cr, '.installed') !== false) continue;
+
+                        // Pula arquivos explicitamente excluídos
+                        $basename = basename($cr);
+                        if (in_array($basename, $commercialExcludeFiles)) continue;
+
+                        // Pula arquivos cujo path contém pastas excluídas (proteção dupla)
+                        $skipPath = false;
+                        foreach ($commercialExcludeDirs as $excDir) {
+                            if (strpos($cr, $excDir . '/') === 0 || strpos($cr, '/' . $excDir . '/') !== false) {
+                                $skipPath = true;
+                                break;
+                            }
+                        }
+                        if ($skipPath) continue;
+
+                        // Pula arquivos de desenvolvimento por sufixo
+                        $skipSuffix = false;
+                        foreach ($commercialExcludeSuffixes as $suffix) {
+                            if (substr($cr, -strlen($suffix)) === $suffix || $basename === $suffix) {
+                                $skipSuffix = true;
+                                break;
+                            }
+                        }
+                        if ($skipSuffix) continue;
+
                         $cZip->addFile($cp, $cr);
+                        $cFilesAdded++;
                     }
                 }
                 $cZip->close();
                 rename($tempComZip, $comZip);
+                $this_log_msg = "ZIP Comercial gerado: $cFilesAdded arquivos em downloads/sgim_master.zip";
+            } else {
+                $this_log_msg = "AVISO: Falha ao criar ZIP comercial temporário.";
             }
+
 
             echo json_encode([
                 'status'       => 'success',
