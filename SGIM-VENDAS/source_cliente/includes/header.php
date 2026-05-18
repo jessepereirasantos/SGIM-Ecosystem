@@ -1,6 +1,6 @@
 <?php
 /**
- * SGIM CLIENT - GLOBAL HEADER v1.1.70 (GOLDEN IMAGE)
+ * SGIM CLIENT - GLOBAL HEADER v1.1.71 (GOLDEN IMAGE)
  */
 session_start();
 
@@ -287,6 +287,9 @@ $unreadCount = 0;
                         <a href="whatsapp.php"
                             class="sidebar-item <?= ($current_page == 'whatsapp') ? 'active' : '' ?>"><span
                                 class="material-symbols-outlined">chat_bubble</span><span>WhatsApp</span></a>
+                        <a href="#"
+                            class="sidebar-item <?= ($current_page == 'teste') ? 'active' : '' ?>"><span
+                                class="material-symbols-outlined">science</span><span>Teste</span></a>
                     </div>
                 </div>
             <?php endif; ?>

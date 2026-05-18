@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.1.70: UI: Corrigido fundo branco nas opcoes do dropdown de Preset em cargo_novo.php",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.70.zip",
-    "version":  "1.1.70",
+    "notes":  "v1.1.71: Adicionado aba de Teste na sidebar para validar funcionamento do OTA",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.71.zip",
+    "version":  "1.1.71",
     "date":  "2026-05-18",
-    "sha256":  "16f4ea0e6bd3724f4f0c9c134156bd163a5095215b1b3a5efe5cd54134033de1"
+    "sha256":  "827bfd1686ec72eb077069bb9249f50a4297b789a531717bd7dc8196892c4655"
 }
