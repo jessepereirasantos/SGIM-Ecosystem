@@ -1,6 +1,6 @@
 <?php
 /**
- * SGIM CLIENT - GLOBAL HEADER v1.1.71 (GOLDEN IMAGE)
+ * SGIM CLIENT - GLOBAL HEADER v1.1.72 (GOLDEN IMAGE)
  */
 session_start();
 
