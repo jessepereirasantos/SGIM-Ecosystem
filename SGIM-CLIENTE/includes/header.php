@@ -1,6 +1,6 @@
 <?php
 /**
- * SGIM CLIENT - GLOBAL HEADER v1.1.72 (GOLDEN IMAGE)
+ * SGIM CLIENT - GLOBAL HEADER v1.1.73 (GOLDEN IMAGE)
  */
 session_start();
 
@@ -80,26 +80,13 @@ $unreadCount = 0;
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title><?= $page_title ?? 'SGIM - Dashboard' ?></title>
     
-    <!-- CSS CRÍTICO (Carregamento Prioritário) -->
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- CSS ESTÁTICO (Compilado para alta performance) -->
+    <link href="assets/css/app.css?v=<?= SYSTEM_VERSION ?>" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
 
     <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        brand: { DEFAULT: '<?= $theme['cor_brand'] ?>', dark: '<?= $theme['cor_brand_dark'] ?>', light: '<?= $theme['cor_brand_light'] ?>' },
-                        darkbg: 'var(--c-bg)', darkcard: 'var(--c-card)', darkborder: 'var(--c-border)'
-                    },
-                    borderRadius: { 'twelve': '12px' },
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                }
-            }
-        }
         document.addEventListener('alpine:init', () => {
             Alpine.data('themeManager', (serverTheme) => ({
                 darkMode: localStorage.getItem('sgim_theme') ? localStorage.getItem('sgim_theme') === 'dark' : (serverTheme.modo_padrao === 'dark'),
