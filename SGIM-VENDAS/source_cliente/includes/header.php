@@ -1,6 +1,6 @@
 <?php
 /**
- * SGIM CLIENT - GLOBAL HEADER v1.1.74 (GOLDEN IMAGE)
+ * SGIM CLIENT - GLOBAL HEADER v1.1.75 (GOLDEN IMAGE)
  */
 session_start();
 
@@ -22,9 +22,16 @@ $systemVersion = '1.1.62';
 // Apenas buscamos a versão se $pdo já estiver disponível.
 try {
     if (isset($pdo) && $pdo instanceof PDO) {
-        $sVer = $pdo->query("SELECT valor FROM configuracoes WHERE chave = 'versao_sistema'");
-        $vVer = $sVer ? $sVer->fetchColumn() : false;
-        if ($vVer) $systemVersion = $vVer;
+        if (isset($_SESSION['sys_version_cache'])) {
+            $systemVersion = $_SESSION['sys_version_cache'];
+        } else {
+            $sVer = $pdo->query("SELECT valor FROM configuracoes WHERE chave = 'versao_sistema'");
+            $vVer = $sVer ? $sVer->fetchColumn() : false;
+            if ($vVer) {
+                $systemVersion = $vVer;
+                $_SESSION['sys_version_cache'] = $vVer;
+            }
+        }
 
         // Autoload de módulos (Seguro)
         $autoPath = __DIR__ . '/../src/autoload.php';
@@ -59,12 +66,17 @@ if (isset($_SESSION['user_id']) && isset($pdo)) {
             if (file_exists($amPath)) require_once $amPath;
         }
         $access = new \SGIM\Auth\AccessManager($pdo, $_SESSION['user_id']);
-        $stmtUser = $pdo->prepare("SELECT u.nome, c.nome as cargo_nome FROM usuarios u LEFT JOIN cargos c ON u.cargo_id = c.id WHERE u.id = ?");
-        $stmtUser->execute([$_SESSION['user_id']]);
-        $uData = $stmtUser->fetch(PDO::FETCH_ASSOC);
-        if ($uData) {
-            $user_context['nome'] = $uData['nome'];
-            $user_context['cargo'] = $uData['cargo_nome'] ?? 'Administrador Total';
+        if (isset($_SESSION['user_ctx_cache'])) {
+            $user_context = $_SESSION['user_ctx_cache'];
+        } else {
+            $stmtUser = $pdo->prepare("SELECT u.nome, c.nome as cargo_nome FROM usuarios u LEFT JOIN cargos c ON u.cargo_id = c.id WHERE u.id = ?");
+            $stmtUser->execute([$_SESSION['user_id']]);
+            $uData = $stmtUser->fetch(PDO::FETCH_ASSOC);
+            if ($uData) {
+                $user_context['nome'] = $uData['nome'];
+                $user_context['cargo'] = $uData['cargo_nome'] ?? 'Administrador Total';
+                $_SESSION['user_ctx_cache'] = $user_context;
+            }
         }
     } catch (Throwable $e) {}
 }
@@ -79,6 +91,8 @@ $unreadCount = 0;
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title><?= $page_title ?? 'SGIM - Dashboard' ?></title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
     <!-- CSS CRÍTICO (Carregamento Prioritário) -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>

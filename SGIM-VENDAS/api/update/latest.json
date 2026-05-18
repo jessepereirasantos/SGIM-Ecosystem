@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.1.74: Fix: Reversao para o Tailwind CDN para corrigir a quebra total de layout causada pela falha de carregamento do CSS estatico",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.74.zip",
-    "version":  "1.1.74",
+    "notes":  "v1.1.75: Performance: Implementado cache em sessao para consultas redundantes e preconnect para assets estaticos para reduzir latencia",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.75.zip",
+    "version":  "1.1.75",
     "date":  "2026-05-18",
-    "sha256":  "a5b947d4d959320259e54069ead8472e9d8e89f722eba3470a081533b3228da1"
+    "sha256":  "08ee19c5081e5f0c36c4d7cb84017359e6756ffb4d4d294fc26ceb7971ef8289"
 }
