@@ -103,11 +103,11 @@ require_once 'includes/header.php';
                         <div class="space-y-2">
                             <label class="block text-[10px] font-bold text-brand uppercase tracking-widest mb-2">Preset Inteligente</label>
                             <select id="preset_nivel" onchange="applyPreset(this.value)" class="w-full px-4 py-3 rounded-xl border-2 border-brand/20 bg-brand/5 text-brand font-bold focus:ring-2 focus:ring-brand outline-none cursor-pointer">
-                                <option value="">Personalizado</option>
-                                <option value="admin_total">Admin Total</option>
-                                <option value="pastor_local">Pastor Local</option>
-                                <option value="secretario_local">Secretário Local</option>
-                                <option value="tesoureiro_local">Tesoureiro Local</option>
+                                <option class="bg-black text-white" value="">Personalizado</option>
+                                <option class="bg-black text-white" value="admin_total">Admin Total</option>
+                                <option class="bg-black text-white" value="pastor_local">Pastor Local</option>
+                                <option class="bg-black text-white" value="secretario_local">Secretário Local</option>
+                                <option class="bg-black text-white" value="tesoureiro_local">Tesoureiro Local</option>
                             </select>
                         </div>
                     </div>
