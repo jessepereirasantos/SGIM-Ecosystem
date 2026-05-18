@@ -9,10 +9,10 @@ tmp/
 temp/
 cache/
 
-# ZIPs de OTA (gerados pelo servidor Master - não rastrear no git, são grandes)
-SGIM-VENDAS/api/update/packages/*.zip
+# ZIPs internos de desenvolvimento (não rastrear)
 SGIM-VENDAS/source_cliente/*.zip
 SGIM-CLIENTE/*.zip
+SGIM-VENDAS/shared/
 
 # Configurações sensíveis (Não subir para o GitHub por segurança)
 db_config.php
