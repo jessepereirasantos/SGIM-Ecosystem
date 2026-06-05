@@ -6,14 +6,80 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 require_once 'config/database.php';
+require_once 'src/autoload.php';
+
+use App\Controllers\CarteirinhaController;
+
+$controller = new CarteirinhaController($pdo);
+$mensagem = '';
+$erro = false;
+
+// Trata mensagens de redirecionamento com sucesso
+if (isset($_GET['sucesso'])) {
+    if ($_GET['sucesso'] == 1) {
+        $mensagem = "Modelo de carteirinha salvo com sucesso!";
+    } elseif ($_GET['sucesso'] == 2) {
+        $mensagem = "Modelo de carteirinha excluído com sucesso!";
+    }
+}
+
+// 1. Processamento de Ações POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['acao'])) {
+        if ($_POST['acao'] === 'salvar') {
+            $nome = $_POST['nome'] ?? '';
+            $cargos = $_POST['cargos'] ?? [];
+            $elementos = $_POST['elementos_json'] ?? '[]';
+            $template_id = !empty($_POST['template_id']) ? intval($_POST['template_id']) : null;
+            
+            $fundo = (isset($_FILES['fundo']) && $_FILES['fundo']['error'] === UPLOAD_ERR_OK) ? $_FILES['fundo'] : null;
+            $logo = (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) ? $_FILES['logo'] : null;
+            $assinatura = (isset($_FILES['assinatura']) && $_FILES['assinatura']['error'] === UPLOAD_ERR_OK) ? $_FILES['assinatura'] : null;
+
+            $res = $controller->saveTemplate($nome, $cargos, $fundo, $logo, $assinatura, $elementos, $template_id);
+            if ($res['success']) {
+                header("Location: carteirinha_editor.php?sucesso=1");
+                exit;
+            } else {
+                $erro = true;
+                $mensagem = $res['message'];
+            }
+        } elseif ($_POST['acao'] === 'excluir') {
+            $id = intval($_POST['id'] ?? 0);
+            $res = $controller->deleteTemplate($id);
+            if ($res['success']) {
+                header("Location: carteirinha_editor.php?sucesso=2");
+                exit;
+            } else {
+                $erro = true;
+                $mensagem = $res['message'];
+            }
+        }
+    }
+}
+
+// 2. Busca lista de cargos para o formulário
+$cargos_list = $pdo->query("SELECT id, nome FROM cargos WHERE status = 'Ativo' ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
+
+// 3. Determina o modo de exibição (Lista ou Editor)
+$modo = 'lista';
+$template_atual = null;
+
+if (isset($_GET['novo'])) {
+    $modo = 'editor';
+} elseif (isset($_GET['editar'])) {
+    $modo = 'editor';
+    $template_atual = $controller->getTemplate(intval($_GET['editar']));
+}
 
 $page_title = 'SGIM - Editor de Carteirinhas';
-$current_page = 'membros';
+$current_page = 'carteirinhas';
 
 require_once 'includes/header.php';
 ?>
 
 <div class="flex flex-col h-[calc(100vh-140px)] overflow-hidden rounded-xl border border-darkborder bg-darkcard">
+    
     <!-- Editor Header -->
     <div class="flex items-center justify-between px-6 py-4 border-b border-darkborder bg-white/[0.02]">
         <div class="flex items-center gap-4">
@@ -21,369 +87,683 @@ require_once 'includes/header.php';
                 <span class="material-symbols-outlined font-bold">badge</span>
             </div>
             <div>
-                <h2 class="text-white text-lg font-black tracking-tighter leading-tight">Editor de Carteirinhas</h2>
-                <p class="text-gray-500 text-[10px] uppercase tracking-widest font-bold">Personalização Visual</p>
+                <h2 class="text-white text-lg font-black tracking-tighter leading-tight">
+                    <?= $modo === 'lista' ? 'Modelos de Carteirinhas' : ($template_atual ? 'Editar Modelo: ' . htmlspecialchars($template_atual['nome']) : 'Novo Modelo de Carteirinha') ?>
+                </h2>
+                <p class="text-gray-500 text-[10px] uppercase tracking-widest font-bold">Ambiente Canva & Vinculação de Cargos</p>
             </div>
         </div>
         
         <div class="flex items-center gap-3">
-            <div class="flex bg-darkbg p-1 rounded-xl border border-darkborder mr-4">
-                <button class="px-4 py-1.5 text-xs font-bold rounded-lg bg-brand text-black shadow-lg shadow-brand/10">Frente</button>
-                <button class="px-4 py-1.5 text-xs font-medium text-gray-500 hover:text-brand transition-colors">Verso</button>
-            </div>
-            <!-- Novo Botão de Upload de Fundo -->
-            <input type="file" id="bg-upload" class="hidden" accept="image/*">
-            <button onclick="document.getElementById('bg-upload').click()" class="flex items-center gap-2 px-4 py-2 rounded-xl border border-darkborder bg-darkbg text-brand text-xs font-bold hover:bg-brand/10 transition-all">
-                <span class="material-symbols-outlined text-base">upload_file</span>
-                Subir Fundo
-            </button>
-            
-            <button class="flex items-center gap-2 px-4 py-2 rounded-xl border border-darkborder bg-darkbg text-gray-300 text-xs font-bold hover:border-brand/50 transition-all">
-                <span class="material-symbols-outlined text-base">folder_open</span>
-                Modelos
-            </button>
-            <button onclick="window.print()" class="flex items-center gap-2 px-6 py-2 rounded-xl bg-brand text-black text-xs font-black hover:bg-brand-light transition-colors shadow-lg shadow-brand/20">
-                <span class="material-symbols-outlined text-base">print</span>
-                Imprimir
-            </button>
+            <a href="carteirinha_digital.php" class="flex items-center gap-2 px-4 py-2 rounded-xl border border-darkborder bg-darkbg text-gray-300 text-xs font-bold hover:border-brand/50 transition-all">
+                <span class="material-symbols-outlined text-base">badge</span>
+                Membros
+            </a>
+            <?php if ($modo === 'lista'): ?>
+                <a href="carteirinha_editor.php?novo=1" class="flex items-center gap-2 px-6 py-2 rounded-xl bg-brand text-black text-xs font-black hover:bg-brand-light transition-colors shadow-lg shadow-brand/20">
+                    <span class="material-symbols-outlined text-base">add</span>
+                    Novo Modelo
+                </a>
+            <?php else: ?>
+                <a href="carteirinha_editor.php" class="flex items-center gap-2 px-4 py-2 rounded-xl border border-darkborder bg-darkbg text-gray-300 text-xs font-bold hover:border-brand/50 transition-all">
+                    <span class="material-symbols-outlined text-base">close</span>
+                    Cancelar
+                </a>
+                <button type="button" onclick="document.getElementById('form-save-template').click()" class="flex items-center gap-2 px-6 py-2 rounded-xl bg-brand text-black text-xs font-black hover:bg-brand-light transition-colors shadow-lg shadow-brand/20">
+                    <span class="material-symbols-outlined text-base">save</span>
+                    Salvar Modelo
+                </button>
+            <?php endif; ?>
         </div>
     </div>
 
-    <div class="flex flex-1 overflow-hidden">
-        <!-- Element Sidebar -->
-        <aside class="w-64 border-r border-darkborder bg-darkcard flex flex-col shrink-0">
-            <div class="p-4 space-y-4 overflow-y-auto">
-                <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest px-2">Adicionar Elementos</p>
-                <div class="grid grid-cols-2 gap-2">
-                    <button class="flex flex-col items-center gap-2 p-4 rounded-xl bg-darkbg border border-darkborder hover:border-brand/50 transition-all group">
-                        <span class="material-symbols-outlined text-brand text-2xl group-hover:scale-110 transition-transform">text_fields</span>
-                        <span class="text-[10px] font-bold text-gray-400">Texto</span>
-                    </button>
-                    <button class="flex flex-col items-center gap-2 p-4 rounded-xl bg-darkbg border border-darkborder hover:border-brand/50 transition-all group">
-                        <span class="material-symbols-outlined text-brand text-2xl group-hover:scale-110 transition-transform">image</span>
-                        <span class="text-[10px] font-bold text-gray-400">Imagem</span>
-                    </button>
-                    <button class="flex flex-col items-center gap-2 p-4 rounded-xl bg-darkbg border border-darkborder hover:border-brand/50 transition-all group">
-                        <span class="material-symbols-outlined text-brand text-2xl group-hover:scale-110 transition-transform">qr_code_2</span>
-                        <span class="text-[10px] font-bold text-gray-400">QR Code</span>
-                    </button>
-                    <button class="flex flex-col items-center gap-2 p-4 rounded-xl bg-darkbg border border-darkborder hover:border-brand/50 transition-all group">
-                        <span class="material-symbols-outlined text-brand text-2xl group-hover:scale-110 transition-transform">category</span>
-                        <span class="text-[10px] font-bold text-gray-400">Formas</span>
-                    </button>
+    <!-- Mensagens de Alerta -->
+    <?php if (!empty($mensagem)): ?>
+        <div class="p-4 mx-6 mt-4 rounded-xl border <?= $erro ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-green-500/10 border-green-500/20 text-green-400' ?> text-xs font-bold flex items-center justify-between">
+            <span class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm"><?= $erro ? 'error' : 'check_circle' ?></span>
+                <?= htmlspecialchars($mensagem) ?>
+            </span>
+            <button onclick="this.parentElement.remove()" class="hover:text-white">&times;</button>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($modo === 'lista'): ?>
+        <!-- MODO LISTAGEM -->
+        <div class="flex-1 p-6 overflow-y-auto">
+            <?php 
+            $templates = $controller->getTemplates();
+            if (empty($templates)): 
+            ?>
+                <div class="flex flex-col items-center justify-center h-64 border border-dashed border-darkborder rounded-2xl bg-white/[0.01]">
+                    <span class="material-symbols-outlined text-5xl text-gray-600 mb-3">badge</span>
+                    <h3 class="text-white font-bold text-sm">Nenhum modelo de carteirinha cadastrado</h3>
+                    <p class="text-gray-500 text-xs mt-1">Crie seu primeiro modelo de carteirinha e vincule aos cargos da igreja.</p>
+                    <a href="carteirinha_editor.php?novo=1" class="mt-4 px-6 py-2 bg-brand text-black text-xs font-black rounded-xl hover:bg-brand-light transition-all shadow-md">Criar Modelo</a>
                 </div>
-
-                <div class="pt-6">
-                    <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest px-2 mb-4">Camadas do Documento</p>
-                    <div class="space-y-1">
-                        <div class="flex items-center justify-between p-2 rounded-lg bg-white/5 border border-white/5">
-                            <div class="flex items-center gap-3">
-                                <span class="material-symbols-outlined text-sm text-brand">account_circle</span>
-                                <span class="text-xs text-gray-300 font-medium">Foto do Membro</span>
-                            </div>
-                            <span class="material-symbols-outlined text-sm text-gray-600">lock</span>
-                        </div>
-                        <div class="flex items-center justify-between p-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
-                            <div class="flex items-center gap-3">
-                                <span class="material-symbols-outlined text-sm text-gray-500">title</span>
-                                <span class="text-xs text-gray-400">Nome do Membro</span>
-                            </div>
-                            <span class="material-symbols-outlined text-sm text-gray-600">visibility</span>
-                        </div>
-                        <div class="flex items-center justify-between p-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
-                            <div class="flex items-center gap-3">
-                                <span class="material-symbols-outlined text-sm text-gray-500">grid_view</span>
-                                <span class="text-xs text-gray-400">Fundo Dourado</span>
-                            </div>
-                            <span class="material-symbols-outlined text-sm text-gray-600">lock</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </aside>
-
-        <!-- Canvas Area -->
-        <main class="flex-1 bg-darkbg relative overflow-hidden flex flex-col p-8">
-            <!-- Tools Toolbar -->
-            <div class="absolute top-8 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-darkcard/80 backdrop-blur-xl px-4 py-2 rounded-2xl border border-white/5 shadow-2xl z-20">
-                <button class="p-2 hover:text-brand text-gray-500 transition-colors"><span class="material-symbols-outlined">undo</span></button>
-                <button class="p-2 hover:text-brand text-gray-500 transition-colors"><span class="material-symbols-outlined">redo</span></button>
-                <div class="w-px h-4 bg-darkborder mx-2"></div>
-                <div class="flex items-center gap-2 bg-darkbg border border-darkborder rounded-lg px-3 py-1">
-                    <button class="text-gray-500 hover:text-brand"><span class="material-symbols-outlined text-sm">remove</span></button>
-                    <span class="text-[10px] font-black text-gray-300 w-8 text-center">85%</span>
-                    <button class="text-gray-500 hover:text-brand"><span class="material-symbols-outlined text-sm">add</span></button>
-                </div>
-                <div class="w-px h-4 bg-darkborder mx-2"></div>
-                <button class="p-2 hover:text-brand text-gray-500 transition-colors"><span class="material-symbols-outlined">fullscreen</span></button>
-            </div>
-
-            <!-- Designing Surface -->
-            <div class="flex-1 flex items-center justify-center relative">
-                <div class="canvas-grid absolute inset-0 opacity-20"></div>
-                
-                <!-- The ID Card Canvas -->
-                <div id="card-canvas" class="relative w-[450px] h-[280px] bg-[#0A0A0A] rounded-2xl border-2 border-brand/30 shadow-2xl overflow-hidden p-6 flex flex-col justify-between group cursor-move">
-                    <img id="card-bg-layer" src="" class="absolute inset-0 w-full h-full object-cover hidden pointer-events-none">
-                    <div class="absolute -top-20 -right-20 w-64 h-64 bg-brand/5 rounded-full blur-3xl pointer-events-none"></div>
-                    <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-brand"></div>
-                    
-                <div class="flex items-center justify-between relative z-10">
-                        <div class="flex items-center gap-3">
-                            <div class="size-10 bg-brand rounded-lg flex items-center justify-center text-black">
-                                <span class="material-symbols-outlined text-2xl font-bold">church</span>
-                            </div>
-                            <div class="cursor-pointer" onclick="this.querySelector('h1').focus()">
-                                <h1 class="text-sm font-black text-white leading-tight uppercase tracking-tighter outline-none" contenteditable="true">SGIM CHURCH</h1>
-                                <p class="text-[8px] text-gray-500 font-bold uppercase tracking-widest outline-none" contenteditable="true">Sistema de Gestão Integrada</p>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-[8px] text-brand font-black uppercase tracking-widest outline-none" contenteditable="true">Membro Oficial</p>
-                            <p class="text-[10px] text-gray-400 font-mono outline-none" contenteditable="true">ID: 2024-00421</p>
-                        </div>
-                    </div>
-
-                    <div class="flex gap-6 items-center mt-4 relative z-10">
-                        <div class="relative">
-                            <div class="size-28 rounded-xl bg-darkbg border-2 border-brand/50 overflow-hidden flex items-center justify-center shadow-lg cursor-pointer hover:border-brand transition-colors" onclick="document.getElementById('photo-upload').click()">
-                                <img id="member-photo" src="" class="w-full h-full object-cover hidden">
-                                <span id="photo-placeholder" class="material-symbols-outlined text-gray-700 text-5xl">person</span>
-                            </div>
-                            <input type="file" id="photo-upload" class="hidden" accept="image/*">
-                            <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-brand text-black text-[8px] font-black px-2 py-0.5 rounded-full whitespace-nowrap shadow-md outline-none" contenteditable="true">
-                                VÁLIDA ATÉ 12/26
-                            </div>
-                        </div>
-
-                        <div class="flex-1 space-y-3">
-                            <div>
-                                <p class="text-[8px] text-gray-500 font-black uppercase tracking-widest mb-0.5 outline-none" contenteditable="true">Nome do Membro</p>
-                                <p class="text-sm font-black text-white uppercase tracking-tight outline-none" contenteditable="true">JOÃO DA SILVA OLIVEIRA</p>
-                            </div>
-                            
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <p class="text-[8px] text-gray-500 font-black uppercase tracking-widest mb-0.5 outline-none" contenteditable="true">Cargo / Função</p>
-                                    <p class="text-[10px] font-bold text-gray-200 uppercase outline-none" contenteditable="true">DIÁCONO</p>
-                                </div>
-                                <div>
-                                    <p class="text-[8px] text-gray-500 font-black uppercase tracking-widest mb-0.5 outline-none" contenteditable="true">Congregação</p>
-                                    <p class="text-[10px] font-bold text-gray-200 uppercase outline-none" contenteditable="true">SEDE CENTRAL</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between border-t border-white/5 pt-4 mt-4 relative z-10">
-                        <div class="flex items-center gap-2">
-                            <span class="material-symbols-outlined text-brand text-[14px]">verified_user</span>
-                            <span class="text-[8px] text-gray-500 font-bold uppercase tracking-widest">Autenticidade Digital</span>
-                        </div>
-                        <div class="size-10 bg-white p-1 rounded-sm shadow-inner opacity-80 hover:opacity-100 transition-opacity">
-                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=SGIM-VERIFY-DEMO" class="w-full h-full">
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <!-- Properties Panel -->
-        <aside class="w-72 border-l border-darkborder bg-darkcard hidden xl:flex flex-col shrink-0">
-            <div class="p-6 space-y-8">
-                <div>
-                    <h3 class="text-sm font-black text-white flex items-center gap-2 mb-6">
-                        <span class="material-symbols-outlined text-brand">settings</span>
-                        Propriedades
-                    </h3>
-                    
-                    <div class="space-y-6">
-                        <div class="space-y-3">
-                            <label class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Posicionamento</label>
-                            <div class="grid grid-cols-2 gap-2">
-                                <div class="bg-darkbg border border-darkborder rounded-xl p-3">
-                                    <p class="text-[9px] text-gray-600 font-bold uppercase mb-1">Eixo X</p>
-                                    <p class="text-sm font-mono text-gray-300">142px</p>
-                                </div>
-                                <div class="bg-darkbg border border-darkborder rounded-xl p-3">
-                                    <p class="text-[9px] text-gray-600 font-bold uppercase mb-1">Eixo Y</p>
-                                    <p class="text-sm font-mono text-gray-300">88px</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="space-y-3">
-                            <label class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Estilo do Elemento</label>
-                            <div class="bg-darkbg border border-darkborder rounded-xl p-4 space-y-4">
+            <?php else: ?>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <?php foreach ($templates as $t): ?>
+                        <div class="border border-darkborder bg-darkbg rounded-2xl p-5 flex flex-col justify-between hover:border-brand/40 transition-all">
+                            <div class="space-y-4">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-xs text-gray-400">Opacidade</span>
-                                    <span class="text-xs text-brand font-bold">100%</span>
+                                    <h3 class="text-white text-sm font-black tracking-tight leading-tight"><?= htmlspecialchars($t['nome']) ?></h3>
+                                    <span class="bg-brand/10 text-brand text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                        <?= $t['status'] ?>
+                                    </span>
                                 </div>
-                                <div class="h-1 bg-darkborder rounded-full overflow-hidden">
-                                    <div class="h-full bg-brand w-full"></div>
+                                
+                                <div class="h-28 bg-[#0c0c0c] border border-white/5 rounded-xl overflow-hidden relative flex items-center justify-center">
+                                    <?php if ($t['fundo_url']): ?>
+                                        <img src="<?= htmlspecialchars($t['fundo_url']) ?>" class="w-full h-full object-cover">
+                                    <?php else: ?>
+                                        <div class="text-center text-gray-700">
+                                            <span class="material-symbols-outlined text-3xl">image</span>
+                                            <p class="text-[9px] uppercase font-bold mt-1">Fundo Padrão</p>
+                                        </div>
+                                    <?php endif; ?>
+                                    
+                                    <!-- Pequena miniatura de logo -->
+                                    <?php if ($t['logo_url']): ?>
+                                        <img src="<?= htmlspecialchars($t['logo_url']) ?>" class="absolute top-2 left-2 max-h-6 object-contain bg-black/40 p-0.5 rounded">
+                                    <?php endif; ?>
                                 </div>
+
+                                <div class="space-y-1">
+                                    <p class="text-[9px] text-gray-500 font-bold uppercase tracking-wider">Cargos Vinculados</p>
+                                    <p class="text-xs font-medium text-gray-300">
+                                        <?= $t['cargos_nomes'] ? htmlspecialchars($t['cargos_nomes']) : '<span class="text-brand/60 font-bold">Geral (Todos os Cargos)</span>' ?>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-2 mt-6 pt-4 border-t border-darkborder">
+                                <a href="carteirinha_editor.php?editar=<?= $t['id'] ?>" class="flex-1 py-2 text-center rounded-xl bg-white/5 border border-white/5 hover:border-brand/50 text-gray-300 hover:text-brand text-xs font-bold transition-all">
+                                    Editar Visual
+                                </a>
+                                <form action="carteirinha_editor.php" method="POST" onsubmit="return confirm('Deseja realmente excluir este modelo? Todos os cargos vinculados perderão este layout.');">
+                                    <input type="hidden" name="acao" value="excluir">
+                                    <input type="hidden" name="id" value="<?= $t['id'] ?>">
+                                    <button type="submit" class="p-2 rounded-xl bg-red-500/10 border border-red-500/10 hover:border-red-500 text-red-400 hover:bg-red-500/20 text-xs font-bold transition-all flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-sm">delete</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+    <?php else: ?>
+        <!-- MODO EDITOR (CANVA) -->
+        <div class="flex flex-1 overflow-hidden" x-data="canvaEditor(<?= htmlspecialchars($template_atual ? $template_atual['elementos_json'] : '[]') ?>)">
+            
+            <!-- Element Sidebar (Painel Esquerdo) -->
+            <aside class="w-80 border-r border-darkborder bg-darkcard flex flex-col shrink-0 overflow-y-auto">
+                <form id="form-template" action="carteirinha_editor.php" method="POST" enctype="multipart/form-data" class="p-5 space-y-6">
+                    <input type="hidden" name="acao" value="salvar">
+                    <input type="hidden" name="template_id" value="<?= $template_atual ? $template_atual['id'] : '' ?>">
+                    <input type="hidden" name="elementos_json" :value="JSON.stringify(elements)">
+
+                    <!-- Detalhes do Modelo -->
+                    <div class="space-y-3">
+                        <label class="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Configuração do Modelo</label>
+                        <input type="text" name="nome" value="<?= $template_atual ? htmlspecialchars($template_atual['nome']) : '' ?>" placeholder="Ex: Modelo Geral, Carteira Pastor" class="w-full bg-darkbg border border-darkborder rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-600 focus:border-brand focus:ring-0" required>
+                    </div>
+
+                    <!-- Vínculo por Cargos -->
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <label class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Vincular a Cargos</label>
+                            <button type="button" @click="toggleSelectAllCargos" class="text-[9px] text-brand hover:underline font-bold uppercase">Inverter</button>
+                        </div>
+                        <div class="bg-darkbg border border-darkborder rounded-xl p-3 max-h-40 overflow-y-auto space-y-2">
+                            <label class="flex items-center gap-2.5 text-xs font-bold text-gray-400 hover:text-white cursor-pointer select-none">
+                                <input type="checkbox" id="cargo-geral-chk" @change="chkGeralChanged" class="rounded border-darkborder bg-darkbg text-brand focus:ring-0 size-4">
+                                <span>Geral (Todos os Cargos)</span>
+                            </label>
+                            <hr class="border-darkborder my-1">
+                            <?php 
+                            $cargos_selecionados = $template_atual ? $template_atual['cargos'] : [];
+                            foreach ($cargos_list as $cargo): 
+                                $checked = in_array($cargo['id'], $cargos_selecionados) ? 'checked' : '';
+                            ?>
+                                <label class="flex items-center gap-2.5 text-xs text-gray-400 hover:text-white cursor-pointer select-none pl-2 cargo-item-label">
+                                    <input type="checkbox" name="cargos[]" value="<?= $cargo['id'] ?>" <?= $checked ?> class="cargo-chk rounded border-darkborder bg-darkbg text-brand focus:ring-0 size-4">
+                                    <span><?= htmlspecialchars($cargo['nome']) ?></span>
+                                </label>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+
+                    <!-- Assets de Upload -->
+                    <div class="space-y-4">
+                        <label class="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Upload de Recursos</label>
+                        
+                        <!-- Fundo -->
+                        <div class="space-y-1">
+                            <span class="text-[10px] text-gray-400 font-bold block">Fundo do Cartão (Recomendado: 450x280)</span>
+                            <div class="flex items-center gap-2">
+                                <input type="file" name="fundo" id="fundo-input" accept="image/*" class="hidden" @change="fundoUploaded">
+                                <button type="button" onclick="document.getElementById('fundo-input').click()" class="flex-1 flex items-center justify-center gap-2 py-2 px-3 bg-darkbg border border-darkborder rounded-xl text-xs text-brand font-bold hover:bg-brand/5">
+                                    <span class="material-symbols-outlined text-sm">upload</span>
+                                    <span>Selecionar Fundo</span>
+                                </button>
+                                <?php if ($template_atual && $template_atual['fundo_url']): ?>
+                                    <button type="button" @click="previewResource('<?= htmlspecialchars($template_atual['fundo_url']) ?>')" class="p-2 bg-darkbg border border-darkborder text-gray-400 hover:text-brand rounded-xl flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-sm">visibility</span>
+                                    </button>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+
+                        <!-- Logo -->
+                        <div class="space-y-1">
+                            <span class="text-[10px] text-gray-400 font-bold block">Logotipo do Ministério</span>
+                            <div class="flex items-center gap-2">
+                                <input type="file" name="logo" id="logo-input" accept="image/*" class="hidden" @change="logoUploaded">
+                                <button type="button" onclick="document.getElementById('logo-input').click()" class="flex-1 flex items-center justify-center gap-2 py-2 px-3 bg-darkbg border border-darkborder rounded-xl text-xs text-brand font-bold hover:bg-brand/5">
+                                    <span class="material-symbols-outlined text-sm">upload</span>
+                                    <span>Adicionar Logo</span>
+                                </button>
+                                <button type="button" @click="injectLogo" class="p-2 bg-darkbg border border-darkborder text-brand hover:bg-brand-light hover:text-black rounded-xl flex items-center justify-center" title="Inserir no Canvas">
+                                    <span class="material-symbols-outlined text-sm">add</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Assinatura -->
+                        <div class="space-y-1">
+                            <span class="text-[10px] text-gray-400 font-bold block">Assinatura do Presidente</span>
+                            <div class="flex items-center gap-2">
+                                <input type="file" name="assinatura" id="assinatura-input" accept="image/*" class="hidden" @change="assinaturaUploaded">
+                                <button type="button" onclick="document.getElementById('assinatura-input').click()" class="flex-1 flex items-center justify-center gap-2 py-2 px-3 bg-darkbg border border-darkborder rounded-xl text-xs text-brand font-bold hover:bg-brand/5">
+                                    <span class="material-symbols-outlined text-sm">upload</span>
+                                    <span>Adicionar Assinatura</span>
+                                </button>
+                                <button type="button" @click="injectAssinatura" class="p-2 bg-darkbg border border-darkborder text-brand hover:bg-brand-light hover:text-black rounded-xl flex items-center justify-center" title="Inserir no Canvas">
+                                    <span class="material-symbols-outlined text-sm">add</span>
+                                </button>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Inserir Texto Customizado -->
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Inserir Texto Customizado</label>
+                        <div class="flex gap-2">
+                            <input type="text" x-model="customText" placeholder="Escreva o texto aqui..." class="flex-1 bg-darkbg border border-darkborder rounded-xl px-3 py-2 text-xs text-white placeholder-gray-600 focus:border-brand focus:ring-0">
+                            <button type="button" @click="addCustomText" class="p-2.5 bg-brand text-black hover:bg-brand-light rounded-xl flex items-center justify-center">
+                                <span class="material-symbols-outlined text-sm font-bold">add</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Botão de salvamento escondido -->
+                    <button type="submit" id="form-save-template" class="hidden"></button>
+                </form>
+
+                <!-- Elementos Dinâmicos de Clique Rápido -->
+                <div class="p-5 border-t border-darkborder space-y-4">
+                    <label class="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Campos Dinâmicos (Canva)</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" @click="injectDynamic('nome_membro', '{Nome do Membro}')" class="flex items-center gap-2 p-2.5 rounded-xl bg-darkbg border border-darkborder hover:border-brand/40 text-left transition-all">
+                            <span class="material-symbols-outlined text-sm text-brand">title</span>
+                            <span class="text-[10px] text-gray-400 font-bold whitespace-nowrap">Nome</span>
+                        </button>
+                        <button type="button" @click="injectDynamic('nome_cargo', '{Cargo / Função}')" class="flex items-center gap-2 p-2.5 rounded-xl bg-darkbg border border-darkborder hover:border-brand/40 text-left transition-all">
+                            <span class="material-symbols-outlined text-sm text-brand">assignment_ind</span>
+                            <span class="text-[10px] text-gray-400 font-bold whitespace-nowrap">Cargo</span>
+                        </button>
+                        <button type="button" @click="injectDynamic('nome_congregacao', '{Congregação}')" class="flex items-center gap-2 p-2.5 rounded-xl bg-darkbg border border-darkborder hover:border-brand/40 text-left transition-all">
+                            <span class="material-symbols-outlined text-sm text-brand">church</span>
+                            <span class="text-[10px] text-gray-400 font-bold whitespace-nowrap">Congregação</span>
+                        </button>
+                        <button type="button" @click="injectDynamic('cpf_membro', '{CPF}')" class="flex items-center gap-2 p-2.5 rounded-xl bg-darkbg border border-darkborder hover:border-brand/40 text-left transition-all">
+                            <span class="material-symbols-outlined text-sm text-brand">badge</span>
+                            <span class="text-[10px] text-gray-400 font-bold whitespace-nowrap">CPF</span>
+                        </button>
+                        <button type="button" @click="injectDynamic('data_emissao', '{Data Emissão}')" class="flex items-center gap-2 p-2.5 rounded-xl bg-darkbg border border-darkborder hover:border-brand/40 text-left transition-all">
+                            <span class="material-symbols-outlined text-sm text-brand">calendar_month</span>
+                            <span class="text-[10px] text-gray-400 font-bold whitespace-nowrap">Emissão</span>
+                        </button>
+                        <button type="button" @click="injectDynamic('valida_ate', '{Válida Até}')" class="flex items-center gap-2 p-2.5 rounded-xl bg-darkbg border border-darkborder hover:border-brand/40 text-left transition-all">
+                            <span class="material-symbols-outlined text-sm text-brand">event_busy</span>
+                            <span class="text-[10px] text-gray-400 font-bold whitespace-nowrap">Validade</span>
+                        </button>
+                        <button type="button" @click="injectDynamic('qr_code', 'qr_code')" class="flex items-center gap-2 p-2.5 rounded-xl bg-darkbg border border-darkborder hover:border-brand/40 text-left transition-all">
+                            <span class="material-symbols-outlined text-sm text-brand">qr_code_2</span>
+                            <span class="text-[10px] text-gray-400 font-bold whitespace-nowrap">QR Code</span>
+                        </button>
+                        <button type="button" @click="injectDynamic('foto_membro', 'foto_membro')" class="flex items-center gap-2 p-2.5 rounded-xl bg-darkbg border border-darkborder hover:border-brand/40 text-left transition-all">
+                            <span class="material-symbols-outlined text-sm text-brand">account_circle</span>
+                            <span class="text-[10px] text-gray-400 font-bold whitespace-nowrap">Foto Membro</span>
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Canvas Area (Centro) -->
+            <main class="flex-1 bg-darkbg relative overflow-hidden flex flex-col p-8 select-none">
+                <div class="flex-1 flex items-center justify-center relative">
+                    <div class="canvas-grid absolute inset-0 opacity-20 pointer-events-none"></div>
+                    
+                    <!-- Canvas Real da Carteirinha -->
+                    <div id="card-canvas" 
+                         class="relative w-[450px] h-[280px] bg-[#0A0A0A] rounded-2xl border-2 border-brand/30 shadow-2xl overflow-hidden"
+                         :style="fundoSrc ? 'background-image: url(' + fundoSrc + '); background-size: cover; background-position: center;' : ''"
+                         @click="deselectAll"
+                         @dragover.prevent
+                         @drop="onDrop">
+                         
+                        <div class="absolute -top-20 -right-20 w-64 h-64 bg-brand/5 rounded-full blur-3xl pointer-events-none" x-show="!fundoSrc"></div>
+                        
+                        <!-- Elementos inseridos dinamicamente -->
+                        <template x-for="(el, index) in elements" :key="el.id">
+                            <div class="absolute p-1 border select-none group"
+                                 :class="selectedId === el.id ? 'border-brand shadow-lg outline outline-1 outline-brand' : 'border-transparent hover:border-white/20'"
+                                 :style="{
+                                     left: el.x + 'px', 
+                                     top: el.y + 'px', 
+                                     color: el.color || '#ffffff', 
+                                     fontSize: (el.size || 12) + 'px', 
+                                     fontWeight: el.bold ? 'bold' : 'normal',
+                                     fontFamily: el.type === 'text' || el.type === 'dynamic' ? 'Inter, sans-serif' : 'monospace',
+                                     cursor: 'move',
+                                     zIndex: 20
+                                 }"
+                                 @mousedown="startDrag($event, el)"
+                                 @click.stop="selectElement(el)">
+                                 
+                                 <!-- RENDERIZAÇÃO POR TIPO -->
+                                 <template x-if="el.type === 'text'">
+                                     <span x-text="el.value"></span>
+                                 </template>
+                                 
+                                 <template x-if="el.type === 'dynamic'">
+                                     <span class="font-bold border border-brand/30 bg-brand/5 px-1 py-0.5 rounded text-[0.8em]" x-text="el.value"></span>
+                                 </template>
+
+                                 <template x-if="el.type === 'foto_membro'">
+                                     <div class="size-20 bg-darkbg border border-brand/50 rounded-lg flex flex-col items-center justify-center text-gray-500 shadow-inner">
+                                         <span class="material-symbols-outlined text-2xl text-brand/60">person</span>
+                                         <span class="text-[6px] uppercase font-black tracking-wider text-gray-500 mt-0.5">Foto do Membro</span>
+                                     </div>
+                                 </template>
+
+                                 <template x-if="el.type === 'qr_code'">
+                                     <div class="size-10 bg-white p-1 rounded flex items-center justify-center shadow">
+                                         <span class="material-symbols-outlined text-black text-2xl font-bold">qr_code_2</span>
+                                     </div>
+                                 </template>
+
+                                 <template x-if="el.type === 'logo'">
+                                     <img :src="logoSrc || 'assets/images/logo.png'" class="max-h-12 object-contain pointer-events-none">
+                                 </template>
+
+                                 <template x-if="el.type === 'assinatura'">
+                                     <div class="flex flex-col items-center">
+                                         <img :src="assinaturaSrc || 'assets/images/signature.png'" class="max-h-10 object-contain pointer-events-none">
+                                         <div class="w-20 h-px bg-white/20 my-0.5"></div>
+                                         <span class="text-[5px] uppercase font-bold text-gray-500 tracking-wider">Assinatura</span>
+                                     </div>
+                                 </template>
+
+                                 <!-- Botão rápido de exclusão do elemento -->
+                                 <button type="button" @click.stop="deleteElement(el)" class="absolute -top-2 -right-2 bg-red-500 text-white size-4 rounded-full text-[10px] hidden group-hover:flex items-center justify-center hover:bg-red-600 shadow-md">
+                                     &times;
+                                 </button>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Properties Panel (Painel Direito) -->
+            <aside class="w-72 border-l border-darkborder bg-darkcard flex flex-col shrink-0 p-6">
+                <div class="flex-1 space-y-6">
+                    <h3 class="text-xs font-black text-white flex items-center gap-2 mb-4 border-b border-darkborder pb-3">
+                        <span class="material-symbols-outlined text-brand text-sm">settings</span>
+                        Propriedades do Elemento
+                    </h3>
+
+                    <template x-if="selectedElement">
+                        <div class="space-y-5">
+                            <div>
+                                <p class="text-[9px] text-gray-500 font-bold uppercase tracking-wider mb-1">Tipo de Elemento</p>
+                                <span class="text-xs font-bold text-white uppercase bg-white/5 border border-white/5 px-2 py-1 rounded" x-text="selectedElement.type"></span>
+                            </div>
+
+                            <!-- Posicionamento Fino -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="bg-darkbg border border-darkborder rounded-xl p-3">
+                                    <p class="text-[9px] text-gray-600 font-bold uppercase mb-1">Posição X</p>
+                                    <input type="number" x-model.number="selectedElement.x" @input="limitCoordinates" class="w-full bg-transparent border-none p-0 text-sm font-mono text-gray-300 focus:ring-0">
+                                </div>
+                                <div class="bg-darkbg border border-darkborder rounded-xl p-3">
+                                    <p class="text-[9px] text-gray-600 font-bold uppercase mb-1">Posição Y</p>
+                                    <input type="number" x-model.number="selectedElement.y" @input="limitCoordinates" class="w-full bg-transparent border-none p-0 text-sm font-mono text-gray-300 focus:ring-0">
+                                </div>
+                            </div>
+
+                            <!-- Estilo de Texto (Só para Textos e Dinâmicos) -->
+                            <template x-if="selectedElement.type === 'text' || selectedElement.type === 'dynamic'">
+                                <div class="space-y-4">
+                                    <!-- Cor do Texto -->
+                                    <div class="space-y-1.5">
+                                        <p class="text-[9px] text-gray-500 font-bold uppercase tracking-wider">Cor do Texto</p>
+                                        <div class="flex items-center gap-2 bg-darkbg border border-darkborder rounded-xl px-3 py-1.5">
+                                            <input type="color" x-model="selectedElement.color" class="bg-transparent border-none size-6 p-0 cursor-pointer">
+                                            <input type="text" x-model="selectedElement.color" class="flex-1 bg-transparent border-none p-0 text-xs text-white focus:ring-0 uppercase font-mono">
+                                        </div>
+                                    </div>
+
+                                    <!-- Tamanho do Texto -->
+                                    <div class="space-y-1.5">
+                                        <div class="flex justify-between items-center text-[9px] text-gray-500 font-bold uppercase">
+                                            <span>Tamanho da Fonte</span>
+                                            <span class="text-brand font-mono font-bold" x-text="selectedElement.size + 'px'"></span>
+                                        </div>
+                                        <input type="range" min="8" max="28" x-model.number="selectedElement.size" class="w-full accent-brand bg-darkbg h-1.5 rounded-lg appearance-none">
+                                    </div>
+
+                                    <!-- Estilo Negrito -->
+                                    <div class="flex items-center justify-between py-1 border-t border-b border-darkborder/50">
+                                        <span class="text-xs text-gray-400 font-medium">Fonte Negrito</span>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" x-model="selectedElement.bold" class="sr-only peer">
+                                            <div class="w-9 h-5 bg-darkbg peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-600 peer-checked:after:bg-black peer-checked:after:border-brand after:rounded-full after:h-4 after:w-4 after:transition-all border border-darkborder peer-checked:bg-brand"></div>
+                                        </label>
+                                    </div>
+
+                                    <!-- Campo de valor customizado (Apenas texto) -->
+                                    <template x-if="selectedElement.type === 'text'">
+                                        <div class="space-y-1.5">
+                                            <p class="text-[9px] text-gray-500 font-bold uppercase tracking-wider">Conteúdo do Texto</p>
+                                            <textarea x-model="selectedElement.value" rows="2" class="w-full bg-darkbg border border-darkborder rounded-xl p-3 text-xs text-white placeholder-gray-600 focus:border-brand focus:ring-0 resize-none"></textarea>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+
+                            <button type="button" @click="deleteElement(selectedElement)" class="w-full py-3 mt-4 border border-red-500/30 hover:border-red-500/60 bg-red-500/5 hover:bg-red-500/10 text-red-400 rounded-xl text-xs font-black uppercase tracking-wider transition-all">
+                                Remover Elemento
+                            </button>
+                        </div>
+                    </template>
+
+                    <template x-if="!selectedElement">
+                        <div class="flex flex-col items-center justify-center h-48 border border-dashed border-darkborder rounded-2xl bg-white/[0.01]">
+                            <span class="material-symbols-outlined text-3xl text-gray-600 mb-2">touch_app</span>
+                            <p class="text-gray-500 text-[10px] uppercase font-bold text-center">Selecione um elemento<br>no canvas para editar</p>
+                        </div>
+                    </template>
                 </div>
 
-                <div class="pt-8 border-t border-darkborder">
-                    <button class="w-full py-4 bg-brand hover:bg-brand-dark text-black rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-brand/20">
-                        Salvar Modelo
+                <div class="pt-6 border-t border-darkborder">
+                    <button type="button" @click="document.getElementById('form-save-template').click()" class="w-full py-4 bg-brand hover:bg-brand-dark text-black rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-brand/20">
+                        Salvar Template
                     </button>
                 </div>
-            </div>
-        </aside>
+            </aside>
+        </div>
+    <?php endif; ?>
+</div>
+
+<!-- Modal para Visualização de Asset Existente -->
+<div id="resource-preview-modal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-6">
+    <div class="relative bg-darkcard border border-darkborder rounded-2xl p-6 max-w-2xl max-h-[80vh] overflow-hidden flex flex-col justify-between">
+        <button onclick="document.getElementById('resource-preview-modal').classList.add('hidden')" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl font-bold">&times;</button>
+        <h3 class="text-white text-sm font-black uppercase tracking-wider mb-4">Visualização do Recurso</h3>
+        <div class="flex-1 overflow-auto flex items-center justify-center bg-black/50 p-4 rounded-xl border border-white/5">
+            <img id="resource-preview-img" src="" class="max-w-full max-h-[50vh] object-contain">
+        </div>
     </div>
 </div>
 
 <style>
 .canvas-grid {
-    background-image: radial-gradient(circle, #1e1e1e 1px, transparent 1px);
-    background-size: 20px 20px;
-}
-@media print {
-    body * { visibility: hidden; }
-    #card-canvas, #card-canvas * { visibility: visible; }
-    #card-canvas {
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        box-shadow: none;
-        border: 1px solid #FFC107;
-    }
-    aside, header, footer, button { display: none !important; }
+    background-image: radial-gradient(circle, #2e2e2e 1.2px, transparent 1.2px);
+    background-size: 15px 15px;
 }
 </style>
 
 <script>
-    // Lógica de Upload de Foto do Membro
-    document.getElementById('photo-upload').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const img = document.getElementById('member-photo');
-                const placeholder = document.getElementById('photo-placeholder');
-                img.src = event.target.result;
-                img.classList.remove('hidden');
-                placeholder.classList.add('hidden');
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-
-    // Lógica de Upload de Fundo Personalizado
-    document.getElementById('bg-upload').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const bgLayer = document.getElementById('card-bg-layer');
-                bgLayer.src = event.target.result;
-                bgLayer.classList.remove('hidden');
-                
-                // Ocultar elementos decorativos padrão para não conflitar com o fundo novo
-                document.querySelector('.canvas-grid').style.opacity = '0';
-                document.querySelector('#card-canvas .bg-brand\\/5').style.display = 'none';
-                document.querySelector('#card-canvas .absolute.left-0').style.display = 'none';
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-
-    // Ativação dos botões de elementos e Arrastar e Soltar
-    let draggedElement = null;
-
-    function createDraggableElement(type, content) {
-        const div = document.createElement('div');
-        div.className = 'absolute cursor-move p-2 hover:outline hover:outline-1 hover:outline-brand group';
-        div.style.left = '50px';
-        div.style.top = '50px';
-        div.setAttribute('draggable', 'true');
-        
-        let innerHTML = '';
-        if (type === 'Texto') {
-            innerHTML = `<p class="text-white text-sm font-bold bg-transparent border-none outline-none" contenteditable="true">${content || 'Novo Texto'}</p>`;
-        } else if (type === 'Imagem') {
-            innerHTML = `<div class="size-12 bg-white/10 flex items-center justify-center border border-dashed border-white/20"><span class="material-symbols-outlined text-gray-500">image</span></div>`;
-        } else if (type === 'QR Code') {
-            innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=SGIM-DRAG-TEST" class="size-12">`;
-        } else if (type === 'Formas') {
-            innerHTML = `<div class="size-10 bg-brand/50 rounded-lg"></div>`;
-        }
-
-        div.innerHTML = innerHTML + `<button class="absolute -top-2 -right-2 bg-red-500 text-white size-4 rounded-full text-[10px] hidden group-hover:flex items-center justify-center" onclick="this.parentElement.remove()">×</button>`;
-        
-        // Drag Events
-        div.onmousedown = function(e) {
-            if (e.target.contentEditable === 'true') return;
-            let shiftX = e.clientX - div.getBoundingClientRect().left;
-            let shiftY = e.clientY - div.getBoundingClientRect().top;
-
-            function moveAt(pageX, pageY) {
-                const canvas = document.getElementById('card-canvas');
-                const rect = canvas.getBoundingClientRect();
-                let x = pageX - rect.left - shiftX;
-                let y = pageY - rect.top - shiftY;
-                
-                // Boundary check
-                x = Math.max(0, Math.min(x, rect.width - div.offsetWidth));
-                y = Math.max(0, Math.min(y, rect.height - div.offsetHeight));
-                
-                div.style.left = x + 'px';
-                div.style.top = y + 'px';
-                
-                // Update properties panel
-                document.querySelector('.font-mono.text-gray-300:nth-of-type(1)').innerText = Math.round(x) + 'px';
-                document.querySelectorAll('.font-mono.text-gray-300')[1].innerText = Math.round(y) + 'px';
-            }
-
-            function onMouseMove(e) {
-                moveAt(e.clientX, e.clientY);
-            }
-
-            document.addEventListener('mousemove', onMouseMove);
-
-            document.onmouseup = function() {
-                document.removeEventListener('mousemove', onMouseMove);
-                document.onmouseup = null;
-            };
-        };
-
-        div.ondragstart = function() { return false; };
-
-        document.getElementById('card-canvas').appendChild(div);
+    // Gerenciador de Estado dos Cargos
+    function chkGeralChanged(e) {
+        const isChecked = e.target.checked;
+        const chks = document.querySelectorAll('.cargo-chk');
+        chks.forEach(chk => {
+            chk.checked = isChecked;
+            chk.disabled = isChecked; // Desativa se estiver em modo Geral
+        });
     }
 
-    const elementButtons = document.querySelectorAll('aside .grid button');
-    elementButtons.forEach(btn => {
-        btn.onclick = function() {
-            const label = this.querySelector('span:last-child').innerText;
-            createDraggableElement(label);
-        };
+    document.addEventListener('DOMContentLoaded', () => {
+        // Inicializa estado das checkboxes de cargos baseadas no valor de 'Geral'
+        const isGeralSaved = <?= ($template_atual && empty($template_atual['cargos'])) ? 'true' : 'false' ?>;
+        if (isGeralSaved) {
+            const chkGeral = document.getElementById('cargo-geral-chk');
+            if (chkGeral) {
+                chkGeral.checked = true;
+                chkGeral.dispatchEvent(new Event('change'));
+            }
+        }
     });
 
-    // Função Salvar Modelo
-    document.querySelector('.bg-brand.hover\\:bg-brand-dark').onclick = function() {
-        const canvas = document.getElementById('card-canvas');
-        // Simulação de salvamento
-        const btn = this;
-        const originalText = btn.innerText;
-        btn.innerText = 'SALVANDO...';
-        btn.disabled = true;
+    function toggleSelectAllCargos() {
+        const chkGeral = document.getElementById('cargo-geral-chk');
+        if (chkGeral && chkGeral.checked) return; // Se for Geral, não faz sentido inverter
         
-        setTimeout(() => {
-            btn.innerText = 'MODELO SALVO!';
-            btn.classList.replace('bg-brand', 'bg-green-500');
-            setTimeout(() => {
-                btn.innerText = originalText;
-                btn.classList.replace('bg-green-500', 'bg-brand');
-                btn.disabled = false;
-            }, 2000);
-        }, 1500);
-    };
+        const chks = document.querySelectorAll('.cargo-chk');
+        chks.forEach(chk => {
+            chk.checked = !chk.checked;
+        });
+    }
+
+    function previewResource(url) {
+        const modal = document.getElementById('resource-preview-modal');
+        const img = document.getElementById('resource-preview-img');
+        img.src = url;
+        modal.classList.remove('hidden');
+    }
+
+    // Alpine.js Canva Logic
+    function canvaEditor(initialElements) {
+        return {
+            elements: initialElements || [],
+            selectedId: null,
+            selectedElement: null,
+            customText: '',
+            fundoSrc: '<?= ($template_atual && $template_atual['fundo_url']) ? htmlspecialchars($template_atual['fundo_url']) : '' ?>',
+            logoSrc: '<?= ($template_atual && $template_atual['logo_url']) ? htmlspecialchars($template_atual['logo_url']) : '' ?>',
+            assinaturaSrc: '<?= ($template_atual && $template_atual['assinatura_url']) ? htmlspecialchars($template_atual['assinatura_url']) : '' ?>',
+            dragInfo: { isDragging: false, el: null, startX: 0, startY: 0, initialX: 0, initialY: 0 },
+
+            init() {
+                // Remove qualquer outline/focus ao apertar Esc
+                window.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') this.deselectAll();
+                });
+            },
+
+            selectElement(el) {
+                this.selectedId = el.id;
+                this.selectedElement = el;
+            },
+
+            deselectAll() {
+                this.selectedId = null;
+                this.selectedElement = null;
+            },
+
+            deleteElement(el) {
+                this.elements = this.elements.filter(item => item.id !== el.id);
+                if (this.selectedId === el.id) {
+                    this.deselectAll();
+                }
+            },
+
+            limitCoordinates() {
+                if (!this.selectedElement) return;
+                const canvasW = 450;
+                const canvasH = 280;
+                this.selectedElement.x = Math.max(0, Math.min(this.selectedElement.x, canvasW - 40));
+                this.selectedElement.y = Math.max(0, Math.min(this.selectedElement.y, canvasH - 20));
+            },
+
+            // Upload Previews dinâmicos (Object URLs locais temporários antes de salvar)
+            fundoUploaded(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    this.fundoSrc = URL.createObjectURL(file);
+                }
+            },
+
+            logoUploaded(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    this.logoSrc = URL.createObjectURL(file);
+                    // Injeta automaticamente no Canva se não existir
+                    if (!this.elements.some(el => el.type === 'logo')) {
+                        this.injectLogo();
+                    }
+                }
+            },
+
+            assinaturaUploaded(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    this.assinaturaSrc = URL.createObjectURL(file);
+                    // Injeta automaticamente se não existir
+                    if (!this.elements.some(el => el.type === 'assinatura')) {
+                        this.injectAssinatura();
+                    }
+                }
+            },
+
+            // Injeção de Elementos
+            injectLogo() {
+                if (this.elements.some(el => el.type === 'logo')) {
+                    alert('A Logo já está inserida no canvas.');
+                    return;
+                }
+                const newEl = {
+                    id: 'logo_' + Date.now(),
+                    type: 'logo',
+                    x: 20,
+                    y: 20
+                };
+                this.elements.push(newEl);
+                this.selectElement(newEl);
+            },
+
+            injectAssinatura() {
+                if (this.elements.some(el => el.type === 'assinatura')) {
+                    alert('A Assinatura já está inserida no canvas.');
+                    return;
+                }
+                const newEl = {
+                    id: 'assinatura_' + Date.now(),
+                    type: 'assinatura',
+                    x: 250,
+                    y: 210
+                };
+                this.elements.push(newEl);
+                this.selectElement(newEl);
+            },
+
+            addCustomText() {
+                if (!this.customText.trim()) return;
+                const newEl = {
+                    id: 'text_' + Date.now(),
+                    type: 'text',
+                    value: this.customText,
+                    x: 50,
+                    y: 80,
+                    color: '#ffffff',
+                    size: 13,
+                    bold: true
+                };
+                this.elements.push(newEl);
+                this.selectElement(newEl);
+                this.customText = '';
+            },
+
+            injectDynamic(field, placeholderName) {
+                // Impede duplicados do mesmo campo dinâmico
+                if (this.elements.some(el => el.type === 'dynamic' && el.field === field)) {
+                    alert('Este campo dinâmico já está inserido no canvas.');
+                    return;
+                }
+                if (this.elements.some(el => el.type === field)) {
+                    alert('Este campo dinâmico já está inserido no canvas.');
+                    return;
+                }
+
+                let newEl;
+                if (field === 'qr_code') {
+                    newEl = { id: 'qr_' + Date.now(), type: 'qr_code', x: 380, y: 210 };
+                } else if (field === 'foto_membro') {
+                    newEl = { id: 'foto_' + Date.now(), type: 'foto_membro', x: 20, y: 80 };
+                } else {
+                    newEl = {
+                        id: 'dyn_' + Date.now(),
+                        type: 'dynamic',
+                        field: field,
+                        value: placeholderName,
+                        x: 120,
+                        y: 80,
+                        color: '#ffffff',
+                        size: 12,
+                        bold: true
+                    };
+                }
+                
+                this.elements.push(newEl);
+                this.selectElement(newEl);
+            },
+
+            // Lógica de Movimentação Fina (Mouse Drag-and-Drop)
+            startDrag(e, el) {
+                this.selectElement(el);
+                
+                this.dragInfo.isDragging = true;
+                this.dragInfo.el = el;
+                this.dragInfo.startX = e.clientX;
+                this.dragInfo.startY = e.clientY;
+                this.dragInfo.initialX = el.x;
+                this.dragInfo.initialY = el.y;
+
+                const moveHandler = (moveEvent) => this.onDrag(moveEvent);
+                const upHandler = () => {
+                    this.dragInfo.isDragging = false;
+                    document.removeEventListener('mousemove', moveHandler);
+                    document.removeEventListener('mouseup', upHandler);
+                };
+
+                document.addEventListener('mousemove', moveHandler);
+                document.addEventListener('mouseup', upHandler);
+            },
+
+            onDrag(e) {
+                if (!this.dragInfo.isDragging) return;
+                
+                const deltaX = e.clientX - this.dragInfo.startX;
+                const deltaY = e.clientY - this.dragInfo.startY;
+                
+                const canvasW = 450;
+                const canvasH = 280;
+                
+                // Calcula as novas coordenadas e as limita ao tamanho do canvas
+                let newX = this.dragInfo.initialX + deltaX;
+                let newY = this.dragInfo.initialY + deltaY;
+
+                this.dragInfo.el.x = Math.max(0, Math.min(newX, canvasW - 20));
+                this.dragInfo.el.y = Math.max(0, Math.min(newY, canvasH - 15));
+            }
+        };
+    }
 </script>
 
 <?php require_once 'includes/footer.php'; ?>
