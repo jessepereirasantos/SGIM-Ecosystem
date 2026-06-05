@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.1.82: UI/Fix: Corrigido warnings do PHP em listagem de departamentos e edicao de cargos, e alinhado o escopo do cargo",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.82.zip",
-    "version":  "1.1.82",
+    "notes":  "v1.1.83: UI: Renomeada aba Teste para Teste-OTA-OK para validacao de deploy OTA",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.83.zip",
+    "version":  "1.1.83",
     "date":  "2026-06-05",
-    "sha256":  "8c56ba2f55c4dd91c4cfc0f094d18454abd80d200318017dd6a04b4a308a8b33"
+    "sha256":  "67b6f794b47b669c42fab3684e622e26a8e90f87785f33a4f09b7242e5761acd"
 }

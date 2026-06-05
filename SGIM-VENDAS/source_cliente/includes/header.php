@@ -1,6 +1,6 @@
 <?php
 /**
- * SGIM CLIENT - GLOBAL HEADER v1.1.82 (GOLDEN IMAGE)
+ * SGIM CLIENT - GLOBAL HEADER v1.1.83 (GOLDEN IMAGE)
  */
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -305,7 +305,7 @@ $unreadCount = 0;
                                 class="material-symbols-outlined">chat_bubble</span><span>WhatsApp</span></a>
                         <a href="#"
                             class="sidebar-item <?= ($current_page == 'teste') ? 'active' : '' ?>"><span
-                                class="material-symbols-outlined">science</span><span>Teste</span></a>
+                                class="material-symbols-outlined">science</span><span>Teste-OTA-OK</span></a>
                     </div>
                 </div>
             <?php endif; ?>
