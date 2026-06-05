@@ -1,114 +1,82 @@
 <?php
 /**
- * Geração de Carteirinha Digital (v1.0)
- * Gera um HTML formatado para impressão ou salvamento como PDF
+ * Geração de Carteirinha Digital (v1.1.87)
+ * Redireciona para o renderizador dinâmico ou lista membros
  */
-require_once 'config/database.php';
-
-if (!isset($_GET['id'])) {
-    // Se não houver ID, mostra uma lista simples de membros para selecionar
-    $page_title = 'Selecionar Membro - Carteirinha';
-    require_once 'includes/header.php';
-    
-    $membros = $pdo->query("SELECT id, nome, cpf FROM membros WHERE status = 'Ativo' ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
-    ?>
-    <div class="max-w-4xl mx-auto space-y-6">
-        <h2 class="text-2xl font-bold text-white">Selecionar Membro para Carteirinha</h2>
-        <div class="bg-darkcard border border-darkborder rounded-xl overflow-hidden">
-            <table class="w-full text-left">
-                <thead class="bg-white/5 text-xs uppercase text-gray-400">
-                    <tr>
-                        <th class="px-6 py-4">Nome</th>
-                        <th class="px-6 py-4">CPF</th>
-                        <th class="px-6 py-4 text-right">Ação</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-darkborder text-sm">
-                    <?php foreach ($membros as $m): ?>
-                    <tr class="hover:bg-white/[0.02]">
-                        <td class="px-6 py-4 font-medium"><?= htmlspecialchars($m['nome']) ?></td>
-                        <td class="px-6 py-4 text-gray-500"><?= htmlspecialchars($m['cpf'] ?? '---') ?></td>
-                        <td class="px-6 py-4 text-right">
-                            <a href="carteirinha_digital.php?id=<?= $m['id'] ?>" class="text-brand hover:underline font-bold">Gerar Carteirinha</a>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
-    <?php
-    require_once 'includes/footer.php';
+session_start();
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
     exit;
 }
 
-$id = intval($_GET['id']);
+require_once 'config/database.php';
+require_once 'src/autoload.php';
 
-$sql = "SELECT m.*, c.nome as cargo_nome, con.nome as congregacao_nome 
-        FROM membros m 
-        LEFT JOIN cargos c ON m.cargo_id = c.id 
-        LEFT JOIN congregacoes con ON m.congregacao_id = con.id 
-        WHERE m.id = ?";
-$stmt = $pdo->prepare($sql);
-$stmt->execute([$id]);
-$m = $stmt->fetch(PDO::FETCH_ASSOC);
+use App\Controllers\CarteirinhaController;
+$carteirinhaCtrl = new CarteirinhaController($pdo);
 
-if (!$m) {
-    die('Membro não encontrado.');
+
+// Redireciona se for chamada de geração individual para o novo carteirinha_gerar.php
+if (isset($_GET['id'])) {
+    header('Location: carteirinha_gerar.php?id=' . intval($_GET['id']));
+    exit;
 }
 
-$nome_igreja = $pdo->query("SELECT valor FROM configuracoes WHERE chave = 'nome_igreja'")->fetchColumn() ?: 'Minha Igreja';
-$qr_code_data = "SGIM-MEMBRO-ID-" . $m['id'];
-$qr_url = "https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=" . urlencode($qr_code_data);
+$page_title = 'Selecionar Membro - Carteirinha';
+$current_page = 'carteirinhas';
+require_once 'includes/header.php';
+
+// Busca os membros ativos do banco
+$membros = $pdo->query("SELECT id, nome, cpf FROM membros WHERE status = 'Ativo' ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
 ?>
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Carteirinha - <?= htmlspecialchars($m['nome']) ?></title>
-    <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #f0f0f0; }
-        .card { width: 350px; height: 220px; background: #fff; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: flex; overflow: hidden; position: relative; border: 1px solid #ddd; }
-        .stripe { width: 15px; height: 100%; background: #FFC107; }
-        .content { flex: 1; padding: 20px; display: flex; flex-direction: column; }
-        .header { margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        .header h1 { font-size: 14px; margin: 0; color: #333; text-transform: uppercase; }
-        .info { flex: 1; }
-        .info h2 { font-size: 16px; margin: 0 0 5px 0; color: #000; }
-        .info p { font-size: 10px; margin: 2px 0; color: #666; font-weight: bold; }
-        .info span { color: #333; font-weight: normal; }
-        .qr-area { width: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-left: 1px dashed #eee; padding: 10px; }
-        .qr-area img { width: 70px; height: 70px; }
-        .qr-area span { font-size: 8px; color: #999; margin-top: 5px; font-weight: bold; }
-        @media print {
-            body { background: white; }
-            .card { box-shadow: none; border: 1px solid #000; }
-            .no-print { display: none; }
-        }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <div class="stripe"></div>
-        <div class="content">
-            <div class="header">
-                <h1><?= htmlspecialchars($nome_igreja) ?></h1>
-            </div>
-            <div class="info">
-                <h2><?= htmlspecialchars($m['nome']) ?></h2>
-                <p>CARGO: <span><?= htmlspecialchars($m['cargo_nome'] ?? 'Membro') ?></span></p>
-                <p>CONGREGAÇÃO: <span><?= htmlspecialchars($m['congregacao_nome'] ?? 'Sede') ?></span></p>
-                <p>CADASTRO: <span><?= date('d/m/Y', strtotime($m['data_cadastro'])) ?></span></p>
-            </div>
+
+<div class="max-w-5xl mx-auto space-y-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-darkcard p-6 rounded-xl border border-darkborder shadow-lg">
+        <div>
+            <h2 class="text-2xl font-black text-white tracking-tighter">Selecionar Membro para Carteirinha</h2>
+            <p class="text-xs text-gray-500 uppercase font-bold tracking-widest mt-1">Gere o documento oficial com base no cargo do membro</p>
         </div>
-        <div class="qr-area">
-            <img src="<?= $qr_url ?>" alt="QR Code">
-            <span>VALIDAÇÃO DIGITAL</span>
+        <div>
+            <a href="carteirinha_editor.php" class="flex items-center gap-2 px-6 py-3 bg-brand hover:bg-brand-dark text-black rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-brand/20 transition-all">
+                <span class="material-symbols-outlined text-base">palette</span>
+                Gerenciar Modelos (Canva)
+            </a>
         </div>
     </div>
-    
-    <div class="no-print" style="position: absolute; bottom: 20px;">
-        <button onclick="window.print()" style="padding: 10px 20px; background: #FFC107; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;">Imprimir Carteirinha</button>
+
+    <div class="bg-darkcard border border-darkborder rounded-xl overflow-hidden shadow-lg">
+        <table class="w-full text-left">
+            <thead class="bg-white/5 text-xs uppercase text-gray-400">
+                <tr>
+                    <th class="px-6 py-4 font-black">Nome do Membro</th>
+                    <th class="px-6 py-4 font-black">CPF</th>
+                    <th class="px-6 py-4 text-right font-black">Ação</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-darkborder text-sm">
+                <?php if (empty($membros)): ?>
+                    <tr>
+                        <td colspan="3" class="px-6 py-8 text-center text-gray-500 font-bold">Nenhum membro ativo cadastrado no sistema.</td>
+                    </tr>
+                <?php else: ?>
+                    <?php foreach ($membros as $m): ?>
+                    <tr class="hover:bg-white/[0.02] transition-colors">
+                        <td class="px-6 py-4 font-semibold text-white"><?= htmlspecialchars($m['nome']) ?></td>
+                        <td class="px-6 py-4 text-gray-400 font-mono"><?= htmlspecialchars($m['cpf'] ?? '---') ?></td>
+                        <td class="px-6 py-4 text-right">
+                            <a href="carteirinha_gerar.php?id=<?= $m['id'] ?>" target="_blank" class="inline-flex items-center gap-2 text-brand hover:underline font-bold text-xs uppercase tracking-wider">
+                                <span class="material-symbols-outlined text-sm">badge</span>
+                                Gerar Carteirinha
+                            </a>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
     </div>
-</body>
-</html>
+</div>
+
+<?php
+require_once 'includes/footer.php';
+?>

@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.1.85: Feat: Implementado CRUD completo do sistema de cupons promocionais em cupons.php",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.85.zip",
-    "version":  "1.1.85",
+    "notes":  "v1.1.89: Auto-fix do editor canva de carteirinhas e auto-migracao garantida",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.89.zip",
+    "version":  "1.1.89",
     "date":  "2026-06-05",
-    "sha256":  "2ba066142b195ea468431cae25f7072d7c1b2d94973f0bc2283bf7492f2fa89c"
+    "sha256":  "c092ec488f24678bf0dd118e169e0a1e963583b46187c1d7edea390723e99ace"
 }
