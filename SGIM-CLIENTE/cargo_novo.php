@@ -94,7 +94,7 @@ require_once 'includes/header.php';
 
                         <div class="space-y-2">
                             <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Escopo de Visão</label>
-                             <select name="escopo" class="w-full px-4 py-3 rounded-xl border border-darkborder bg-black text-white focus:ring-2 focus:ring-brand outline-none cursor-pointer font-bold">
+                             <select name="escopo" class="w-full px-4 py-3 rounded-xl border border-darkborder bg-black text-white focus:ring-2 focus:ring-brand outline-none cursor-pointer font-bold" style="color-scheme: dark;">
                                 <option value="local" class="bg-darkcard text-white" style="background-color: #121212; color: #fff;">LOCAL (Apenas Congregação)</option>
                                 <option value="global" class="bg-darkcard text-white" style="background-color: #121212; color: #fff;">GLOBAL (Todo o Ministério)</option>
                             </select>
@@ -102,7 +102,7 @@ require_once 'includes/header.php';
 
                         <div class="space-y-2">
                             <label class="block text-[10px] font-bold text-brand uppercase tracking-widest mb-2">Preset Inteligente</label>
-                            <select id="preset_nivel" onchange="applyPreset(this.value)" class="w-full px-4 py-3 rounded-xl border border-darkborder bg-black text-white font-bold focus:ring-2 focus:ring-brand outline-none cursor-pointer">
+                            <select id="preset_nivel" onchange="applyPreset(this.value)" class="w-full px-4 py-3 rounded-xl border border-darkborder bg-black text-white font-bold focus:ring-2 focus:ring-brand outline-none cursor-pointer" style="color-scheme: dark;">
                                 <option value="" class="bg-darkcard text-white" style="background-color: #121212; color: #fff;">Personalizado</option>
                                 <option value="admin_total" class="bg-darkcard text-white" style="background-color: #121212; color: #fff;">Admin Total</option>
                                 <option value="pastor_local" class="bg-darkcard text-white" style="background-color: #121212; color: #fff;">Pastor Local</option>

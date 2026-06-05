@@ -1,6 +1,6 @@
 <?php
 /**
- * SGIM CLIENT - GLOBAL HEADER v1.1.83 (GOLDEN IMAGE)
+ * SGIM CLIENT - GLOBAL HEADER v1.1.84 (GOLDEN IMAGE)
  */
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -214,6 +214,11 @@ $unreadCount = 0;
             background-color: var(--bg-main);
             color: #e5e7eb;
             font-family: 'Inter', sans-serif;
+        }
+
+        /* Forçar dropdowns de select nativos a respeitarem o modo escuro no Chrome/Windows */
+        .dark select, select {
+            color-scheme: dark;
         }
 
         .sidebar-item {

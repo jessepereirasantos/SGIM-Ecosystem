@@ -71,14 +71,14 @@ require_once 'includes/header.php';
             </div>
             <div class="space-y-2">
                 <label class="text-xs font-bold text-gray-500 uppercase tracking-widest">Escopo de Visão</label>
-                <select name="escopo" class="w-full bg-darkbg border border-darkborder rounded-xl px-4 py-3 text-white focus:border-brand outline-none cursor-pointer font-bold">
+                <select name="escopo" class="w-full bg-darkbg border border-darkborder rounded-xl px-4 py-3 text-white focus:border-brand outline-none cursor-pointer font-bold" style="color-scheme: dark;">
                     <option value="local" <?= ($cargo['escopo'] ?? 'local') == 'local' ? 'selected' : '' ?> class="bg-darkcard text-white" style="background-color: #121212; color: #fff;">LOCAL (Apenas Congregação)</option>
                     <option value="global" <?= ($cargo['escopo'] ?? 'local') == 'global' ? 'selected' : '' ?> class="bg-darkcard text-white" style="background-color: #121212; color: #fff;">GLOBAL (Todo o Ministério)</option>
                 </select>
             </div>
             <div class="space-y-2">
                 <label class="text-xs font-bold text-gray-500 uppercase tracking-widest">Departamento</label>
-                <select name="departamento_id" class="w-full bg-darkbg border border-darkborder rounded-xl px-4 py-3 text-white focus:border-brand outline-none appearance-none transition-all cursor-pointer font-bold">
+                <select name="departamento_id" class="w-full bg-darkbg border border-darkborder rounded-xl px-4 py-3 text-white focus:border-brand outline-none appearance-none transition-all cursor-pointer font-bold" style="color-scheme: dark;">
                     <option value="" class="bg-darkcard text-white" style="background-color: #121212; color: #fff;">Sem departamento específico</option>
                     <?php foreach ($departamentos as $d): ?>
                         <option value="<?= $d['id'] ?>" <?= $cargo['departamento_id'] == $d['id'] ? 'selected' : '' ?> class="bg-darkcard text-white" style="background-color: #121212; color: #fff;">
