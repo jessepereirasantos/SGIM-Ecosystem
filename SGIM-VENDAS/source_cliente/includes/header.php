@@ -1,6 +1,6 @@
 <?php
 /**
- * SGIM CLIENT - GLOBAL HEADER v1.1.78 (GOLDEN IMAGE)
+ * SGIM CLIENT - GLOBAL HEADER v1.1.79 (GOLDEN IMAGE)
  */
 if (session_status() === PHP_SESSION_NONE) {
     session_start();

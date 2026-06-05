@@ -3,13 +3,6 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// AUTO-PONTE: Se existir uma versão mais nova ativa pelo OTA, desvia para ela
-$bridge = __DIR__ . '/releases/current/' . basename(__FILE__);
-if (file_exists($bridge) && strpos(__DIR__, 'releases') === false) {
-    require_once $bridge;
-    exit;
-}
-
 $page_title   = 'SGIM - Central de Atualizações';
 $current_page = 'atualizacoes';
 

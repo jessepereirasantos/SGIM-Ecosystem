@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.1.78: Fix de variaveis indefinidas na aba de atualizacoes e adicao do seed.php",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.78.zip",
-    "version":  "1.1.78",
+    "notes":  "v1.1.79: Remocao de AUTO-PONTE de atualizacoes.php para evitar travamento em releases antigas",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.79.zip",
+    "version":  "1.1.79",
     "date":  "2026-06-05",
-    "sha256":  "7181dd584328db157d57812540470e3bc809e786c538054d4bac2843ee1d30df"
+    "sha256":  "51b0a350647efee0119f4b306cf0f57d2c9bab89dfa4e3132a1453252d5f8bab"
 }
