@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.1.80: Resolvido erro de AlpineJS e templates na pagina de atualizacoes",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.80.zip",
-    "version":  "1.1.80",
+    "notes":  "v1.1.81: UI: Estilizado fundo das options dos selects em cargo_novo.php e cargo_editar.php para a cor escura da paleta",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.81.zip",
+    "version":  "1.1.81",
     "date":  "2026-06-05",
-    "sha256":  "b32439eecd3a04405bcba6ec60ce13911a0df2639fc0c1d5c5d05860a1382efd"
+    "sha256":  "183f2aa85de575e78905bff9de59b395b42296dbdf30dbec0b1bb901e95963ec"
 }

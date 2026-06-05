@@ -74,10 +74,10 @@ require_once 'includes/header.php';
             </div>
             <div class="space-y-2">
                 <label class="text-xs font-bold text-gray-500 uppercase tracking-widest">Departamento</label>
-                <select name="departamento_id" class="w-full bg-darkbg border border-darkborder rounded-xl px-4 py-3 text-white focus:border-brand outline-none appearance-none transition-all">
-                    <option value="">Sem departamento específico</option>
+                <select name="departamento_id" class="w-full bg-darkbg border border-darkborder rounded-xl px-4 py-3 text-white focus:border-brand outline-none appearance-none transition-all cursor-pointer font-bold">
+                    <option value="" class="bg-darkcard text-white" style="background-color: #121212; color: #fff;">Sem departamento específico</option>
                     <?php foreach ($departamentos as $d): ?>
-                        <option value="<?= $d['id'] ?>" <?= $cargo['departamento_id'] == $d['id'] ? 'selected' : '' ?>>
+                        <option value="<?= $d['id'] ?>" <?= $cargo['departamento_id'] == $d['id'] ? 'selected' : '' ?> class="bg-darkcard text-white" style="background-color: #121212; color: #fff;">
                             <?= htmlspecialchars($d['nome']) ?>
                         </option>
                     <?php endforeach; ?>
