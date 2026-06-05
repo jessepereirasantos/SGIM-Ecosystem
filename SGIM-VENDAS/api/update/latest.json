@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.1.77: Correcao de Notice do session_start e atualizacao estavel de layout",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.77.zip",
-    "version":  "1.1.77",
+    "notes":  "v1.1.78: Fix de variaveis indefinidas na aba de atualizacoes e adicao do seed.php",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.78.zip",
+    "version":  "1.1.78",
     "date":  "2026-06-05",
-    "sha256":  "78404667dd68d69f2f04e539e1bf696193362ca7fa12feea527f9072a2ebe397"
+    "sha256":  "7181dd584328db157d57812540470e3bc809e786c538054d4bac2843ee1d30df"
 }
