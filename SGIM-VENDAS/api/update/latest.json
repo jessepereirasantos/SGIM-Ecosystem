@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.1.76: Correcao critica do schema de licencas e bypass de seguranca local no setup",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.76.zip",
-    "version":  "1.1.76",
+    "notes":  "v1.1.77: Correcao de Notice do session_start e atualizacao estavel de layout",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.77.zip",
+    "version":  "1.1.77",
     "date":  "2026-06-05",
-    "sha256":  "eb7fcf0bbf249f77f9a9380d7b201cd2babb2b2ad0327cac9958d83cb19ce09c"
+    "sha256":  "78404667dd68d69f2f04e539e1bf696193362ca7fa12feea527f9072a2ebe397"
 }

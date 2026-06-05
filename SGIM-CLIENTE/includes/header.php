@@ -1,8 +1,10 @@
 <?php
 /**
- * SGIM CLIENT - GLOBAL HEADER v1.1.76 (GOLDEN IMAGE)
+ * SGIM CLIENT - GLOBAL HEADER v1.1.77 (GOLDEN IMAGE)
  */
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // 1. FALLBACK DE TEMA (Garante que o design nunca quebre)
 $theme = [
