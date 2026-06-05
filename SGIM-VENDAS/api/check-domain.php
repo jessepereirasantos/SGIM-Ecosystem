@@ -24,14 +24,19 @@ try {
 
     // 3. Busca por Pedidos Aprovados (Suporte a Venda Automática e Vínculo Manual)
     // Nota: Esta query é a mais abrangente para garantir que o cliente não seja bloqueado após a compra.
-    $stmtAuto = $pdo->prepare("SELECT l.chave_licenca, l.status, l.dominio, 'auto_sale_check' as origem
-                               FROM licencas l 
-                               JOIN pedidos p ON l.pedido_id = p.id 
-                               WHERE p.status IN ('APROVADO', 'PAGO', 'APPROVED')
-                               AND (l.dominio = 'venda_automática' OR l.dominio = ? OR l.dominio = ? OR l.dominio LIKE ?)
-                               LIMIT 1");
-    $stmtAuto->execute([$domain, $domain_clean, "%$domain_clean%"]);
-    $auto = $stmtAuto->fetch(PDO::FETCH_ASSOC);
+    $auto = null;
+    try {
+        $stmtAuto = $pdo->prepare("SELECT l.chave_licenca, l.status, l.dominio, 'auto_sale_check' as origem
+                                   FROM licencas l 
+                                   JOIN pedidos p ON l.pedido_id = p.id 
+                                   WHERE p.status IN ('APROVADO', 'PAGO', 'APPROVED')
+                                   AND (l.dominio = 'venda_automática' OR l.dominio = ? OR l.dominio = ? OR l.dominio LIKE ?)
+                                   LIMIT 1");
+        $stmtAuto->execute([$domain, $domain_clean, "%$domain_clean%"]);
+        $auto = $stmtAuto->fetch(PDO::FETCH_ASSOC);
+    } catch (Throwable $dbEx) {
+        error_log("Check-Domain API Warning: Falha na query de pedidos aprovados. Verifique se a coluna pedido_id existe em licencas. Detalhes: " . $dbEx->getMessage());
+    }
 
     if ($auto) {
         echo json_encode([

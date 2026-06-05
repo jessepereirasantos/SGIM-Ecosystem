@@ -1,0 +1,62 @@
+# REGRAS DO PROJETO — SGIM (.rules)
+
+As regras abaixo são permanentes e obrigatórias para toda e qualquer implementação, modificação ou expansão no repositório do projeto **SGIM** (Sistema de Gestão de Igrejas e Ministérios). Qualquer violação destas diretrizes resultará no cancelamento imediato da entrega.
+
+---
+
+## 1. Padrão Visual e Identidade Golden Amber Neon
+
+> [!WARNING]
+> **PROIBIÇÃO ABSOLUTA DE SUPERFÍCIES CLARAS**
+> O sistema opera em **Dark Mode Absoluto**. Fica terminantemente proibida a criação de fundos brancos, cinzas claros dominantes ou qualquer elemento que quebre a estética minimalista e premium de cinema.
+
+### Paleta Oficial de Cores:
+* **Fundo Geral (Background):** `#050505` (Preto absoluto profundo)
+* **Superfícies de Componentes (Surfaces/Cards):** `#121212` (Cinza carvão fosco com opacidade)
+* **Dourado/Âmbar Principal (Primary/Brand):** `#FFC107` (Neon Golden Amber para botões principais, realces e ícones ativos)
+* **Realce/Hover (Glow/Accent):** `#ffc880` / `#ffd9a8` (Âmbar claro com glow sutil em hover)
+* **Bordas dos Componentes:** `#1e1e1e` (Linha fina semi-transparente)
+* **Texto Principal (Text):** `#F3F4F6` (Branco acinzentado de alta elegância)
+* **Texto Secundário (Muted):** `#9CA3AF` (Cinza médio para legendas e suporte)
+
+### Estilo Visual e Efeitos:
+1. **Bordas Finas:** Todos os cards, sidebars, modais e campos de input devem possuir bordas finas semi-transparentes: `border: 1px solid #1e1e1e` ou `border-color: rgba(255, 193, 7, 0.2)` para elementos em foco/ativos.
+2. **Backdrop Blur:** Modais e popups suspensos devem utilizar desfoque de fundo: `backdrop-filter: blur(12px)` ou Tailwind `backdrop-blur-md`.
+3. **Neon Glow:** Elementos de ação ativa primária em estado hover ou foco devem possuir sombra luminosa sutil: `box-shadow: 0 0 15px rgba(255, 193, 7, 0.15)`.
+
+---
+
+## 2. Nomenclatura e Organização Arquitetural
+
+- **Estrutura de Código (MVC Moderno):**
+  - Todo novo desenvolvimento de lógica deve residir na pasta `/src/`.
+  - Controladores: `/src/Controllers/` nomeados em `PascalCase` terminando em `Controller.php` (ex: `MembroController.php`).
+  - Modelos: `/src/Models/` nomeados em `PascalCase` (ex: `Membro.php`).
+  - Visões/Templates: `/src/Views/` ou estruturados de forma limpa.
+  - Endpoints de API: `/api/` (ex: `/api/membros/excluir.php`).
+- **Nomenclatura no Banco de Dados:**
+  - Tabelas em `lower_snake_case` no plural (`usuarios`, `membros`, `transacoes`).
+  - Colunas em `lower_snake_case` no singular (`cargo_id`, `data_cadastro`).
+  - Chaves primárias: `id` (INT AUTO_INCREMENT).
+- **Convenção de Linguagem (JS e PHP):**
+  - JavaScript: Variáveis e funções em `camelCase` (ex: `iniciarAtualizacao`, `toggleMenu`).
+  - PHP: Métodos e variáveis em `camelCase` (ex: `validateSession`, `getConnection`).
+  - Constantes Globais: `SCREAMING_SNAKE_CASE` (ex: `SYSTEM_VERSION`, `MERCADO_PAGO_TOKEN`).
+
+---
+
+## 3. Segurança e Robustez Backend
+
+1. **Prepared Statements Obligatórios:** Nunca interpolar variáveis diretamente em strings SQL. Todas as consultas ao banco MySQL devem ser preparadas via `PDO` com passagem segura de parâmetros (`execute($params)`).
+2. **Sanitização contra XSS:** Qualquer dado renderizado no HTML que venha de inputs do usuário ou do banco de dados deve ser devidamente tratado com `htmlspecialchars($data, ENT_QUOTES, 'UTF-8')`.
+3. **Segurança de Sessão e RBAC:** O arquivo `includes/header.php` valida a sessão ativa e inicializa o `AccessManager`. Cada tela de ação restrita deve validar se o usuário possui a permissão específica (ex: `$access->can('financeiro', 'visualizar')`). Se não possuir, emitir redirecionamento ou erro `403 Forbidden`.
+4. **Proteção contra CSRF:** Formulários que alterem estados no sistema (POST/PUT/DELETE) devem conter um token CSRF que é validado no backend correspondente.
+
+---
+
+## 4. Layout e Responsividade
+
+- **Responsividade Mobile-First:** O layout deve se adaptar fluidamente desde telas de smartphones pequenos (iPhone SE, 375px) até notebooks e monitores ultra-wide.
+- **Gaveta/Drawer Mobile:** Em dispositivos móveis, a barra lateral de navegação deve ser recolhida em um menu hambúrguer com gaveta deslizante lateral ou barra inferior simétrica de toque rápido.
+- **Tamanho de Clique Mínimo:** Todos os elementos interativos em touch devem respeitar a dimensão mínima de `44px x 44px` para evitar toques acidentais.
+- **Preservação de Telas:** Não alterar elementos estruturais e posicionamentos de layouts homologados pelo Stitch sem prévio alinhamento de design.

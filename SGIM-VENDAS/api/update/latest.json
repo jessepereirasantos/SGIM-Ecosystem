@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.1.75: Performance: Implementado cache em sessao para consultas redundantes e preconnect para assets estaticos para reduzir latencia",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.75.zip",
-    "version":  "1.1.75",
-    "date":  "2026-05-18",
-    "sha256":  "08ee19c5081e5f0c36c4d7cb84017359e6756ffb4d4d294fc26ceb7971ef8289"
+    "notes":  "v1.1.76: Correcao critica do schema de licencas e bypass de seguranca local no setup",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.76.zip",
+    "version":  "1.1.76",
+    "date":  "2026-06-05",
+    "sha256":  "eb7fcf0bbf249f77f9a9380d7b201cd2babb2b2ad0327cac9958d83cb19ce09c"
 }

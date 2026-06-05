@@ -13,7 +13,10 @@ $domain = preg_replace('/^www\./', '', $domain_raw);
 $api_base_url = 'https://escolateologicaeloha.com.br/api';
 
 // Tentar detectar se estamos em localhost para facilitar testes
-if (in_array($_SERVER['REMOTE_ADDR'], ['127.0.0.1', '::1']) || $_SERVER['HTTP_HOST'] === 'localhost') {
+$is_local_env = false;
+$host_clean = preg_replace('/:.*$/', '', $_SERVER['HTTP_HOST'] ?? ''); // Remove a porta
+if (in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1']) || $host_clean === 'localhost' || $host_clean === '127.0.0.1') {
+    $is_local_env = true;
     $api_base_url = 'http://localhost/api'; 
 }
 
@@ -35,38 +38,99 @@ if (isset($_GET['force_clean']) || isset($_POST['db_host'])) {
 
 // O setup.php agora só é acessível se o domínio já estiver vinculado no VENDAS
 try {
-    $check_url = $api_base_url . '/check-domain.php?domain=' . urlencode($domain);
-    $ch = curl_init($check_url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-    $response = curl_exec($ch);
-    curl_close($ch);
-    
-    $result = json_decode($response, true);
-    
-    if ($result && isset($result['success']) && $result['success'] && isset($result['is_activated']) && $result['is_activated']) {
+    if ($is_local_env) {
         $is_pre_activated = true;
-        $pre_activated_key = $result['license_key'] ?? '';
+        $pre_activated_key = 'SGIM-DEV-LOCAL-KEY-999';
+    } else {
+        $check_url = $api_base_url . '/check-domain.php?domain=' . urlencode($domain);
+        $ch = curl_init($check_url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+        $response = curl_exec($ch);
+        curl_close($ch);
+        
+        $result = json_decode($response, true);
+        
+        if ($result && isset($result['success']) && $result['success'] && isset($result['is_activated']) && $result['is_activated']) {
+            $is_pre_activated = true;
+            $pre_activated_key = $result['license_key'] ?? '';
+        }
     }
 
     // Bloqueio profissional: Se não houver registro de ativação, impede a instalação
     if (!$is_pre_activated) {
-        die("<h3>Bloqueio de Segurança SGIM Master</h3>
-             <p>O domínio (<b>$domain</b>) ainda não possui uma licença vinculada.</p>
-             <hr>
-             <p><b>Ações Necessárias:</b></p>
-             <ol>
-                <li>Acesse seu <b>Painel de Compras</b> no site onde adquiriu o sistema.</li>
-                <li>Localize seu pedido e clique no botão <b>SITE</b> (Vincular Domínio).</li>
-                <li>Digite exatamente o domínio: <u>$domain</u></li>
-             </ol>
-             <p><i>Após vincular, recarregue esta página para prosseguir com a configuração.</i></p>");
+        ?>
+        <!DOCTYPE html>
+        <html class="dark" lang="pt-BR">
+        <head>
+            <meta charset="utf-8"/>
+            <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+            <title>Bloqueio de Segurança - SGIM</title>
+            <script src="https://cdn.tailwindcss.com"></script>
+            <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&display=swap" rel="stylesheet"/>
+            <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+            <style>
+                body { font-family: 'Public Sans', sans-serif; background-color: #050505; color: #fff; }
+                .glass { background: rgba(18, 18, 18, 0.8); backdrop-filter: blur(10px); border: 1px solid #1e1e1e; }
+            </style>
+        </head>
+        <body class="min-h-screen flex items-center justify-center p-4">
+            <div class="glass max-w-lg w-full p-8 rounded-2xl shadow-2xl border border-white/5 space-y-6">
+                <div class="flex items-center gap-4 text-[#FFC107]">
+                    <span class="material-symbols-outlined text-4xl">security</span>
+                    <h1 class="text-2xl font-bold">Bloqueio de Segurança SGIM Master</h1>
+                </div>
+                <p class="text-gray-400 text-sm">O domínio (<b><?= htmlspecialchars($domain) ?></b>) ainda não possui uma licença vinculada.</p>
+                <hr class="border-white/10">
+                <div class="space-y-3">
+                    <p class="text-sm font-semibold text-white">Ações Necessárias:</p>
+                    <ol class="list-decimal pl-5 text-gray-400 text-xs space-y-2">
+                        <li>Acesse seu <b>Painel de Compras</b> no site onde adquiriu o sistema.</li>
+                        <li>Localize seu pedido e clique no botão <b>SITE</b> (Vincular Domínio).</li>
+                        <li>Digite exatamente o domínio: <u class="text-[#FFC107] font-mono"><?= htmlspecialchars($domain) ?></u></li>
+                    </ol>
+                </div>
+                <div class="bg-[#FFC107]/10 border border-[#FFC107]/20 text-[#FFC107] p-4 rounded-xl text-xs flex gap-2">
+                    <span class="material-symbols-outlined text-base">info</span>
+                    <p>Após vincular, recarregue esta página para prosseguir com a configuração.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        <?php
+        exit;
     }
 } catch (Throwable $t) {
     error_log("Master-Key Check Error: " . $t->getMessage());
-    // Em caso de erro técnico de rede, não podemos liberar sem verificação
-    die("Erro técnico na verificação de licença. Por favor, tente novamente em instantes.");
+    ?>
+    <!DOCTYPE html>
+    <html class="dark" lang="pt-BR">
+    <head>
+        <meta charset="utf-8"/>
+        <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+        <title>Erro de Licença - SGIM</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&display=swap" rel="stylesheet"/>
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+        <style>
+            body { font-family: 'Public Sans', sans-serif; background-color: #050505; color: #fff; }
+            .glass { background: rgba(18, 18, 18, 0.8); backdrop-filter: blur(10px); border: 1px solid #1e1e1e; }
+        </style>
+    </head>
+    <body class="min-h-screen flex items-center justify-center p-4">
+        <div class="glass max-w-lg w-full p-8 rounded-2xl shadow-2xl border border-white/5 space-y-6 text-center">
+            <div class="mb-4 inline-flex p-4 bg-red-500/10 rounded-full text-red-500">
+                <span class="material-symbols-outlined text-5xl">warning</span>
+            </div>
+            <h1 class="text-2xl font-bold text-white">Erro de Conexão com Servidor de Licenças</h1>
+            <p class="text-gray-400 text-sm leading-relaxed">Não foi possível estabelecer contato com o servidor de ativação. Por favor, tente novamente em instantes.</p>
+            <p class="text-xs text-gray-500 font-mono">Erro: <?= htmlspecialchars($t->getMessage()) ?></p>
+        </div>
+    </body>
+    </html>
+    <?php
+    exit;
 }
 
 // Se já houver conexão ativa, manda para o Login ou Dashboard
@@ -99,8 +163,8 @@ if ($db_configured) {
         <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&display=swap" rel="stylesheet"/>
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
         <style>
-            body { font-family: 'Public Sans', sans-serif; background-color: #0a0a0a; color: #fff; }
-            .glass { background: rgba(26, 26, 26, 0.8); backdrop-filter: blur(10px); border: 1px solid #2d2d2d; }
+            body { font-family: 'Public Sans', sans-serif; background-color: #050505; color: #fff; }
+            .glass { background: rgba(18, 18, 18, 0.8); backdrop-filter: blur(10px); border: 1px solid #1e1e1e; }
         </style>
     </head>
     <body class="min-h-screen flex items-center justify-center p-4">
@@ -321,9 +385,9 @@ $db_error_msg = isset($_GET['db_error']) ? 'A conexão com o banco de dados falh
                     colors: {
                         "primary": "#FFC107",
                         "background-light": "#f8f6f6",
-                        "background-dark": "#0a0a0a",
-                        "surface-dark": "#1a1a1a",
-                        "border-dark": "#2d2d2d"
+                        "background-dark": "#050505",
+                        "surface-dark": "#121212",
+                        "border-dark": "#1e1e1e"
                     },
                     fontFamily: {
                         "display": ["Public Sans", "sans-serif"]

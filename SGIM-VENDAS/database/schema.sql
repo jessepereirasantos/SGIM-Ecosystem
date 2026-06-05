@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS clientes (
 CREATE TABLE IF NOT EXISTS licencas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     cliente_id INT NOT NULL,
+    pedido_id INT DEFAULT NULL,
     chave_licenca VARCHAR(64) NOT NULL UNIQUE,
     dominio VARCHAR(255) NOT NULL,
     api_token VARCHAR(128) NOT NULL UNIQUE,

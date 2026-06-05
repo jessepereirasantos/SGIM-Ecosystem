@@ -1,0 +1,69 @@
+# WORKFLOWS DO PROJETO — SGIM (.workflows)
+
+Os fluxos de trabalho abaixo determinam as etapas de desenvolvimento, controle de qualidade (QA), teste, homologação e deploy do ecossistema **SGIM** (Vendas e Cliente).
+
+---
+
+## 1. Fluxo de Planejamento e Design
+1. **Identificação da Demanda**: Mapear se a mudança atinge o **SGIM-CLIENTE** (código da aplicação), o **SGIM-VENDAS** (checkout/licenciamento) ou ambos.
+2. **Análise de Banco de Dados**: Se a alteração requer novos campos no banco de dados:
+   - Adicionar o comando SQL correspondente no arquivo `/SGIM-VENDAS/source_cliente/database/schema.sql` (para novos clientes).
+   - Adicionar a instrução de migração defensiva (`ensureColumnExists` ou script correspondente) nos arquivos de atualização ou inicialização (`update_db.php` para o Vendas ou no sistema de migração do cliente) para que os clientes existentes recebam a alteração de forma transparente via OTA.
+3. **Plano Master**: Descrever as mudanças planejadas no arquivo `architecture.md` antes de iniciar as modificações.
+
+---
+
+## 2. Fluxo de Desenvolvimento e Sincronização
+1. **Modificações de Código (Fase 1)**: As modificações no código do Cliente devem ser feitas dentro de `SGIM-VENDAS/source_cliente/` (que é o repositório central de código-fonte limpo).
+2. **Sincronização Local (Fase 2)**: Copiar as modificações para a pasta física `SGIM-CLIENTE/` para realizar testes locais e simulações em ambiente de desenvolvimento.
+3. **Refatoração no MVC (Fase 3)**: Garantir que novos scripts e arquivos sigam a estrutura orientada a objetos sob `/src`, registrando rotas em `/src/Core/Router.php` sempre que possível, evitando a poluição da raiz.
+
+---
+
+## 3. Fluxo de Testes e Controle de Qualidade (QA)
+
+> [!IMPORTANT]
+> **PROTOCOLO DE QUALIDADE EM 4 ETAPAS**
+> Nenhuma alteração ou correção de bug pode ser enviada para a branch principal sem passar com 100% de sucesso pelo protocolo descrito abaixo.
+
+1. **Etapa 1: Console Clean Audit (DevTools)**
+   - Abrir o Chrome DevTools (F12) no console JavaScript.
+   - Navegar por todas as rotas alteradas e enviar formulários.
+   - **Métrica de Sucesso:** Zero erros (`Uncaught ReferenceError`, `TypeError`, etc.) e zero avisos de CORS.
+2. **Etapa 2: Monitoramento de Rede (Network XHR/Fetch)**
+   - Filtrar a aba *Network* por requisições `Fetch/XHR`.
+   - Executar ações e chamadas assíncronas.
+   - **Métrica de Sucesso:** Todas as chamadas retornando HTTP `200 OK` em menos de 250ms com payload JSON perfeitamente estruturado.
+3. **Etapa 3: Simulador Responsivo de Dispositivos**
+   - Ativar o Device Toolbar (Ctrl+Shift+M).
+   - Testar o layout em resoluções de iPhone (mobile pequeno), iPad (tablet) e Desktop.
+   - **Métrica de Sucesso:** Sem barras de rolagem horizontal (zero overflow), elementos de toque com tamanho adequado e layouts perfeitamente adaptados à paleta Golden Amber Neon.
+4. **Etapa 4: Validação de Licenciamento e OTA**
+   - Testar se a mudança não quebra a verificação de domínio em `check-domain.php`.
+   - Testar o comportamento do atualizador executando uma simulação local de atualização.
+
+---
+
+## 4. Fluxo de Deploy e Versionamento (PowerShell & Git)
+
+```mermaid
+graph TD
+    Local[Desenvolvimento e Teste Local] -->|Rodar deploy.ps1| Pack[Compilação do ZIP e latest.json]
+    Pack -->|Sincronização Física| Sync[Cópia para SGIM-CLIENTE local]
+    Sync -->|Git Commit & Push| GitHub[Repositório Remoto GitHub]
+    GitHub -->|Webhook / cPanel Pull| HostGator[Servidor HostGator de Produção]
+    HostGator -->|Endpoint OTA ativo| Clientes[Clientes existentes atualizam via OTA]
+```
+
+### Protocolo de Commits (Conventional Commits):
+* Commits devem ser claros e objetivos, seguindo o padrão:
+  - `feat: adiciona controle de inadimplência no financeiro`
+  - `fix: corrige o tipo de coluna do pedido_id no schema do vendas`
+  - `docs: atualiza architecture.md com regras do roteador htaccess`
+  - `refactor: move cadastro de membros para o MembroController`
+
+### Execução do Deploy:
+1. Após a conclusão dos testes locais e validação de QA, rodar o script PowerShell:
+   `.\deploy.ps1 -Versao "1.1.XX" -Mensagem "descrição da atualização"`
+2. O script irá automatizar a atualização do header, schema, criação do pacote zip de OTA, atualização do arquivo `latest.json` de controle e sincronização dos diretórios.
+3. O push final para o GitHub é realizado de forma integrada pelo script.

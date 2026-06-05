@@ -1,0 +1,14 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+    
+    # Impedir acesso a arquivos de configuração sensíveis e de travamento
+    RedirectMatch 403 /\.(installed|rules|workflows|git)$
+    RedirectMatch 403 /config/db_config\.php$
+    RedirectMatch 403 /shared/system/logs/.*\.log$
+    
+    # Redirecionar rotas virtuais que não sejam arquivos ou pastas físicas para o index.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ index.php?route=$1 [QSA,L]
+</IfModule>

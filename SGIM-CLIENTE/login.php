@@ -126,9 +126,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao']) && $_POST['ac
                     colors: {
                         "primary": "#FFC107",
                         "background-light": "#f8f6f6",
-                        "background-dark": "#0a0a0a",
-                        "surface-dark": "#1a1a1a",
-                        "border-dark": "#2d2d2d"
+                        "background-dark": "#050505",
+                        "surface-dark": "#121212",
+                        "border-dark": "#1e1e1e"
                     },
                     fontFamily: {
                         "display": ["Public Sans", "sans-serif"]
