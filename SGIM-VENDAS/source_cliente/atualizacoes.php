@@ -97,10 +97,7 @@ $masterUrl = 'https://escolateologicaeloha.com.br';
                     :disabled="atualizando"
                     class="group relative inline-flex items-center gap-3 px-10 py-5 bg-brand text-black font-black rounded-2xl hover:scale-105 transition-all shadow-2xl shadow-brand/20 disabled:opacity-50 disabled:scale-100"
                 >
-                    <span class="material-symbols-outlined" :class="atualizando ? 'animate-spin' : ''">
-                        <template x-if="!atualizando">system_update</template>
-                        <template x-if="atualizando">sync</template>
-                    </span>
+                    <span class="material-symbols-outlined" :class="atualizando ? 'animate-spin' : ''" x-text="atualizando ? 'sync' : 'system_update'"></span>
                     <span class="uppercase tracking-widest text-sm" x-text="atualizando ? 'Processando...' : 'ATUALIZAR AGORA'"></span>
                 </button>
                 <p class="text-[10px] text-gray-600 font-bold uppercase tracking-widest">Tempo estimado: ~2 minutos</p>

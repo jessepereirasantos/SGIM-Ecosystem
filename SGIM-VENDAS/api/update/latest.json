@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.1.79: Remocao de AUTO-PONTE de atualizacoes.php para evitar travamento em releases antigas",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.79.zip",
-    "version":  "1.1.79",
+    "notes":  "v1.1.80: Resolvido erro de AlpineJS e templates na pagina de atualizacoes",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.80.zip",
+    "version":  "1.1.80",
     "date":  "2026-06-05",
-    "sha256":  "51b0a350647efee0119f4b306cf0f57d2c9bab89dfa4e3132a1453252d5f8bab"
+    "sha256":  "b32439eecd3a04405bcba6ec60ce13911a0df2639fc0c1d5c5d05860a1382efd"
 }
