@@ -1,6 +1,6 @@
 <?php
 /**
- * Geração de Carteirinha Digital (v1.1.86)
+ * Geração de Carteirinha Digital (v1.1.87)
  * Redireciona para o renderizador dinâmico ou lista membros
  */
 session_start();
@@ -10,6 +10,11 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 require_once 'config/database.php';
+require_once 'src/autoload.php';
+
+use App\Controllers\CarteirinhaController;
+$carteirinhaCtrl = new CarteirinhaController($pdo);
+
 
 // Redireciona se for chamada de geração individual para o novo carteirinha_gerar.php
 if (isset($_GET['id'])) {
