@@ -147,7 +147,7 @@ require_once 'includes/header.php';
                                         </div>
                                     </td>
                                     <td class="px-6 py-4">
-                                        <span class="bg-white/5 text-gray-400 border border-darkborder px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider"><?= htmlspecialchars($c['nivel_acesso']) ?></span>
+                                        <span class="bg-white/5 text-gray-400 border border-darkborder px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider"><?= htmlspecialchars($c['escopo'] ?? 'local') ?></span>
                                     </td>
                                     <td class="px-6 py-4 text-center">
                                         <div class="flex items-center justify-center gap-2">

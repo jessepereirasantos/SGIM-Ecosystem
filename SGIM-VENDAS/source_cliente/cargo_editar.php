@@ -27,7 +27,7 @@ $departamentos = $stmtDepts->fetchAll(PDO::FETCH_ASSOC);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nome = $_POST['nome'] ?? '';
-    $nivel_acesso = $_POST['nivel_acesso'] ?? 'Leitura';
+    $escopo = $_POST['escopo'] ?? 'local';
     $departamento_id = !empty($_POST['departamento_id']) ? $_POST['departamento_id'] : null;
 
     if (empty($nome)) {
@@ -35,8 +35,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mensagem = "O nome do cargo é obrigatório.";
     } else {
         try {
-            $stmt = $pdo->prepare("UPDATE cargos SET nome = ?, nivel_acesso = ?, departamento_id = ? WHERE id = ?");
-            $stmt->execute([$nome, $nivel_acesso, $departamento_id, $id]);
+            $stmt = $pdo->prepare("UPDATE cargos SET nome = ?, escopo = ?, departamento_id = ? WHERE id = ?");
+            $stmt->execute([$nome, $escopo, $departamento_id, $id]);
             header('Location: departamentos.php?sucesso=1');
             exit;
         } catch (PDOException $e) {
@@ -46,7 +46,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$page_title = 'Editar Cargo';
+$page_title = 'SGIM - Editar Cargo';
+$current_page = 'departamentos';
 require_once 'includes/header.php';
 ?>
 <div class="max-w-4xl mx-auto">
@@ -69,8 +70,11 @@ require_once 'includes/header.php';
                 <input type="text" name="nome" value="<?= htmlspecialchars($cargo['nome']) ?>" required class="w-full bg-darkbg border border-darkborder rounded-xl px-4 py-3 text-white focus:border-brand outline-none transition-all">
             </div>
             <div class="space-y-2">
-                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest">Nível de Acesso</label>
-                <input type="text" name="nivel_acesso" value="<?= htmlspecialchars($cargo['nivel_acesso'] ?? 'Leitura') ?>" class="w-full bg-darkbg border border-darkborder rounded-xl px-4 py-3 text-white focus:border-brand outline-none transition-all">
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest">Escopo de Visão</label>
+                <select name="escopo" class="w-full bg-darkbg border border-darkborder rounded-xl px-4 py-3 text-white focus:border-brand outline-none cursor-pointer font-bold">
+                    <option value="local" <?= ($cargo['escopo'] ?? 'local') == 'local' ? 'selected' : '' ?> class="bg-darkcard text-white" style="background-color: #121212; color: #fff;">LOCAL (Apenas Congregação)</option>
+                    <option value="global" <?= ($cargo['escopo'] ?? 'local') == 'global' ? 'selected' : '' ?> class="bg-darkcard text-white" style="background-color: #121212; color: #fff;">GLOBAL (Todo o Ministério)</option>
+                </select>
             </div>
             <div class="space-y-2">
                 <label class="text-xs font-bold text-gray-500 uppercase tracking-widest">Departamento</label>
