@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.1.84: UI: Forcado o color-scheme dark em selects globais e locais para evitar dropdowns com fundo branco no Windows",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.84.zip",
-    "version":  "1.1.84",
+    "notes":  "v1.1.85: Feat: Implementado CRUD completo do sistema de cupons promocionais em cupons.php",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.85.zip",
+    "version":  "1.1.85",
     "date":  "2026-06-05",
-    "sha256":  "725ebcf02b88ba9825f8dde29486c1b0c59ee86ff07e1f7cc70efa183a38fa22"
+    "sha256":  "2ba066142b195ea468431cae25f7072d7c1b2d94973f0bc2283bf7492f2fa89c"
 }
