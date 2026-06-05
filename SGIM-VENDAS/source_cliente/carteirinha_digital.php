@@ -3,6 +3,12 @@
  * Geração de Carteirinha Digital (v1.1.86)
  * Redireciona para o renderizador dinâmico ou lista membros
  */
+session_start();
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
+
 require_once 'config/database.php';
 
 // Redireciona se for chamada de geração individual para o novo carteirinha_gerar.php

@@ -9,6 +9,35 @@ class CarteirinhaController {
 
     public function __construct($pdo) {
         $this->pdo = $pdo;
+        $this->ensureTables();
+    }
+
+    /**
+     * Cria as tabelas necessárias caso não existam (Auto-Migração OTA Safe)
+     * Executado automaticamente no construtor para garantir compatibilidade em produção.
+     */
+    private function ensureTables() {
+        try {
+            $this->pdo->exec("CREATE TABLE IF NOT EXISTS carteirinha_templates (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                nome VARCHAR(255) NOT NULL,
+                fundo_url VARCHAR(255) DEFAULT NULL,
+                logo_url VARCHAR(255) DEFAULT NULL,
+                assinatura_url VARCHAR(255) DEFAULT NULL,
+                elementos_json LONGTEXT NOT NULL DEFAULT '[]',
+                status ENUM('Ativo', 'Inativo') DEFAULT 'Ativo',
+                data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+            $this->pdo->exec("CREATE TABLE IF NOT EXISTS carteirinha_cargos (
+                template_id INT NOT NULL,
+                cargo_id INT NOT NULL,
+                PRIMARY KEY (template_id, cargo_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        } catch (\Exception $e) {
+            // Silencioso — evita que a auto-migração quebre a página em caso de banco SQLite ou permissão restrita
+            error_log("[SGIM] CarteirinhaController::ensureTables() falhou: " . $e->getMessage());
+        }
     }
 
     /**
