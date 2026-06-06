@@ -14,9 +14,14 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-require_once __DIR__ . '/includes/header.php';
+// 🛡️ Inicializa o AccessManager para proteção de rota antecipada
+if (!class_exists('SGIM\\Auth\\AccessManager')) {
+    $amPath = __DIR__ . '/src/Auth/AccessManager.php';
+    if (file_exists($amPath)) require_once $amPath;
+}
+$access = new \SGIM\Auth\AccessManager($pdo, $_SESSION['user_id']);
 
-// 🛡️ PROTEÇÃO DE ROTA (RBAC)
+// Validação antecipada de leitura
 if ($access && !$access->can('financeiro', 'visualizar')) {
     echo "<script>alert('Acesso Negado: Você não tem permissão para ver o Financeiro.'); window.location.href='dashboard.php';</script>";
     exit;
@@ -34,22 +39,22 @@ try {
     $scopeFilter = $access ? $access->getScopeFilter() : '';
 
     if ($is_sqlite) {
-        $stmtEntradas = $pdo->query("SELECT COALESCE(SUM(valor), 0) FROM transacoes WHERE tipo = 'entrada' AND strftime('%m', data_cadastro) = '{$mes_atual}' AND strftime('%Y', data_cadastro) = '{$ano_atual}' $scopeFilter");
-        $stmtSaidas = $pdo->query("SELECT COALESCE(SUM(valor), 0) FROM transacoes WHERE tipo = 'saida' AND strftime('%m', data_cadastro) = '{$mes_atual}' AND strftime('%Y', data_cadastro) = '{$ano_atual}' $scopeFilter");
+        $stmtEntradas = $pdo->query("SELECT COALESCE(SUM(valor), 0) FROM financeiro_transacoes WHERE tipo = 'entrada' AND deleted_at IS NULL AND strftime('%m', data_transacao) = '{$mes_atual}' AND strftime('%Y', data_transacao) = '{$ano_atual}' $scopeFilter");
+        $stmtSaidas = $pdo->query("SELECT COALESCE(SUM(valor), 0) FROM financeiro_transacoes WHERE tipo = 'saida' AND deleted_at IS NULL AND strftime('%m', data_transacao) = '{$mes_atual}' AND strftime('%Y', data_transacao) = '{$ano_atual}' $scopeFilter");
     } else {
-        $stmtEntradas = $pdo->query("SELECT COALESCE(SUM(valor), 0) FROM transacoes WHERE tipo = 'entrada' AND MONTH(data_cadastro) = {$mes_atual} AND YEAR(data_cadastro) = {$ano_atual} $scopeFilter");
-        $stmtSaidas = $pdo->query("SELECT COALESCE(SUM(valor), 0) FROM transacoes WHERE tipo = 'saida' AND MONTH(data_cadastro) = {$mes_atual} AND YEAR(data_cadastro) = {$ano_atual} $scopeFilter");
+        $stmtEntradas = $pdo->query("SELECT COALESCE(SUM(valor), 0) FROM financeiro_transacoes WHERE tipo = 'entrada' AND deleted_at IS NULL AND MONTH(data_transacao) = {$mes_atual} AND YEAR(data_transacao) = {$ano_atual} $scopeFilter");
+        $stmtSaidas = $pdo->query("SELECT COALESCE(SUM(valor), 0) FROM financeiro_transacoes WHERE tipo = 'saida' AND deleted_at IS NULL AND MONTH(data_transacao) = {$mes_atual} AND YEAR(data_transacao) = {$ano_atual} $scopeFilter");
     }
 
     $entradas_mes = $stmtEntradas ? $stmtEntradas->fetchColumn() : 0;
     $saidas_mes = $stmtSaidas ? $stmtSaidas->fetchColumn() : 0;
 
-    // Saldo Total respeitando escopo
-    $stmtSaldoTotal = $pdo->query("SELECT COALESCE((SELECT SUM(valor) FROM transacoes WHERE tipo = 'entrada' " . str_replace('AND', 'WHERE', $scopeFilter) . "), 0) - COALESCE((SELECT SUM(valor) FROM transacoes WHERE tipo = 'saida' " . str_replace('AND', 'WHERE', $scopeFilter) . "), 0)");
+    // Saldo Total respeitando escopo e exclusão lógica
+    $stmtSaldoTotal = $pdo->query("SELECT COALESCE((SELECT SUM(valor) FROM financeiro_transacoes WHERE tipo = 'entrada' AND deleted_at IS NULL " . $scopeFilter . "), 0) - COALESCE((SELECT SUM(valor) FROM financeiro_transacoes WHERE tipo = 'saida' AND deleted_at IS NULL " . $scopeFilter . "), 0)");
     $saldo_total = $stmtSaldoTotal ? $stmtSaldoTotal->fetchColumn() : 0;
 
-    // Obter ultimas transações respeitando escopo
-    $stmtTransacoes = $pdo->query("SELECT ft.*, m.nome as membro_nome FROM transacoes ft LEFT JOIN membros m ON ft.membro_id = m.id WHERE 1=1 " . str_replace('AND', 'AND ft.', $scopeFilter) . " ORDER BY ft.data_cadastro DESC, ft.id DESC LIMIT 10");
+    // Obter ultimas transações respeitando escopo e exclusão lógica
+    $stmtTransacoes = $pdo->query("SELECT ft.*, m.nome as membro_nome FROM financeiro_transacoes ft LEFT JOIN membros m ON ft.membro_id = m.id WHERE ft.deleted_at IS NULL " . str_replace('AND', 'AND ft.', $scopeFilter) . " ORDER BY ft.data_transacao DESC, ft.id DESC LIMIT 10");
     $transacoes = $stmtTransacoes ? $stmtTransacoes->fetchAll(PDO::FETCH_ASSOC) : [];
 } catch (Throwable $t) {
     error_log("Financeiro Data Error: " . $t->getMessage());
@@ -58,6 +63,8 @@ try {
     $saldo_total = 0;
     $transacoes = [];
 }
+
+require_once __DIR__ . '/includes/header.php';
 ?>
 
     <?php if (isset($_GET['sucesso']) && $_GET['sucesso'] == 1): ?>

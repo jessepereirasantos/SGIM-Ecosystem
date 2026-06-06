@@ -19,27 +19,61 @@ $membro = null;
 $mensagem = '';
 $erro = false;
 
-// Buscar opções para os selects
+// 🛡️ Inicializa o AccessManager para proteção de rota antecipada
+if (!class_exists('SGIM\\Auth\\AccessManager')) {
+    $amPath = __DIR__ . '/src/Auth/AccessManager.php';
+    if (file_exists($amPath)) require_once $amPath;
+}
+$access = new \SGIM\Auth\AccessManager($pdo, $_SESSION['user_id']);
+
+// Validação antecipada de gravação
+if ($id) {
+    if (!$access->can('membros', 'editar')) {
+        echo "<script>alert('Acesso Negado: Você não tem permissão para editar membros.'); window.location.href='membros.php';</script>";
+        exit;
+    }
+} else {
+    if (!$access->can('membros', 'cadastrar')) {
+        echo "<script>alert('Acesso Negado: Você não tem permissão para cadastrar membros.'); window.location.href='membros.php';</script>";
+        exit;
+    }
+}
+
+// Buscar opções para os selects de acordo com o escopo
 $cargos_opt = $pdo->query("SELECT id, nome FROM cargos ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
-$congregacoes_opt = $pdo->query("SELECT id, nome FROM congregacoes ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
+
+if ($access->isGlobal()) {
+    $congregacoes_opt = $pdo->query("SELECT id, nome FROM congregacoes ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
+} else {
+    $congregacoes_opt = $pdo->query("SELECT id, nome FROM congregacoes WHERE id = " . (int)$access->getCongregacaoId() . " ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
+}
 
 if ($id) {
     $stmt = $pdo->prepare("SELECT * FROM membros WHERE id = ?");
     $stmt->execute([$id]);
     $membro = $stmt->fetch(PDO::FETCH_ASSOC);
     
-    if ($membro) {
-        $nome = $membro['nome'];
-        $telefone = $membro['telefone'];
-        $email = $membro['email'];
-        $data_nascimento = $membro['data_nascimento'];
-        $data_batismo = $membro['data_batismo'];
-        $data_conversao = $membro['data_conversao'];
-        $cpf = $membro['cpf'];
-        $endereco = $membro['endereco'];
-        $cargo_id = $membro['cargo_id'];
-        $congregacao_id = $membro['congregacao_id'];
+    if (!$membro) {
+        header('Location: membros.php');
+        exit;
     }
+    
+    // Se for escopo LOCAL, valida se o membro pertence à mesma congregação
+    if (!$access->isGlobal() && $membro['congregacao_id'] != $access->getCongregacaoId()) {
+        echo "<script>alert('Acesso Negado: Este membro pertence a outra congregação.'); window.location.href='membros.php';</script>";
+        exit;
+    }
+    
+    $nome = $membro['nome'];
+    $telefone = $membro['telefone'];
+    $email = $membro['email'];
+    $data_nascimento = $membro['data_nascimento'];
+    $data_batismo = $membro['data_batismo'];
+    $data_conversao = $membro['data_conversao'];
+    $cpf = $membro['cpf'];
+    $endereco = $membro['endereco'];
+    $cargo_id = $membro['cargo_id'];
+    $congregacao_id = $membro['congregacao_id'];
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -52,7 +86,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cpf = trim($_POST['cpf'] ?? '');
     $endereco = trim($_POST['endereco'] ?? '');
     $cargo_id = !empty($_POST['cargo_id']) ? intval($_POST['cargo_id']) : null;
-    $congregacao_id = !empty($_POST['congregacao_id']) ? intval($_POST['congregacao_id']) : null;
+    if ($access->isGlobal()) {
+        $congregacao_id = !empty($_POST['congregacao_id']) ? intval($_POST['congregacao_id']) : null;
+    } else {
+        $congregacao_id = (int)$access->getCongregacaoId();
+    }
     
     // Upload de Foto
     $foto = $membro['foto'] ?? null;

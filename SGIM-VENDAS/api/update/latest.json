@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.1.93: Corrige includes com __DIR__ nas carteirinhas e protege contra PDO nulo",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.93.zip",
-    "version":  "1.1.93",
+    "notes":  "v1.1.94: Controle de Acessos RBAC, Area do Membro e Renovacao de Carteirinhas",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.94.zip",
+    "version":  "1.1.94",
     "date":  "2026-06-06",
-    "sha256":  "a78a17dc248a58b33e044e5d69cdc64e381974eee922d283759556646f3728a8"
+    "sha256":  "63b31b7f8bf261063da83093782888633559394ca40867cee19c61efb3e8efee"
 }

@@ -14,9 +14,23 @@ if (!isset($pdo) || $pdo === null) {
     exit;
 }
 
+// 🛡️ Inicializa o AccessManager para proteção de rota antecipada
+if (!class_exists('SGIM\\Auth\\AccessManager')) {
+    $amPath = __DIR__ . '/src/Auth/AccessManager.php';
+    if (file_exists($amPath)) require_once $amPath;
+}
+$access = new \SGIM\Auth\AccessManager($pdo, $_SESSION['user_id']);
+
+// Validação antecipada de gravação
+if ($access && !$access->can('financeiro', 'cadastrar')) {
+    echo "<script>alert('Acesso Negado: Você não tem permissão para lançar transações.'); window.location.href='financeiro.php';</script>";
+    exit;
+}
+
 $membros = [];
 try {
-    $membros = $pdo->query("SELECT id, nome FROM membros WHERE status = 'Ativo' ORDER BY nome")->fetchAll(PDO::FETCH_ASSOC);
+    $scopeFilter = $access ? $access->getScopeFilter() : '';
+    $membros = $pdo->query("SELECT id, nome FROM membros WHERE status = 'Ativo' $scopeFilter ORDER BY nome")->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {}
 
 $mensagem = '';
@@ -53,10 +67,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             try { $pdo->exec("ALTER TABLE financeiro_transacoes ADD COLUMN data_transacao DATE AFTER valor"); } catch(Exception $e) {}
             try { $pdo->exec("ALTER TABLE financeiro_transacoes ADD COLUMN membro_id INT NULL AFTER data_transacao"); } catch(Exception $e) {}
-            try { $pdo->exec("ALTER TABLE financeiro_transacoes ADD COLUMN nome_identificado VARCHAR(255) NULL AFTER membro_id"); } catch(Exception $e) {}
+            try { $pdo->exec("ALTER TABLE financeiro_transacoes ADD COLUMN congregacao_id INT NULL AFTER membro_id"); } catch(Exception $e) {}
+            try { $pdo->exec("ALTER TABLE financeiro_transacoes ADD COLUMN nome_identificado VARCHAR(255) NULL AFTER congregacao_id"); } catch(Exception $e) {}
+            try { $pdo->exec("ALTER TABLE financeiro_transacoes ADD COLUMN deleted_at DATETIME NULL AFTER nome_identificado"); } catch(Exception $e) {}
 
-            $stmt = $pdo->prepare("INSERT INTO financeiro_transacoes (tipo, categoria, descricao, valor, data_transacao, membro_id, nome_identificado) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$tipo, $categoria, $descricao, $valor, $data_transacao, $membro_id, $nome_identificado]);
+            if ($access->isGlobal()) {
+                $congregacao_id = !empty($_POST['congregacao_id']) ? intval($_POST['congregacao_id']) : null;
+            } else {
+                $congregacao_id = (int)$access->getCongregacaoId();
+            }
+
+            $stmt = $pdo->prepare("INSERT INTO financeiro_transacoes (tipo, category, categoria, descricao, valor, data_transacao, membro_id, nome_identificado, congregacao_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            // NOTA: Para evitar erro se a coluna for 'categoria' ou 'category', mapeamos no execute
+            $stmt = $pdo->prepare("INSERT INTO financeiro_transacoes (tipo, categoria, descricao, valor, data_transacao, membro_id, nome_identificado, congregacao_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$tipo, $categoria, $descricao, $valor, $data_transacao, $membro_id, $nome_identificado, $congregacao_id]);
             
             header("Location: financeiro.php?sucesso=1");
             exit;
@@ -127,6 +151,22 @@ require_once 'includes/header.php';
                     <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider">Nome Avulso <span class="text-[10px] text-gray-500 lowercase">(se não for membro)</span></label>
                     <input name="nome_identificado" class="w-full px-4 py-3 rounded-twelve border border-darkborder bg-darkbg text-gray-300 focus:ring-1 focus:ring-brand outline-none" placeholder="Ex: Fornecedor XYZ, Visitante..." type="text"/>
                 </div>
+                
+                <?php if ($access && $access->isGlobal()): ?>
+                <div class="space-y-2">
+                    <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider">Congregação Destino</label>
+                    <select name="congregacao_id" class="w-full px-4 py-3 rounded-twelve border border-darkborder bg-darkbg text-gray-300 focus:ring-1 focus:ring-brand outline-none appearance-none">
+                        <option value="">Sede / Ministério Geral</option>
+                        <?php 
+                        $congs = $pdo->query("SELECT id, nome FROM congregacoes ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
+                        foreach ($congs as $co): 
+                        ?>
+                            <option value="<?= $co['id'] ?>"><?= htmlspecialchars($co['nome']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <?php endif; ?>
+
                 <div class="md:col-span-2 space-y-2">
                     <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider">Descrição Adicional</label>
                     <input name="descricao" class="w-full px-4 py-3 rounded-twelve border border-darkborder bg-darkbg text-gray-300 focus:ring-1 focus:ring-brand outline-none" placeholder="Detalhes adicionais ou observações" type="text"/>

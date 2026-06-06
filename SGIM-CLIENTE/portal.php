@@ -3,6 +3,13 @@ ob_start();
 session_start();
 require_once 'config/database.php';
 
+if (isset($_GET['logout_membro'])) {
+    unset($_SESSION['membro_id']);
+    unset($_SESSION['membro_nome']);
+    header('Location: portal.php');
+    exit;
+}
+
 // Portal do Membro - Acesso Público para Auto-Cadastro e Consulta
 $page_title = "Portal do Membro - SGIM";
 
@@ -109,7 +116,7 @@ if ($is_configured) {
                 </a>
                 <div class="pt-6 border-t border-darkborder text-center">
                     <p class="text-[10px] text-gray-500 uppercase font-black tracking-widest mb-4">Membro já cadastrado?</p>
-                    <a href="membro_perfil.php" class="inline-flex items-center gap-3 text-brand font-black text-xs uppercase tracking-widest hover:text-white transition-colors">
+                    <a href="membro_login.php" class="inline-flex items-center gap-3 text-brand font-black text-xs uppercase tracking-widest hover:text-white transition-colors">
                         <span class="material-symbols-outlined text-lg">badge</span>
                         Minha Carteirinha Digital
                     </a>

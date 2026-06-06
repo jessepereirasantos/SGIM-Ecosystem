@@ -1,6 +1,6 @@
 <?php
 /**
- * SGIM CLIENT - GLOBAL HEADER v1.1.93 (EDITOR CANVA CARTEIRINHAS)
+ * SGIM CLIENT - GLOBAL HEADER v1.1.94 (EDITOR CANVA CARTEIRINHAS)
  */
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -58,16 +58,23 @@ if (!defined('SYSTEM_VERSION')) define('SYSTEM_VERSION', $systemVersion);
 $theme_json = json_encode($theme);
 
 // 3. LOGICA DE ACESSO (RBAC)
-$access = null;
+if (!isset($access) || $access === null) {
+    $access = null;
+    if (isset($_SESSION['user_id']) && isset($pdo)) {
+        try {
+            // Usa autoloader (já registrado acima) em vez de require_once para evitar redeclaração
+            if (!class_exists('SGIM\\Auth\\AccessManager')) {
+                $amPath = __DIR__ . '/../src/Auth/AccessManager.php';
+                if (file_exists($amPath)) require_once $amPath;
+            }
+            $access = new \SGIM\Auth\AccessManager($pdo, $_SESSION['user_id']);
+        } catch (Throwable $e) {}
+    }
+}
+
 $user_context = ['nome' => 'Usuário', 'cargo' => 'Nível Total', 'avatar' => 'person'];
 if (isset($_SESSION['user_id']) && isset($pdo)) {
     try {
-        // Usa autoloader (já registrado acima) em vez de require_once para evitar redeclaração
-        if (!class_exists('SGIM\\Auth\\AccessManager')) {
-            $amPath = __DIR__ . '/../src/Auth/AccessManager.php';
-            if (file_exists($amPath)) require_once $amPath;
-        }
-        $access = new \SGIM\Auth\AccessManager($pdo, $_SESSION['user_id']);
         if (isset($_SESSION['user_ctx_cache'])) {
             $user_context = $_SESSION['user_ctx_cache'];
         } else {

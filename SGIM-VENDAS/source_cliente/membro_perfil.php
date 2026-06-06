@@ -7,6 +7,19 @@ if (!isset($_SESSION['user_id'])) {
 
 require_once 'config/database.php';
 
+// 🛡️ Inicializa o AccessManager para proteção de rota antecipada
+if (!class_exists('SGIM\\Auth\\AccessManager')) {
+    $amPath = __DIR__ . '/src/Auth/AccessManager.php';
+    if (file_exists($amPath)) require_once $amPath;
+}
+$access = new \SGIM\Auth\AccessManager($pdo, $_SESSION['user_id']);
+
+// Validação antecipada de leitura
+if ($access && !$access->can('membros', 'visualizar')) {
+    echo "<script>alert('Acesso Negado: Você não tem permissão para visualizar membros.'); window.location.href='dashboard.php';</script>";
+    exit;
+}
+
 $id = $_GET['id'] ?? 0;
 $stmt = $pdo->prepare("SELECT * FROM membros WHERE id = ?");
 $stmt->execute([$id]);
@@ -14,6 +27,12 @@ $m = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$m) {
     die("Membro não encontrado.");
+}
+
+// Se for escopo LOCAL, valida se o membro pertence à mesma congregação
+if ($access && !$access->isGlobal() && $m['congregacao_id'] != $access->getCongregacaoId()) {
+    echo "<script>alert('Acesso Negado: Este membro pertence a outra congregação.'); window.location.href='membros.php';</script>";
+    exit;
 }
 
 $page_title = 'SGIM - Perfil do Membro';

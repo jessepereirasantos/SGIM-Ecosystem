@@ -25,9 +25,25 @@ $erro = false;
 $stmtDepts = $pdo->query("SELECT id, nome FROM departamentos ORDER BY nome ASC");
 $departamentos = $stmtDepts->fetchAll(PDO::FETCH_ASSOC);
 
+// Buscar catálogo de permissões
+$permissoes_disponiveis = [];
+$perms_atuais = [];
+try {
+    $stmtPermsAll = $pdo->query("SELECT * FROM permissoes ORDER BY modulo ASC");
+    $permissoes_disponiveis = $stmtPermsAll->fetchAll(PDO::FETCH_ASSOC);
+
+    $stmtPerms = $pdo->prepare("SELECT permissao_id FROM cargo_permissoes WHERE cargo_id = ?");
+    $stmtPerms->execute([$id]);
+    $perms_atuais = $stmtPerms->fetchAll(PDO::FETCH_COLUMN);
+} catch (Exception $e) {
+    $mensagem = "Aviso: Estrutura de permissões não detectada. Execute a atualização via OTA.";
+}
+
+// PROCESSAMENTO DO FORMULÁRIO
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nome = $_POST['nome'] ?? '';
     $escopo = $_POST['escopo'] ?? 'local';
+    $perms_selecionadas = $_POST['perms'] ?? [];
     $departamento_id = !empty($_POST['departamento_id']) ? $_POST['departamento_id'] : null;
 
     if (empty($nome)) {
@@ -35,11 +51,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mensagem = "O nome do cargo é obrigatório.";
     } else {
         try {
+            $pdo->beginTransaction();
+            
+            // Atualiza cargo
             $stmt = $pdo->prepare("UPDATE cargos SET nome = ?, escopo = ?, departamento_id = ? WHERE id = ?");
             $stmt->execute([$nome, $escopo, $departamento_id, $id]);
-            header('Location: departamentos.php?sucesso=1');
+
+            // Remove permissões antigas
+            $stmtDel = $pdo->prepare("DELETE FROM cargo_permissoes WHERE cargo_id = ?");
+            $stmtDel->execute([$id]);
+
+            // Insere novas permissões
+            if (!empty($perms_selecionadas)) {
+                $stmtPerm = $pdo->prepare("INSERT INTO cargo_permissoes (cargo_id, permissao_id) VALUES (?, ?)");
+                foreach ($perms_selecionadas as $pid) {
+                    $stmtPerm->execute([$id, $pid]);
+                }
+            }
+
+            $pdo->commit();
+            header("Location: departamentos.php?sucesso=1");
             exit;
-        } catch (PDOException $e) {
+        } catch (Exception $e) {
+            $pdo->rollBack();
             $erro = true;
             $mensagem = "Erro ao atualizar cargo: " . $e->getMessage();
         }
@@ -48,51 +82,190 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $page_title = 'SGIM - Editar Cargo';
 $current_page = 'departamentos';
+
 require_once 'includes/header.php';
 ?>
-<div class="max-w-4xl mx-auto">
-    <div class="mb-8">
-        <h2 class="text-3xl font-bold text-white tracking-tight">Editar Cargo</h2>
-        <p class="text-sm text-gray-500 mt-1">Altere as informações do cargo selecionado.</p>
+
+<div class="max-w-6xl mx-auto">
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h2 class="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+                <span class="material-symbols-outlined text-brand text-4xl">edit</span>
+                Editar Cargo Ministerial
+            </h2>
+            <p class="text-xs text-gray-500 uppercase tracking-widest mt-1">Sincronização de Autoridade e Níveis de Acesso</p>
+        </div>
     </div>
 
     <?php if ($mensagem): ?>
-        <div class="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 flex items-center gap-3">
-            <span class="material-symbols-outlined">error</span>
-            <p class="text-sm font-semibold"><?= htmlspecialchars($mensagem) ?></p>
+        <div class="mb-6 p-4 rounded-xl <?= $erro ? 'bg-red-500/10 border-red-500/20 text-red-500' : 'bg-brand/10 border-brand/20 text-brand' ?> border flex items-center gap-3">
+            <span class="material-symbols-outlined"><?= $erro ? 'error' : 'info' ?></span>
+            <p class="text-sm font-bold"><?= htmlspecialchars($mensagem) ?></p>
         </div>
     <?php endif; ?>
 
-    <form method="POST" class="bg-darkcard border border-darkborder rounded-2xl p-8 space-y-8">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="space-y-2">
-                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest">Nome do Cargo</label>
-                <input type="text" name="nome" value="<?= htmlspecialchars($cargo['nome']) ?>" required class="w-full bg-darkbg border border-darkborder rounded-xl px-4 py-3 text-white focus:border-brand outline-none transition-all">
-            </div>
-            <div class="space-y-2">
-                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest">Escopo de Visão</label>
-                <select name="escopo" class="w-full bg-darkbg border border-darkborder rounded-xl px-4 py-3 text-white focus:border-brand outline-none cursor-pointer font-bold" style="color-scheme: dark;">
-                    <option value="local" <?= ($cargo['escopo'] ?? 'local') == 'local' ? 'selected' : '' ?> class="bg-darkcard text-white" style="background-color: #121212; color: #fff;">LOCAL (Apenas Congregação)</option>
-                    <option value="global" <?= ($cargo['escopo'] ?? 'local') == 'global' ? 'selected' : '' ?> class="bg-darkcard text-white" style="background-color: #121212; color: #fff;">GLOBAL (Todo o Ministério)</option>
-                </select>
-            </div>
-            <div class="space-y-2">
-                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest">Departamento</label>
-                <select name="departamento_id" class="w-full bg-darkbg border border-darkborder rounded-xl px-4 py-3 text-white focus:border-brand outline-none appearance-none transition-all cursor-pointer font-bold" style="color-scheme: dark;">
-                    <option value="" class="bg-darkcard text-white" style="background-color: #121212; color: #fff;">Sem departamento específico</option>
-                    <?php foreach ($departamentos as $d): ?>
-                        <option value="<?= $d['id'] ?>" <?= $cargo['departamento_id'] == $d['id'] ? 'selected' : '' ?> class="bg-darkcard text-white" style="background-color: #121212; color: #fff;">
-                            <?= htmlspecialchars($d['nome']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-        </div>
+    <form method="POST" class="space-y-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Coluna 1: Dados do Cargo -->
+            <div class="lg:col-span-4 space-y-6">
+                <div class="bg-darkcard rounded-2xl border border-darkborder p-6 shadow-xl">
+                    <h3 class="text-[10px] font-black text-brand uppercase tracking-widest mb-6 border-b border-white/5 pb-4">Identificação</h3>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Nome do Cargo</label>
+                            <input name="nome" value="<?= htmlspecialchars($cargo['nome']) ?>" required class="w-full px-4 py-3 rounded-xl border border-darkborder bg-black text-white focus:ring-2 focus:ring-brand outline-none transition-all font-bold" type="text"/>
+                        </div>
 
-        <div class="flex flex-col sm:flex-row justify-end gap-4 pt-8 border-t border-darkborder">
-            <a href="departamentos.php" class="px-8 py-3 text-gray-400 font-semibold hover:text-white transition-colors text-center">Cancelar</a>
-            <button type="submit" class="bg-brand text-black font-bold px-12 py-3 rounded-xl hover:bg-brand-dark transition-all shadow-lg shadow-brand/10">Salvar Alterações</button>
+                        <div class="space-y-2">
+                            <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Escopo de Visão</label>
+                             <select name="escopo" class="w-full px-4 py-3 rounded-xl border border-darkborder bg-black text-white focus:ring-2 focus:ring-brand outline-none cursor-pointer font-bold" style="color-scheme: dark;">
+                                <option value="local" <?= ($cargo['escopo'] ?? 'local') === 'local' ? 'selected' : '' ?> class="bg-darkcard text-white" style="background-color: #121212; color: #fff;">LOCAL (Apenas Congregação)</option>
+                                <option value="global" <?= ($cargo['escopo'] ?? 'local') === 'global' ? 'selected' : '' ?> class="bg-darkcard text-white" style="background-color: #121212; color: #fff;">GLOBAL (Todo o Ministério)</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Departamento</label>
+                            <select name="departamento_id" class="w-full px-4 py-3 rounded-xl border border-darkborder bg-black text-white focus:ring-2 focus:ring-brand outline-none appearance-none cursor-pointer font-bold" style="color-scheme: dark;">
+                                <option value="" class="bg-darkcard text-white" style="background-color: #121212; color: #fff;">Sem departamento específico</option>
+                                <?php foreach ($departamentos as $d): ?>
+                                    <option value="<?= $d['id'] ?>" <?= $cargo['departamento_id'] == $d['id'] ? 'selected' : '' ?> class="bg-darkcard text-white" style="background-color: #121212; color: #fff;">
+                                        <?= htmlspecialchars($d['nome']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="block text-[10px] font-bold text-brand uppercase tracking-widest mb-2">Preset Inteligente</label>
+                            <select id="preset_nivel" onchange="applyPreset(this.value)" class="w-full px-4 py-3 rounded-xl border border-darkborder bg-black text-white font-bold focus:ring-2 focus:ring-brand outline-none cursor-pointer" style="color-scheme: dark;">
+                                <option value="" class="bg-darkcard text-white" style="background-color: #121212; color: #fff;">Personalizado</option>
+                                <option value="admin_total" class="bg-darkcard text-white" style="background-color: #121212; color: #fff;">Admin Total</option>
+                                <option value="pastor_local" class="bg-darkcard text-white" style="background-color: #121212; color: #fff;">Pastor Local</option>
+                                <option value="secretario_local" class="bg-darkcard text-white" style="background-color: #121212; color: #fff;">Secretário Local</option>
+                                <option value="tesoureiro_local" class="bg-darkcard text-white" style="background-color: #121212; color: #fff;">Tesoureiro Local</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6 rounded-2xl bg-gradient-to-br from-brand/10 to-transparent border border-brand/20 shadow-lg">
+                    <h4 class="text-brand font-bold text-sm mb-2 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">tips_and_updates</span>
+                        Diretriz Ministerial
+                    </h4>
+                    <p class="text-xs text-gray-400 leading-relaxed">
+                        Ao selecionar um **Preset**, o sistema marcará automaticamente as permissões recomendadas para o cargo, sobrescrevendo as atuais após salvar.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Coluna 2: Matriz de Autoridade -->
+            <div class="lg:col-span-8">
+                <div class="bg-darkcard rounded-2xl border border-darkborder p-8 shadow-2xl">
+                    <div class="flex items-center justify-between mb-8 border-b border-white/5 pb-6">
+                        <div>
+                            <h3 class="text-xl font-bold text-white tracking-tight">Matriz de Permissões</h3>
+                            <p class="text-xs text-gray-500 uppercase tracking-widest mt-1">Habilite os poderes de acesso deste cargo</p>
+                        </div>
+                        <button type="button" onclick="toggleAll()" class="px-4 py-2 rounded-lg bg-white/5 border border-darkborder text-[10px] font-bold text-brand hover:bg-brand/10 transition-all uppercase">Marcar/Desmarcar Todos</button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <?php 
+                        $modulos = [];
+                        foreach ($permissoes_disponiveis as $p) {
+                            $modulos[$p['modulo']][] = $p;
+                        }
+                        
+                        foreach ($modulos as $modulo => $acoes): 
+                        ?>
+                            <div class="p-5 rounded-xl bg-black border border-darkborder group hover:border-brand/40 transition-all">
+                                <div class="flex items-center gap-3 mb-5">
+                                    <div class="size-8 rounded-lg bg-brand/10 flex items-center justify-center text-brand">
+                                        <span class="material-symbols-outlined text-sm">
+                                            <?= ($modulo == 'financeiro') ? 'payments' : (($modulo == 'membros') ? 'group' : 'shield_person') ?>
+                                        </span>
+                                    </div>
+                                    <h4 class="font-black text-white uppercase tracking-widest text-[10px]"><?= $modulo ?></h4>
+                                </div>
+                                
+                                <div class="space-y-4">
+                                    <?php foreach ($acoes as $acao): ?>
+                                        <label class="flex items-center gap-4 cursor-pointer group/item">
+                                            <div class="relative flex items-center justify-center">
+                                                <input type="checkbox" name="perms[]" value="<?= $acao['id'] ?>" 
+                                                       data-modulo="<?= $modulo ?>" data-acao="<?= $acao['acao'] ?>"
+                                                       <?= in_array($acao['id'], $perms_atuais) ? 'checked' : '' ?>
+                                                       class="peer appearance-none size-5 rounded-md border-2 border-darkborder bg-darkcard checked:bg-brand checked:border-brand transition-all cursor-pointer">
+                                                <span class="material-symbols-outlined absolute text-[14px] text-black font-black opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none">check</span>
+                                            </div>
+                                            <div class="flex flex-col">
+                                                <span class="text-sm font-bold text-white group-hover/item:text-brand transition-colors">
+                                                    <?= ucfirst($acao['acao']) ?>
+                                                </span>
+                                                <span class="text-[10px] text-gray-100 font-bold leading-none mt-1 opacity-90">
+                                                    <?= $acao['descricao'] ?>
+                                                </span>
+                                            </div>
+                                        </label>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+
+                    <div class="mt-10 flex items-center justify-end gap-6 pt-6 border-t border-white/5">
+                        <a href="departamentos.php" class="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest">Cancelar</a>
+                        <button type="submit" class="px-10 py-4 rounded-xl bg-brand hover:bg-brand-dark text-black font-black shadow-lg shadow-brand/20 transition-all uppercase text-xs tracking-widest">
+                            Salvar Alterações
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </form>
 </div>
+
+<script>
+    function toggleAll() {
+        const checks = document.querySelectorAll('input[type="checkbox"]');
+        const firstValue = checks[0].checked;
+        checks.forEach(c => c.checked = !firstValue);
+    }
+
+    function applyPreset(level) {
+        const checks = document.querySelectorAll('input[type="checkbox"]');
+        const escopo = document.querySelector('select[name="escopo"]');
+        checks.forEach(c => c.checked = false);
+        
+        switch(level) {
+            case 'admin_total':
+                checks.forEach(c => c.checked = true);
+                escopo.value = 'global';
+                break;
+            case 'pastor_local':
+                checks.forEach(c => {
+                    if (['membros', 'financeiro', 'eventos', 'carteirinhas', 'departamentos', 'comunicacao'].includes(c.dataset.modulo)) c.checked = true;
+                });
+                escopo.value = 'local';
+                break;
+            case 'secretario_local':
+                checks.forEach(c => {
+                    if (['membros', 'eventos', 'carteirinhas', 'departamentos', 'comunicacao'].includes(c.dataset.modulo)) c.checked = true;
+                });
+                escopo.value = 'local';
+                break;
+            case 'tesoureiro_local':
+                checks.forEach(c => {
+                    if (['financeiro'].includes(c.dataset.modulo)) c.checked = true;
+                });
+                escopo.value = 'local';
+                break;
+        }
+    }
+</script>
+
 <?php require_once 'includes/footer.php'; ?>

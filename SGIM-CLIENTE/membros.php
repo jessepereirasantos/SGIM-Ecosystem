@@ -14,10 +14,40 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-// Lógica de Aprovação/Rejeição
+// 🛡️ Inicializa o AccessManager para proteção de rota antecipada
+if (!class_exists('SGIM\\Auth\\AccessManager')) {
+    $amPath = __DIR__ . '/src/Auth/AccessManager.php';
+    if (file_exists($amPath)) require_once $amPath;
+}
+$access = new \SGIM\Auth\AccessManager($pdo, $_SESSION['user_id']);
+
+// Validação antecipada de leitura
+if ($access && !$access->can('membros', 'visualizar')) {
+    echo "<script>alert('Acesso Negado: Você não tem permissão para ver Membros.'); window.location.href='dashboard.php';</script>";
+    exit;
+}
+
+// Lógica de Aprovação/Rejeição/Exclusão (Gravação)
 if (isset($_GET['action']) && isset($_GET['id'])) {
+    // Validação antecipada de gravação
+    if ($access && !$access->can('membros', 'editar') && !$access->can('membros', 'excluir')) {
+        echo "<script>alert('Acesso Negado: Você não tem permissão para alterar ou excluir membros.'); window.location.href='membros.php';</script>";
+        exit;
+    }
+
     $action = $_GET['action'];
     $id = intval($_GET['id']);
+    
+    // Para segurança extra, se for escopo LOCAL, verifica se o membro pertence à congregação do usuário
+    if ($access && !$access->isGlobal()) {
+        $stmtCheck = $pdo->prepare("SELECT congregacao_id FROM membros WHERE id = ?");
+        $stmtCheck->execute([$id]);
+        $memberCongId = $stmtCheck->fetchColumn();
+        if ($memberCongId != $access->getCongregacaoId()) {
+            echo "<script>alert('Acesso Negado: Este membro pertence a outra congregação.'); window.location.href='membros.php';</script>";
+            exit;
+        }
+    }
     
     if ($action === 'approve') {
         $stmt = $pdo->prepare("UPDATE membros SET status = 'Ativo' WHERE id = ?");
@@ -43,11 +73,6 @@ $current_page = 'membros';
 $filter_status = $_GET['status'] ?? 'Ativo';
 
 require_once __DIR__ . '/includes/header.php';
-
-if ($access && !$access->can('membros', 'visualizar')) {
-    echo "<script>alert('Acesso Negado: Você não tem permissão para ver Membros.'); window.location.href='dashboard.php';</script>";
-    exit;
-}
 ?>
 
     <div>

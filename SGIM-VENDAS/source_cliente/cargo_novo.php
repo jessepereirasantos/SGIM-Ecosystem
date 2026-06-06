@@ -209,13 +209,13 @@ require_once 'includes/header.php';
                 break;
             case 'pastor_local':
                 checks.forEach(c => {
-                    if (['membros', 'financeiro', 'eventos'].includes(c.dataset.modulo)) c.checked = true;
+                    if (['membros', 'financeiro', 'eventos', 'carteirinhas', 'departamentos', 'comunicacao'].includes(c.dataset.modulo)) c.checked = true;
                 });
                 escopo.value = 'local';
                 break;
             case 'secretario_local':
                 checks.forEach(c => {
-                    if (['membros', 'eventos'].includes(c.dataset.modulo)) c.checked = true;
+                    if (['membros', 'eventos', 'carteirinhas', 'departamentos', 'comunicacao'].includes(c.dataset.modulo)) c.checked = true;
                 });
                 escopo.value = 'local';
                 break;

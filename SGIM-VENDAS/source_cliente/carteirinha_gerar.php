@@ -54,10 +54,23 @@ require_once 'includes/header.php';
     <?php
     $elementos = json_decode($template['elementos_json'], true) ?: [];
     
+    // 🛡️ Garante hash e validade
+    if (empty($m['hash_carteirinha'])) {
+        $novo_hash = hash('sha256', $m['id'] . time() . uniqid());
+        $validade = date('Y-m-d', strtotime('+1 year'));
+        try {
+            $stmtUpdate = $pdo->prepare("UPDATE membros SET hash_carteirinha = ?, carteirinha_valida_ate = ? WHERE id = ?");
+            $stmtUpdate->execute([$novo_hash, $validade, $m['id']]);
+            $m['hash_carteirinha'] = $novo_hash;
+            $m['carteirinha_valida_ate'] = $validade;
+        } catch (Exception $e) {}
+    }
+
+    $valida_ate_br = $m['carteirinha_valida_ate'] ? date('d/m/Y', strtotime($m['carteirinha_valida_ate'])) : date('d/m/Y', strtotime('+1 year'));
+
     // Função auxiliar para substituir as tags dinâmicas nos textos salvos
-    function substituirTags($val, $m) {
-        $data_emissao = date('d/m/Y');
-        $valida_ate = date('d/m/Y', strtotime($m['data_cadastro'] . ' + 2 years'));
+    function substituirTags($val, $m, $valida_ate_br) {
+        $data_emissao = date('d/m/Y', strtotime($m['data_cadastro']));
         
         $substituicoes = [
             '{Nome do Membro}' => $m['nome'],
@@ -70,15 +83,17 @@ require_once 'includes/header.php';
             '{cpf_membro}' => $m['cpf'] ?? '---',
             '{Data Emissão}' => $data_emissao,
             '{data_emissao}' => $data_emissao,
-            '{Válida Até}' => $valida_ate,
-            '{valida_ate}' => $valida_ate
+            '{Válida Até}' => $valida_ate_br,
+            '{valida_ate}' => $valida_ate_br
         ];
         
         return str_replace(array_keys($substituicoes), array_values($substituicoes), $val);
     }
     
-    $qr_code_data = "SGIM-VERIFY-" . $m['id'];
-    $qr_url = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" . urlencode($qr_code_data);
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+    $domain = $_SERVER['HTTP_HOST'];
+    $valida_url = $protocol . $domain . dirname($_SERVER['PHP_SELF']) . "/carteirinha_validar.php?hash=" . $m['hash_carteirinha'];
+    $qr_url = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" . urlencode($valida_url);
     ?>
 
     <div class="flex flex-col gap-8 items-center">
@@ -113,10 +128,10 @@ require_once 'includes/header.php';
                 ?>
                 <div class="absolute p-0.5 select-none whitespace-nowrap" style="<?= $style ?>">
                     <?php if ($el['type'] === 'text'): ?>
-                        <span><?= htmlspecialchars(substituirTags($el['value'], $m)) ?></span>
+                        <span><?= htmlspecialchars(substituirTags($el['value'], $m, $valida_ate_br)) ?></span>
                     
                     <?php elseif ($el['type'] === 'dynamic'): ?>
-                        <span><?= htmlspecialchars(substituirTags($el['value'], $m)) ?></span>
+                        <span><?= htmlspecialchars(substituirTags($el['value'], $m, $valida_ate_br)) ?></span>
                         
                     <?php elseif ($el['type'] === 'foto_membro'): ?>
                         <div class="size-20 bg-darkbg border border-brand/40 overflow-hidden flex items-center justify-center rounded-lg shadow-md">
