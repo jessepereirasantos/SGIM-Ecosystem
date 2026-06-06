@@ -35,7 +35,8 @@ if (!$pdo) {
  * Função Universal de Migração Defensiva (SGIM v5.0)
  * Garante compatibilidade com HostGator e servidores legados.
  */
-function ensureColumnExists($pdo, $table, $column, $definition) {
+if (!function_exists('ensureColumnExists')) {
+    function ensureColumnExists($pdo, $table, $column, $definition) {
     try {
         if (!($pdo instanceof PDO)) return false;
         $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
@@ -58,6 +59,7 @@ function ensureColumnExists($pdo, $table, $column, $definition) {
         error_log("Erro de Migração: " . $e->getMessage());
         return false;
     }
+}
 }
 
 // Flags globais para o sistema

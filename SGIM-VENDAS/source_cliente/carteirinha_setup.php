@@ -15,8 +15,14 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-require_once 'config/database.php';
-require_once 'src/autoload.php';
+require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/src/autoload.php';
+
+// Proteção contra PDO nulo ou falhas de conexão
+if (!isset($pdo) || $pdo === null) {
+    header('Location: setup.php?db_error=1');
+    exit;
+}
 
 $page_title = 'Diagnóstico e Setup de Carteirinhas';
 $current_page = 'carteirinhas';

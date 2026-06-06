@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.1.92: Adiciona rotina de Self-Healing para pontes da raiz e corrige roteamento OTA",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.92.zip",
-    "version":  "1.1.92",
-    "date":  "2026-06-05",
-    "sha256":  "620936c6b66bf107f67b7a09754035466e5b3dade595d4bf5fae9d5642f648e0"
+    "notes":  "v1.1.93: Corrige includes com __DIR__ nas carteirinhas e protege contra PDO nulo",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.93.zip",
+    "version":  "1.1.93",
+    "date":  "2026-06-06",
+    "sha256":  "a78a17dc248a58b33e044e5d69cdc64e381974eee922d283759556646f3728a8"
 }
