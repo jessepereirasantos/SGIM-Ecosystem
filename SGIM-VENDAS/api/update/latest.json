@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.1.90: Fix cpanel.yml: remove exclusao do latest.json para garantir deploy real",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.90.zip",
-    "version":  "1.1.90",
+    "notes":  "v1.1.91: Editor Canva de Carteirinhas - deploy real com cpanel.yml corrigido",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.91.zip",
+    "version":  "1.1.91",
     "date":  "2026-06-05",
-    "sha256":  "e0e9b5115c3456e61e12486c1682253a79e91584c2389a2b13acb96620dce089"
+    "sha256":  "b6621bcdc8c0201864beb9360bbb339e428d52fc3a4de5815707ce20a0075ce9"
 }
