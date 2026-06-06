@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.1.95: Auto-Recuperacao de Banco (Self-Healing) e Cadastro de Novos Usuarios Administrativos",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.95.zip",
-    "version":  "1.1.95",
+    "notes":  "v1.1.96: Gerador de Acesso ao Painel direto do perfil do membro",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.96.zip",
+    "version":  "1.1.96",
     "date":  "2026-06-06",
-    "sha256":  "0ebddd2b8692c549390a49996dc4a0e75d5962a375bd2c088b785947003728a1"
+    "sha256":  "8e9020b7c0b61e785e469d79ebcd50ecdbbeb5f14c0f3a5d30355ea0a095815f"
 }
