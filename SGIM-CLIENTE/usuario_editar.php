@@ -6,6 +6,20 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 require_once 'config/database.php';
+require_once 'src/autoload.php';
+
+// 🛡️ Inicializa o AccessManager para proteção de rota antecipada
+if (!class_exists('SGIM\\Auth\\AccessManager')) {
+    $amPath = __DIR__ . '/src/Auth/AccessManager.php';
+    if (file_exists($amPath)) require_once $amPath;
+}
+$access = new \SGIM\Auth\AccessManager($pdo, $_SESSION['user_id']);
+
+// Validação antecipada de gravação (módulo: usuarios, acao: gerenciar)
+if ($access && !$access->can('usuarios', 'gerenciar')) {
+    echo "<script>alert('Acesso Negado: Você não tem permissão para gerenciar usuários.'); window.location.href='usuarios.php';</script>";
+    exit;
+}
 
 $id = $_GET['id'] ?? null;
 if (!$id) {
@@ -26,10 +40,20 @@ if (!$usuario) {
     exit;
 }
 
+// Se for escopo LOCAL, valida se o usuário editado pertence à mesma congregação
+if ($access && !$access->isGlobal() && $usuario['congregacao_id'] != $access->getCongregacaoId()) {
+    echo "<script>alert('Acesso Negado: Este usuário pertence a outra congregação.'); window.location.href='usuarios.php';</script>";
+    exit;
+}
+
 // 2. PROCESSAMENTO DO FORMULÁRIO
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $cargo_id = !empty($_POST['cargo_id']) ? $_POST['cargo_id'] : null;
-    $congregacao_id = !empty($_POST['congregacao_id']) ? $_POST['congregacao_id'] : null;
+    $cargo_id = !empty($_POST['cargo_id']) ? intval($_POST['cargo_id']) : null;
+    if ($access && $access->isGlobal()) {
+        $congregacao_id = !empty($_POST['congregacao_id']) ? intval($_POST['congregacao_id']) : null;
+    } else {
+        $congregacao_id = (int)$access->getCongregacaoId();
+    }
     $ativo = isset($_POST['ativo']) ? 1 : 0;
 
     try {
@@ -46,7 +70,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // 3. BUSCA CARGOS E CONGREGAÇÕES PARA OS SELECTS
 $cargos = $pdo->query("SELECT id, nome, escopo FROM cargos WHERE status = 'Ativo' ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
-$congregacoes = $pdo->query("SELECT id, nome FROM congregacoes WHERE status = 'Ativa' ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
+if ($access && $access->isGlobal()) {
+    $congregacoes = $pdo->query("SELECT id, nome FROM congregacoes WHERE status = 'Ativa' ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
+} else {
+    $congregacoes = $pdo->query("SELECT id, nome FROM congregacoes WHERE id = " . (int)$access->getCongregacaoId() . " ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
+}
 
 $page_title = 'SGIM - Editar Vínculo de Usuário';
 $current_page = 'usuarios';

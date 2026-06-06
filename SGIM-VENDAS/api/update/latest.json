@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.1.94: Controle de Acessos RBAC, Area do Membro e Renovacao de Carteirinhas",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.94.zip",
-    "version":  "1.1.94",
+    "notes":  "v1.1.95: Auto-Recuperacao de Banco (Self-Healing) e Cadastro de Novos Usuarios Administrativos",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.95.zip",
+    "version":  "1.1.95",
     "date":  "2026-06-06",
-    "sha256":  "63b31b7f8bf261063da83093782888633559394ca40867cee19c61efb3e8efee"
+    "sha256":  "0ebddd2b8692c549390a49996dc4a0e75d5962a375bd2c088b785947003728a1"
 }

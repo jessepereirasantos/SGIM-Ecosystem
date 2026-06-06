@@ -6,12 +6,30 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/src/autoload.php';
+
+// 🛡️ Inicializa o AccessManager para proteção de rota antecipada
+if (!class_exists('SGIM\\Auth\\AccessManager')) {
+    $amPath = __DIR__ . '/src/Auth/AccessManager.php';
+    if (file_exists($amPath)) require_once $amPath;
+}
+$access = new \SGIM\Auth\AccessManager($pdo, $_SESSION['user_id']);
+
+// Validação antecipada de leitura
+if ($access && !$access->can('usuarios', 'visualizar')) {
+    echo "<script>alert('Acesso Negado: Você não tem permissão para ver Usuários.'); window.location.href='dashboard.php';</script>";
+    exit;
+}
 
 // 1. BUSCA LISTA DE USUÁRIOS COM SEUS VÍNCULOS
+$scopeFilter = $access ? $access->getScopeFilter('u') : '';
+$where = "WHERE 1=1 $scopeFilter";
+
 $sql = "SELECT u.*, c.nome as cargo_nome, co.nome as congregacao_nome 
         FROM usuarios u
         LEFT JOIN cargos c ON u.cargo_id = c.id
         LEFT JOIN congregacoes co ON u.congregacao_id = co.id
+        $where
         ORDER BY u.nome ASC";
 $stmt = $pdo->query($sql);
 $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -27,10 +45,12 @@ require_once __DIR__ . '/includes/header.php';
         <h2 class="text-3xl font-bold text-white tracking-tight">Usuários e Acessos</h2>
         <p class="text-sm text-gray-500 mt-1">Gerencie quem pode acessar o sistema e quais são seus limites.</p>
     </div>
+    <?php if ($access && $access->can('usuarios', 'gerenciar')): ?>
     <a href="usuario_novo.php" class="px-6 py-3 rounded-xl bg-brand text-black font-bold flex items-center gap-2 hover:bg-brand-dark transition-all shadow-lg shadow-brand/10">
         <span class="material-symbols-outlined">person_add</span>
         Novo Usuário
     </a>
+    <?php endif; ?>
 </div>
 
 <div class="bg-darkcard rounded-2xl border border-darkborder overflow-hidden shadow-xl">
@@ -78,9 +98,13 @@ require_once __DIR__ . '/includes/header.php';
                             </span>
                         </td>
                         <td class="px-6 py-4">
+                            <?php if ($access && $access->can('usuarios', 'gerenciar')): ?>
                             <a href="usuario_editar.php?id=<?= $u['id'] ?>" class="p-2 rounded-lg bg-white/5 border border-darkborder text-gray-400 hover:text-brand hover:border-brand/30 transition-all inline-flex">
                                 <span class="material-symbols-outlined text-sm">edit</span>
                             </a>
+                            <?php else: ?>
+                            <span class="text-xs text-gray-600">Sem Permissão</span>
+                            <?php endif; ?>
                         </td>
                     </tr>
                 <?php endforeach; ?>
