@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.1.89: Auto-fix do editor canva de carteirinhas e auto-migracao garantida",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.89.zip",
-    "version":  "1.1.89",
+    "notes":  "v1.1.90: Fix cpanel.yml: remove exclusao do latest.json para garantir deploy real",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.90.zip",
+    "version":  "1.1.90",
     "date":  "2026-06-05",
-    "sha256":  "c092ec488f24678bf0dd118e169e0a1e963583b46187c1d7edea390723e99ace"
+    "sha256":  "e0e9b5115c3456e61e12486c1682253a79e91584c2389a2b13acb96620dce089"
 }

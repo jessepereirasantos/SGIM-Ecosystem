@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS carteirinha_templates (
     assinatura_url VARCHAR(255) DEFAULT NULL,
     elementos_json LONGTEXT NOT NULL,
     status ENUM('Ativo', 'Inativo') DEFAULT 'Ativo',
-    data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP
+    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS carteirinha_cargos (

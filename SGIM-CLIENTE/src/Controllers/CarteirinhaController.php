@@ -26,7 +26,7 @@ class CarteirinhaController {
                 assinatura_url VARCHAR(255) DEFAULT NULL,
                 elementos_json LONGTEXT NOT NULL,
                 status ENUM('Ativo', 'Inativo') DEFAULT 'Ativo',
-                data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP
+                data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
             $this->pdo->exec("CREATE TABLE IF NOT EXISTS carteirinha_cargos (
@@ -44,32 +44,42 @@ class CarteirinhaController {
      * Retorna todos os templates ativos
      */
     public function getTemplates() {
-        $sql = "SELECT t.*, GROUP_CONCAT(c.nome SEPARATOR ', ') as cargos_nomes
-                FROM carteirinha_templates t
-                LEFT JOIN carteirinha_cargos tc ON t.id = tc.template_id
-                LEFT JOIN cargos c ON tc.cargo_id = c.id
-                GROUP BY t.id
-                ORDER BY t.data_cadastro DESC";
-        $stmt = $this->pdo->query($sql);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $sql = "SELECT t.*, GROUP_CONCAT(c.nome SEPARATOR ', ') as cargos_nomes
+                    FROM carteirinha_templates t
+                    LEFT JOIN carteirinha_cargos tc ON t.id = tc.template_id
+                    LEFT JOIN cargos c ON tc.cargo_id = c.id
+                    GROUP BY t.id
+                    ORDER BY t.data_cadastro DESC";
+            $stmt = $this->pdo->query($sql);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            error_log("[SGIM] getTemplates() falhou: " . $e->getMessage());
+            return [];
+        }
     }
 
     /**
      * Retorna um template específico
      */
     public function getTemplate($id) {
-        $stmt = $this->pdo->prepare("SELECT * FROM carteirinha_templates WHERE id = ?");
-        $stmt->execute([$id]);
-        $template = $stmt->fetch(PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->pdo->prepare("SELECT * FROM carteirinha_templates WHERE id = ?");
+            $stmt->execute([$id]);
+            $template = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($template) {
-            // Busca os IDs dos cargos vinculados
-            $stmtCargos = $this->pdo->prepare("SELECT cargo_id FROM carteirinha_cargos WHERE template_id = ?");
-            $stmtCargos->execute([$id]);
-            $template['cargos'] = $stmtCargos->fetchAll(PDO::FETCH_COLUMN);
+            if ($template) {
+                // Busca os IDs dos cargos vinculados
+                $stmtCargos = $this->pdo->prepare("SELECT cargo_id FROM carteirinha_cargos WHERE template_id = ?");
+                $stmtCargos->execute([$id]);
+                $template['cargos'] = $stmtCargos->fetchAll(PDO::FETCH_COLUMN);
+            }
+
+            return $template;
+        } catch (\Exception $e) {
+            error_log("[SGIM] getTemplate() falhou: " . $e->getMessage());
+            return null;
         }
-
-        return $template;
     }
 
     /**
@@ -197,36 +207,41 @@ class CarteirinhaController {
      * Obtém o template ideal para um membro baseado em seu cargo
      */
     public function getTemplateForMember($member_id) {
-        // 1. Tenta obter o template vinculado ao cargo do membro
-        $sqlCargo = "SELECT t.* FROM carteirinha_templates t
-                     INNER JOIN carteirinha_cargos tc ON t.id = tc.template_id
-                     INNER JOIN membros m ON m.cargo_id = tc.cargo_id
-                     WHERE m.id = ? AND t.status = 'Ativo'
-                     LIMIT 1";
-        $stmt = $this->pdo->prepare($sqlCargo);
-        $stmt->execute([$member_id]);
-        $template = $stmt->fetch(PDO::FETCH_ASSOC);
+        try {
+            // 1. Tenta obter o template vinculado ao cargo do membro
+            $sqlCargo = "SELECT t.* FROM carteirinha_templates t
+                         INNER JOIN carteirinha_cargos tc ON t.id = tc.template_id
+                         INNER JOIN membros m ON m.cargo_id = tc.cargo_id
+                         WHERE m.id = ? AND t.status = 'Ativo'
+                         LIMIT 1";
+            $stmt = $this->pdo->prepare($sqlCargo);
+            $stmt->execute([$member_id]);
+            $template = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($template) {
-            return $template;
+            if ($template) {
+                return $template;
+            }
+
+            // 2. Se não houver específico, busca o primeiro template que não está vinculado a cargos específicos (geral)
+            $sqlGeral = "SELECT t.* FROM carteirinha_templates t
+                         LEFT JOIN carteirinha_cargos tc ON t.id = tc.template_id
+                         WHERE tc.template_id IS NULL AND t.status = 'Ativo'
+                         LIMIT 1";
+            $stmt = $this->pdo->query($sqlGeral);
+            $templateGeral = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($templateGeral) {
+                return $templateGeral;
+            }
+
+            // 3. Se ainda assim não houver, retorna o primeiro template ativo qualquer
+            $sqlQualquer = "SELECT * FROM carteirinha_templates WHERE status = 'Ativo' LIMIT 1";
+            $stmt = $this->pdo->query($sqlQualquer);
+            return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        } catch (\Exception $e) {
+            error_log("[SGIM] getTemplateForMember() falhou: " . $e->getMessage());
+            return null;
         }
-
-        // 2. Se não houver específico, busca o primeiro template que não está vinculado a cargos específicos (geral)
-        $sqlGeral = "SELECT t.* FROM carteirinha_templates t
-                     LEFT JOIN carteirinha_cargos tc ON t.id = tc.template_id
-                     WHERE tc.template_id IS NULL AND t.status = 'Ativo'
-                     LIMIT 1";
-        $stmt = $this->pdo->query($sqlGeral);
-        $templateGeral = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($templateGeral) {
-            return $templateGeral;
-        }
-
-        // 3. Se ainda assim não houver, retorna o primeiro template ativo qualquer
-        $sqlQualquer = "SELECT * FROM carteirinha_templates WHERE status = 'Ativo' LIMIT 1";
-        $stmt = $this->pdo->query($sqlQualquer);
-        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
     /**

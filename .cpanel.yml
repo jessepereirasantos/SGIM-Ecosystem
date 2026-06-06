@@ -1,7 +1,7 @@
 ---
 deployment:
   tasks:
-    - /usr/bin/rsync -av --exclude='.git' --exclude='api/update/latest.json' SGIM-VENDAS/ /home1/hg9a3205/public_html/
+    - /usr/bin/rsync -av --exclude='.git' SGIM-VENDAS/ /home1/hg9a3205/public_html/
     - /usr/bin/rsync -av --exclude='.git' SGIM-CLIENTE/ /home1/hg9a3205/public_html/SGIM-CLIENTE/
     - /usr/local/bin/php /home1/hg9a3205/public_html/api/sync_master_source.php
     - /bin/chmod 755 /home1/hg9a3205/public_html/shared
