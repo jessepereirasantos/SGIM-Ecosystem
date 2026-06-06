@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.1.91: Editor Canva de Carteirinhas - deploy real com cpanel.yml corrigido",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.91.zip",
-    "version":  "1.1.91",
+    "notes":  "v1.1.92: Adiciona rotina de Self-Healing para pontes da raiz e corrige roteamento OTA",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.92.zip",
+    "version":  "1.1.92",
     "date":  "2026-06-05",
-    "sha256":  "b6621bcdc8c0201864beb9360bbb339e428d52fc3a4de5815707ce20a0075ce9"
+    "sha256":  "620936c6b66bf107f67b7a09754035466e5b3dade595d4bf5fae9d5642f648e0"
 }

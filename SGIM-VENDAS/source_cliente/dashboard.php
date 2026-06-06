@@ -8,6 +8,35 @@ if (file_exists($bridge) && strpos(__DIR__, 'releases') === false) {
     exit;
 }
 
+// SELF-HEALING: Garante que os arquivos da raiz operacional sejam pontes para a release ativa
+if (strpos(__DIR__, 'releases') !== false) {
+    $rootDir = realpath(__DIR__ . '/../../') . '/';
+    $filesToBridge = [
+        'carteirinha_digital.php',
+        'carteirinha_editor.php',
+        'carteirinha_gerar.php',
+        'carteirinha_setup.php',
+        'membros.php',
+        'cargo_editar.php',
+        'cargo_novo.php',
+        'atualizacoes.php'
+    ];
+    foreach ($filesToBridge as $file) {
+        $rootFile = $rootDir . $file;
+        $bridgeCode = "<?php\n" .
+                      "// AUTO-PONTE GERADA PELO SISTEMA - DESVIA PARA A VERSÃO ATIVA NO OTA\n" .
+                      "\$bridge = __DIR__ . '/releases/current/$file';\n" .
+                      "if (file_exists(\$bridge) && strpos(__DIR__, 'releases') === false) {\n" .
+                      "    require_once \$bridge;\n" .
+                      "    exit;\n" .
+                      "}\n";
+        
+        if (!file_exists($rootFile) || strpos(@file_get_contents($rootFile), 'AUTO-PONTE GERADA PELO SISTEMA') === false) {
+            @file_put_contents($rootFile, $bridgeCode);
+        }
+    }
+}
+
 require_once __DIR__ . '/config/database.php';
 
 // 1. Defesas de Runtime (Evita Erro 500 se helpers faltarem)

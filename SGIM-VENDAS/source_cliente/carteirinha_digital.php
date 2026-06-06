@@ -1,4 +1,11 @@
 <?php
+// AUTO-PONTE: Se existir uma versão mais nova ativa pelo OTA, desvia para ela
+$bridge = __DIR__ . '/releases/current/' . basename(__FILE__);
+if (file_exists($bridge) && strpos(__DIR__, 'releases') === false) {
+    require_once $bridge;
+    exit;
+}
+
 /**
  * Geração de Carteirinha Digital (v1.1.87)
  * Redireciona para o renderizador dinâmico ou lista membros

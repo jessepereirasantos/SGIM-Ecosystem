@@ -1,4 +1,11 @@
 <?php
+// AUTO-PONTE: Se existir uma versão mais nova ativa pelo OTA, desvia para ela
+$bridge = __DIR__ . '/releases/current/' . basename(__FILE__);
+if (file_exists($bridge) && strpos(__DIR__, 'releases') === false) {
+    require_once $bridge;
+    exit;
+}
+
 session_start();
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
