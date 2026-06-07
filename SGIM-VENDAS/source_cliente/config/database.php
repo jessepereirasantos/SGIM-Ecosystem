@@ -145,6 +145,14 @@ if ($pdo instanceof PDO) {
     } catch (Throwable $e) {
         error_log("Erro ao provisionar permissoes: " . $e->getMessage());
     }
+
+    try {
+        // 5. Tabela carteirinha_templates (Frente e Verso v1.3.0)
+        ensureColumnExists($pdo, 'carteirinha_templates', 'fundo_verso_url', "VARCHAR(255) DEFAULT NULL AFTER assinatura_url");
+        ensureColumnExists($pdo, 'carteirinha_templates', 'elementos_verso_json', "LONGTEXT DEFAULT NULL AFTER elementos_json");
+    } catch (Throwable $e) {
+        error_log("Erro ao provisionar colunas de Verso em carteirinha_templates: " . $e->getMessage());
+    }
 }
 
 // Flags globais para o sistema

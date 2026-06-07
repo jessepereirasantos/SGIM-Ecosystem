@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.2.0: Correcao de tracking de versao do OTA e Auto-Recuperacao Ativa de banco em carteirinhas",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.2.0.zip",
-    "version":  "1.2.0",
+    "notes":  "v1.3.0: Frente e Verso de carteirinhas e exportacao PDF",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.3.0.zip",
+    "version":  "1.3.0",
     "date":  "2026-06-07",
-    "sha256":  "cc4653dacf50b00ae4f5da9442899a81f716aa7d85c2a63cc25d7aead41ef18f"
+    "sha256":  "809914f598512bdcb2351ca43bf0996231b0c2568d9a58cbc77427fde39090c1"
 }

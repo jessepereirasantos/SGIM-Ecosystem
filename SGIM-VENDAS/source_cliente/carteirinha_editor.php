@@ -43,13 +43,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $nome = $_POST['nome'] ?? '';
             $cargos = $_POST['cargos'] ?? [];
             $elementos = $_POST['elementos_json'] ?? '[]';
+            $elementos_verso = $_POST['elementos_verso_json'] ?? '[]';
             $template_id = !empty($_POST['template_id']) ? intval($_POST['template_id']) : null;
             
             $fundo = (isset($_FILES['fundo']) && $_FILES['fundo']['error'] === UPLOAD_ERR_OK) ? $_FILES['fundo'] : null;
+            $fundo_verso = (isset($_FILES['fundo_verso']) && $_FILES['fundo_verso']['error'] === UPLOAD_ERR_OK) ? $_FILES['fundo_verso'] : null;
             $logo = (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) ? $_FILES['logo'] : null;
             $assinatura = (isset($_FILES['assinatura']) && $_FILES['assinatura']['error'] === UPLOAD_ERR_OK) ? $_FILES['assinatura'] : null;
 
-            $res = $controller->saveTemplate($nome, $cargos, $fundo, $logo, $assinatura, $elementos, $template_id);
+            $res = $controller->saveTemplate($nome, $cargos, $fundo, $logo, $assinatura, $elementos, $template_id, $fundo_verso, $elementos_verso);
             if ($res['success']) {
                 header("Location: carteirinha_editor.php?sucesso=1");
                 exit;
@@ -209,7 +211,7 @@ require_once 'includes/header.php';
         </div>
     <?php else: ?>
         <!-- MODO EDITOR (CANVA) -->
-        <div class="flex flex-1 overflow-hidden" x-data="canvaEditor(<?= htmlspecialchars($template_atual ? $template_atual['elementos_json'] : '[]') ?>)">
+        <div class="flex flex-1 overflow-hidden" x-data="canvaEditor(<?= htmlspecialchars($template_atual ? $template_atual['elementos_json'] : '[]') ?>, <?= htmlspecialchars(($template_atual && $template_atual['elementos_verso_json']) ? $template_atual['elementos_verso_json'] : '[]') ?>)">
             
             <!-- Element Sidebar (Painel Esquerdo) -->
             <aside class="w-80 border-r border-darkborder bg-darkcard flex flex-col shrink-0 overflow-y-auto">
@@ -217,6 +219,7 @@ require_once 'includes/header.php';
                     <input type="hidden" name="acao" value="salvar">
                     <input type="hidden" name="template_id" value="<?= $template_atual ? $template_atual['id'] : '' ?>">
                     <input type="hidden" name="elementos_json" :value="JSON.stringify(elements)">
+                    <input type="hidden" name="elementos_verso_json" :value="JSON.stringify(versoElements)">
 
                     <!-- Detalhes do Modelo -->
                     <div class="space-y-3">
@@ -264,6 +267,23 @@ require_once 'includes/header.php';
                                 </button>
                                 <?php if ($template_atual && $template_atual['fundo_url']): ?>
                                     <button type="button" @click="previewResource('<?= htmlspecialchars($template_atual['fundo_url']) ?>')" class="p-2 bg-darkbg border border-darkborder text-gray-400 hover:text-brand rounded-xl flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-sm">visibility</span>
+                                    </button>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+
+                        <!-- Fundo do Verso -->
+                        <div class="space-y-1">
+                            <span class="text-[10px] text-gray-400 font-bold block">Fundo do Verso (Recomendado: 450x280)</span>
+                            <div class="flex items-center gap-2">
+                                <input type="file" name="fundo_verso" id="fundo-verso-input" accept="image/*" class="hidden" @change="fundoVersoUploaded">
+                                <button type="button" onclick="document.getElementById('fundo-verso-input').click()" class="flex-1 flex items-center justify-center gap-2 py-2 px-3 bg-darkbg border border-darkborder rounded-xl text-xs text-brand font-bold hover:bg-brand/5">
+                                    <span class="material-symbols-outlined text-sm">upload</span>
+                                    <span>Selecionar Fundo Verso</span>
+                                </button>
+                                <?php if ($template_atual && $template_atual['fundo_verso_url']): ?>
+                                    <button type="button" @click="previewResource('<?= htmlspecialchars($template_atual['fundo_verso_url']) ?>')" class="p-2 bg-darkbg border border-darkborder text-gray-400 hover:text-brand rounded-xl flex items-center justify-center">
                                         <span class="material-symbols-outlined text-sm">visibility</span>
                                     </button>
                                 <?php endif; ?>
@@ -352,27 +372,71 @@ require_once 'includes/header.php';
                             <span class="material-symbols-outlined text-sm text-brand">account_circle</span>
                             <span class="text-[10px] text-gray-400 font-bold whitespace-nowrap">Foto Membro</span>
                         </button>
+                        <button type="button" @click="injectDynamic('rg_membro', '{RG}')" class="flex items-center gap-2 p-2.5 rounded-xl bg-darkbg border border-darkborder hover:border-brand/40 text-left transition-all">
+                            <span class="material-symbols-outlined text-sm text-brand">id_card</span>
+                            <span class="text-[10px] text-gray-400 font-bold whitespace-nowrap">RG</span>
+                        </button>
+                        <button type="button" @click="injectDynamic('telefone_membro', '{Telefone}')" class="flex items-center gap-2 p-2.5 rounded-xl bg-darkbg border border-darkborder hover:border-brand/40 text-left transition-all">
+                            <span class="material-symbols-outlined text-sm text-brand">call</span>
+                            <span class="text-[10px] text-gray-400 font-bold whitespace-nowrap">Telefone</span>
+                        </button>
+                        <button type="button" @click="injectDynamic('email_membro', '{E-mail}')" class="flex items-center gap-2 p-2.5 rounded-xl bg-darkbg border border-darkborder hover:border-brand/40 text-left transition-all">
+                            <span class="material-symbols-outlined text-sm text-brand">mail</span>
+                            <span class="text-[10px] text-gray-400 font-bold whitespace-nowrap">E-mail</span>
+                        </button>
+                        <button type="button" @click="injectDynamic('endereco_membro', '{Endereço}')" class="flex items-center gap-2 p-2.5 rounded-xl bg-darkbg border border-darkborder hover:border-brand/40 text-left transition-all">
+                            <span class="material-symbols-outlined text-sm text-brand">home_pin</span>
+                            <span class="text-[10px] text-gray-400 font-bold whitespace-nowrap">Endereço</span>
+                        </button>
+                        <button type="button" @click="injectDynamic('nascimento_membro', '{Nascimento}')" class="flex items-center gap-2 p-2.5 rounded-xl bg-darkbg border border-darkborder hover:border-brand/40 text-left transition-all">
+                            <span class="material-symbols-outlined text-sm text-brand">cake</span>
+                            <span class="text-[10px] text-gray-400 font-bold whitespace-nowrap">Nascimento</span>
+                        </button>
+                        <button type="button" @click="injectDynamic('batismo_membro', '{Data Batismo}')" class="flex items-center gap-2 p-2.5 rounded-xl bg-darkbg border border-darkborder hover:border-brand/40 text-left transition-all">
+                            <span class="material-symbols-outlined text-sm text-brand">water_drop</span>
+                            <span class="text-[10px] text-gray-400 font-bold whitespace-nowrap">Batismo</span>
+                        </button>
                     </div>
                 </div>
             </aside>
 
             <!-- Canvas Area (Centro) -->
             <main class="flex-1 bg-darkbg relative overflow-hidden flex flex-col p-8 select-none">
+                <!-- Abas de Alternância Frente e Verso -->
+                <div class="flex items-center justify-center gap-4 mb-6 relative z-10 no-print">
+                    <button type="button" 
+                            @click="viewMode = 'frente'; deselectAll();" 
+                            class="px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2"
+                            :class="viewMode === 'frente' ? 'bg-brand text-black shadow-lg shadow-brand/20' : 'bg-[#0c0c0c] border border-white/5 text-gray-400 hover:text-white'">
+                        <span class="material-symbols-outlined text-sm">badge</span>
+                        Frente do Cartão
+                    </button>
+                    <button type="button" 
+                            @click="viewMode = 'verso'; deselectAll();" 
+                            class="px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2"
+                            :class="viewMode === 'verso' ? 'bg-brand text-black shadow-lg shadow-brand/20' : 'bg-[#0c0c0c] border border-white/5 text-gray-400 hover:text-white'">
+                        <span class="material-symbols-outlined text-sm">settings_backup_restore</span>
+                        Verso do Cartão
+                    </button>
+                </div>
+
                 <div class="flex-1 flex items-center justify-center relative">
                     <div class="canvas-grid absolute inset-0 opacity-20 pointer-events-none"></div>
                     
                     <!-- Canvas Real da Carteirinha -->
                     <div id="card-canvas" 
                          class="relative w-[450px] h-[280px] bg-[#0A0A0A] rounded-2xl border-2 border-brand/30 shadow-2xl overflow-hidden"
-                         :style="fundoSrc ? 'background-image: url(' + fundoSrc + '); background-size: cover; background-position: center;' : ''"
+                         :style="viewMode === 'frente' ? 
+                                 (fundoSrc ? 'background-image: url(' + fundoSrc + '); background-size: cover; background-position: center;' : '') : 
+                                 (fundoVersoSrc ? 'background-image: url(' + fundoVersoSrc + '); background-size: cover; background-position: center;' : '')"
                          @click="deselectAll"
                          @dragover.prevent
                          @drop="onDrop">
                          
-                        <div class="absolute -top-20 -right-20 w-64 h-64 bg-brand/5 rounded-full blur-3xl pointer-events-none" x-show="!fundoSrc"></div>
+                        <div class="absolute -top-20 -right-20 w-64 h-64 bg-brand/5 rounded-full blur-3xl pointer-events-none" x-show="viewMode === 'frente' ? !fundoSrc : !fundoVersoSrc"></div>
                         
                         <!-- Elementos inseridos dinamicamente -->
-                        <template x-for="(el, index) in elements" :key="el.id">
+                        <template x-for="(el, index) in activeElements" :key="el.id">
                             <div class="absolute p-1 border select-none group"
                                  :class="selectedId === el.id ? 'border-brand shadow-lg outline outline-1 outline-brand' : 'border-transparent hover:border-white/20'"
                                  :style="{
@@ -582,13 +646,19 @@ require_once 'includes/header.php';
     }
 
     // Alpine.js Canva Logic
-    function canvaEditor(initialElements) {
+    function canvaEditor(initialElements, initialVersoElements) {
         return {
+            viewMode: 'frente',
             elements: initialElements || [],
+            versoElements: initialVersoElements || [],
+            get activeElements() {
+                return this.viewMode === 'frente' ? this.elements : this.versoElements;
+            },
             selectedId: null,
             selectedElement: null,
             customText: '',
             fundoSrc: '<?= ($template_atual && $template_atual['fundo_url']) ? htmlspecialchars($template_atual['fundo_url']) : '' ?>',
+            fundoVersoSrc: '<?= ($template_atual && $template_atual['fundo_verso_url']) ? htmlspecialchars($template_atual['fundo_verso_url']) : '' ?>',
             logoSrc: '<?= ($template_atual && $template_atual['logo_url']) ? htmlspecialchars($template_atual['logo_url']) : '' ?>',
             assinaturaSrc: '<?= ($template_atual && $template_atual['assinatura_url']) ? htmlspecialchars($template_atual['assinatura_url']) : '' ?>',
             dragInfo: { isDragging: false, el: null, startX: 0, startY: 0, initialX: 0, initialY: 0 },
@@ -611,7 +681,11 @@ require_once 'includes/header.php';
             },
 
             deleteElement(el) {
-                this.elements = this.elements.filter(item => item.id !== el.id);
+                if (this.viewMode === 'frente') {
+                    this.elements = this.elements.filter(item => item.id !== el.id);
+                } else {
+                    this.versoElements = this.versoElements.filter(item => item.id !== el.id);
+                }
                 if (this.selectedId === el.id) {
                     this.deselectAll();
                 }
@@ -633,12 +707,19 @@ require_once 'includes/header.php';
                 }
             },
 
+            fundoVersoUploaded(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    this.fundoVersoSrc = URL.createObjectURL(file);
+                }
+            },
+
             logoUploaded(e) {
                 const file = e.target.files[0];
                 if (file) {
                     this.logoSrc = URL.createObjectURL(file);
                     // Injeta automaticamente no Canva se não existir
-                    if (!this.elements.some(el => el.type === 'logo')) {
+                    if (!this.activeElements.some(el => el.type === 'logo')) {
                         this.injectLogo();
                     }
                 }
@@ -649,7 +730,7 @@ require_once 'includes/header.php';
                 if (file) {
                     this.assinaturaSrc = URL.createObjectURL(file);
                     // Injeta automaticamente se não existir
-                    if (!this.elements.some(el => el.type === 'assinatura')) {
+                    if (!this.activeElements.some(el => el.type === 'assinatura')) {
                         this.injectAssinatura();
                     }
                 }
@@ -657,8 +738,8 @@ require_once 'includes/header.php';
 
             // Injeção de Elementos
             injectLogo() {
-                if (this.elements.some(el => el.type === 'logo')) {
-                    alert('A Logo já está inserida no canvas.');
+                if (this.activeElements.some(el => el.type === 'logo')) {
+                    alert('A Logo já está inserida neste lado do canvas.');
                     return;
                 }
                 const newEl = {
@@ -667,13 +748,13 @@ require_once 'includes/header.php';
                     x: 20,
                     y: 20
                 };
-                this.elements.push(newEl);
+                this.activeElements.push(newEl);
                 this.selectElement(newEl);
             },
 
             injectAssinatura() {
-                if (this.elements.some(el => el.type === 'assinatura')) {
-                    alert('A Assinatura já está inserida no canvas.');
+                if (this.activeElements.some(el => el.type === 'assinatura')) {
+                    alert('A Assinatura já está inserida neste lado do canvas.');
                     return;
                 }
                 const newEl = {
@@ -682,7 +763,7 @@ require_once 'includes/header.php';
                     x: 250,
                     y: 210
                 };
-                this.elements.push(newEl);
+                this.activeElements.push(newEl);
                 this.selectElement(newEl);
             },
 
@@ -698,19 +779,19 @@ require_once 'includes/header.php';
                     size: 13,
                     bold: true
                 };
-                this.elements.push(newEl);
+                this.activeElements.push(newEl);
                 this.selectElement(newEl);
                 this.customText = '';
             },
 
             injectDynamic(field, placeholderName) {
                 // Impede duplicados do mesmo campo dinâmico
-                if (this.elements.some(el => el.type === 'dynamic' && el.field === field)) {
-                    alert('Este campo dinâmico já está inserido no canvas.');
+                if (this.activeElements.some(el => el.type === 'dynamic' && el.field === field)) {
+                    alert('Este campo dinâmico já está inserido neste lado do canvas.');
                     return;
                 }
-                if (this.elements.some(el => el.type === field)) {
-                    alert('Este campo dinâmico já está inserido no canvas.');
+                if (this.activeElements.some(el => el.type === field)) {
+                    alert('Este campo dinâmico já está inserido neste lado do canvas.');
                     return;
                 }
 
@@ -733,7 +814,7 @@ require_once 'includes/header.php';
                     };
                 }
                 
-                this.elements.push(newEl);
+                this.activeElements.push(newEl);
                 this.selectElement(newEl);
             },
 

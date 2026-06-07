@@ -29,6 +29,12 @@ class CarteirinhaController {
                 data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
+            // Auto-provisionamento resiliente de colunas do verso v1.3.0
+            if (function_exists('ensureColumnExists')) {
+                ensureColumnExists($this->pdo, 'carteirinha_templates', 'fundo_verso_url', "VARCHAR(255) DEFAULT NULL AFTER assinatura_url");
+                ensureColumnExists($this->pdo, 'carteirinha_templates', 'elementos_verso_json', "LONGTEXT DEFAULT NULL AFTER elementos_json");
+            }
+
             $this->pdo->exec("CREATE TABLE IF NOT EXISTS carteirinha_cargos (
                 template_id INT NOT NULL,
                 cargo_id INT NOT NULL,
@@ -85,7 +91,7 @@ class CarteirinhaController {
     /**
      * Salva ou atualiza um template
      */
-    public function saveTemplate($nome, $cargos, $fundoFile, $logoFile, $assinaturaFile, $elementosJson, $templateId = null) {
+    public function saveTemplate($nome, $cargos, $fundoFile, $logoFile, $assinaturaFile, $elementosJson, $templateId = null, $fundoVersoFile = null, $elementosVersoJson = null) {
         if (empty($nome)) {
             return ['success' => false, 'message' => 'O nome do modelo é obrigatório.'];
         }
@@ -101,16 +107,18 @@ class CarteirinhaController {
             $fundo_url = null;
             $logo_url = null;
             $assinatura_url = null;
+            $fundo_verso_url = null;
 
             if ($templateId) {
                 // Busca caminhos atuais para preservação/substituição
-                $stmtExistente = $this->pdo->prepare("SELECT fundo_url, logo_url, assinatura_url FROM carteirinha_templates WHERE id = ?");
+                $stmtExistente = $this->pdo->prepare("SELECT fundo_url, logo_url, assinatura_url, fundo_verso_url FROM carteirinha_templates WHERE id = ?");
                 $stmtExistente->execute([$templateId]);
                 $existente = $stmtExistente->fetch(PDO::FETCH_ASSOC);
                 if ($existente) {
                     $fundo_url = $existente['fundo_url'];
                     $logo_url = $existente['logo_url'];
                     $assinatura_url = $existente['assinatura_url'];
+                    $fundo_verso_url = $existente['fundo_verso_url'];
                 }
             }
 
@@ -129,20 +137,25 @@ class CarteirinhaController {
                 $assinatura_url = $this->handleUpload($assinaturaFile, $upload_dir, 'assinatura_');
             }
 
+            // Upload do Fundo do Verso
+            if ($fundoVersoFile && $fundoVersoFile['error'] === UPLOAD_ERR_OK) {
+                $fundo_verso_url = $this->handleUpload($fundoVersoFile, $upload_dir, 'fundo_verso_');
+            }
+
             if ($templateId) {
                 // Atualiza
                 $sql = "UPDATE carteirinha_templates 
-                        SET nome = ?, fundo_url = ?, logo_url = ?, assinatura_url = ?, elementos_json = ? 
+                        SET nome = ?, fundo_url = ?, logo_url = ?, assinatura_url = ?, elementos_json = ?, fundo_verso_url = ?, elementos_verso_json = ? 
                         WHERE id = ?";
                 $stmt = $this->pdo->prepare($sql);
-                $stmt->execute([$nome, $fundo_url, $logo_url, $assinatura_url, $elementosJson, $templateId]);
+                $stmt->execute([$nome, $fundo_url, $logo_url, $assinatura_url, $elementosJson, $fundo_verso_url, $elementosVersoJson, $templateId]);
                 $id = $templateId;
             } else {
                 // Insere
-                $sql = "INSERT INTO carteirinha_templates (nome, fundo_url, logo_url, assinatura_url, elementos_json) 
-                        VALUES (?, ?, ?, ?, ?)";
+                $sql = "INSERT INTO carteirinha_templates (nome, fundo_url, logo_url, assinatura_url, elementos_json, fundo_verso_url, elementos_verso_json) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?)";
                 $stmt = $this->pdo->prepare($sql);
-                $stmt->execute([$nome, $fundo_url, $logo_url, $assinatura_url, $elementosJson]);
+                $stmt->execute([$nome, $fundo_url, $logo_url, $assinatura_url, $elementosJson, $fundo_verso_url, $elementosVersoJson]);
                 $id = $this->pdo->lastInsertId();
             }
 
@@ -174,13 +187,13 @@ class CarteirinhaController {
         try {
             $this->pdo->beginTransaction();
 
-            $stmtExistente = $this->pdo->prepare("SELECT fundo_url, logo_url, assinatura_url FROM carteirinha_templates WHERE id = ?");
+            $stmtExistente = $this->pdo->prepare("SELECT fundo_url, logo_url, assinatura_url, fundo_verso_url FROM carteirinha_templates WHERE id = ?");
             $stmtExistente->execute([$id]);
             $existente = $stmtExistente->fetch(PDO::FETCH_ASSOC);
 
             if ($existente) {
                 // Remove arquivos físicos
-                foreach (['fundo_url', 'logo_url', 'assinatura_url'] as $key) {
+                foreach (['fundo_url', 'logo_url', 'assinatura_url', 'fundo_verso_url'] as $key) {
                     if ($existente[$key] && file_exists($existente[$key])) {
                         @unlink($existente[$key]);
                     }
