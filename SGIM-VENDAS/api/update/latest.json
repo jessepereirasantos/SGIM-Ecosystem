@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.1.97: Remocao de auto-ponte de fix_columns.php e uso de Throwable no catch",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.97.zip",
-    "version":  "1.1.97",
+    "notes":  "v1.1.98: Adiciona cpanel_git_check.php para diagnostico remoto do cPanel e limpeza de opcache",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.98.zip",
+    "version":  "1.1.98",
     "date":  "2026-06-07",
-    "sha256":  "53849e8fa225db33e8fc0b2227802bf554ca92b97b9369321fd4bf0172bda053"
+    "sha256":  "77dca88e521726051d352ae328abb564d509c163704792fa6d41d1b208c09160"
 }
