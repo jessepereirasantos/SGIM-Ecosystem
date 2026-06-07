@@ -173,7 +173,10 @@ require_once 'includes/header.php';
                             
                         <?php elseif ($el['type'] === 'logo'): ?>
                             <?php if ($template['logo_url'] && file_exists($template['logo_url'])): ?>
-                                <img src="<?= htmlspecialchars($template['logo_url']) ?>" class="max-h-12 object-contain">
+                                <?php
+                                $logoStyle = (isset($el['width']) && isset($el['height'])) ? sprintf("width: %dpx; height: %dpx; object-fit: contain;", $el['width'], $el['height']) : "max-height: 48px; object-fit: contain;";
+                                ?>
+                                <img src="<?= htmlspecialchars($template['logo_url']) ?>" style="<?= $logoStyle ?>">
                             <?php else: ?>
                                 <div class="size-10 bg-brand rounded-lg flex items-center justify-center text-black shadow">
                                     <span class="material-symbols-outlined text-2xl font-bold">church</span>
@@ -183,7 +186,10 @@ require_once 'includes/header.php';
                         <?php elseif ($el['type'] === 'assinatura'): ?>
                             <div class="flex flex-col items-center">
                                 <?php if ($template['assinatura_url'] && file_exists($template['assinatura_url'])): ?>
-                                    <img src="<?= htmlspecialchars($template['assinatura_url']) ?>" class="max-h-10 object-contain">
+                                    <?php
+                                    $sigStyle = (isset($el['width']) && isset($el['height'])) ? sprintf("width: %dpx; height: %dpx; object-fit: contain;", $el['width'], $el['height']) : "max-height: 40px; object-fit: contain;";
+                                    ?>
+                                    <img src="<?= htmlspecialchars($template['assinatura_url']) ?>" style="<?= $sigStyle ?>">
                                 <?php else: ?>
                                     <span class="text-xs italic text-gray-500 font-serif">Presidência</span>
                                 <?php endif; ?>
@@ -239,7 +245,10 @@ require_once 'includes/header.php';
                             
                         <?php elseif ($el['type'] === 'logo'): ?>
                             <?php if ($template['logo_url'] && file_exists($template['logo_url'])): ?>
-                                <img src="<?= htmlspecialchars($template['logo_url']) ?>" class="max-h-12 object-contain">
+                                <?php
+                                $logoStyle = (isset($el['width']) && isset($el['height'])) ? sprintf("width: %dpx; height: %dpx; object-fit: contain;", $el['width'], $el['height']) : "max-height: 48px; object-fit: contain;";
+                                ?>
+                                <img src="<?= htmlspecialchars($template['logo_url']) ?>" style="<?= $logoStyle ?>">
                             <?php else: ?>
                                 <div class="size-10 bg-brand rounded-lg flex items-center justify-center text-black shadow">
                                     <span class="material-symbols-outlined text-2xl font-bold">church</span>
@@ -249,7 +258,10 @@ require_once 'includes/header.php';
                         <?php elseif ($el['type'] === 'assinatura'): ?>
                             <div class="flex flex-col items-center">
                                 <?php if ($template['assinatura_url'] && file_exists($template['assinatura_url'])): ?>
-                                    <img src="<?= htmlspecialchars($template['assinatura_url']) ?>" class="max-h-10 object-contain">
+                                    <?php
+                                    $sigStyle = (isset($el['width']) && isset($el['height'])) ? sprintf("width: %dpx; height: %dpx; object-fit: contain;", $el['width'], $el['height']) : "max-height: 40px; object-fit: contain;";
+                                    ?>
+                                    <img src="<?= htmlspecialchars($template['assinatura_url']) ?>" style="<?= $sigStyle ?>">
                                 <?php else: ?>
                                     <span class="text-xs italic text-gray-500 font-serif">Presidência</span>
                                 <?php endif; ?>

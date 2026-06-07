@@ -475,14 +475,25 @@ require_once 'includes/header.php';
                                  </template>
 
                                  <template x-if="el.type === 'logo'">
-                                     <img :src="logoSrc || 'assets/images/logo.png'" class="max-h-12 object-contain pointer-events-none">
+                                     <img :src="logoSrc || 'assets/images/logo.png'" 
+                                          :style="{ width: (el.width || 120) + 'px', height: (el.height || 50) + 'px', objectFit: 'contain' }"
+                                          class="pointer-events-none">
                                  </template>
 
                                  <template x-if="el.type === 'assinatura'">
                                      <div class="flex flex-col items-center">
-                                         <img :src="assinaturaSrc || 'assets/images/signature.png'" class="max-h-10 object-contain pointer-events-none">
+                                         <img :src="assinaturaSrc || 'assets/images/signature.png'" 
+                                              :style="{ width: (el.width || 100) + 'px', height: (el.height || 40) + 'px', objectFit: 'contain' }"
+                                              class="pointer-events-none">
                                          <div class="w-20 h-px bg-white/20 my-0.5"></div>
                                          <span class="text-[5px] uppercase font-bold text-gray-500 tracking-wider">Assinatura</span>
+                                     </div>
+                                 </template>
+
+                                 <!-- Alça de Redimensionamento Visual no canto inferior direito -->
+                                 <template x-if="selectedId === el.id && (el.type === 'logo' || el.type === 'assinatura')">
+                                     <div class="absolute -bottom-1.5 -right-1.5 size-3.5 bg-brand border-2 border-black rounded-full cursor-se-resize z-30 shadow-md hover:scale-125 transition-transform"
+                                          @mousedown.stop.prevent="startResize($event, el)">
                                      </div>
                                  </template>
 
@@ -513,15 +524,29 @@ require_once 'includes/header.php';
 
                             <!-- Posicionamento Fino -->
                             <div class="grid grid-cols-2 gap-3">
-                                <div class="bg-darkbg border border-darkborder rounded-xl p-3">
-                                    <p class="text-[9px] text-gray-600 font-bold uppercase mb-1">Posição X</p>
-                                    <input type="number" x-model.number="selectedElement.x" @input="limitCoordinates" class="w-full bg-transparent border-none p-0 text-sm font-mono text-gray-300 focus:ring-0">
-                                </div>
-                                <div class="bg-darkbg border border-darkborder rounded-xl p-3">
-                                    <p class="text-[9px] text-gray-600 font-bold uppercase mb-1">Posição Y</p>
-                                    <input type="number" x-model.number="selectedElement.y" @input="limitCoordinates" class="w-full bg-transparent border-none p-0 text-sm font-mono text-gray-300 focus:ring-0">
-                                </div>
+                                 <div class="bg-darkbg border border-darkborder rounded-xl p-3">
+                                     <p class="text-[9px] text-gray-600 font-bold uppercase mb-1">Posição X</p>
+                                     <input type="number" x-model.number="selectedElement.x" @input="limitCoordinates" class="w-full bg-transparent border-none p-0 text-sm font-mono text-gray-300 focus:ring-0">
+                                 </div>
+                                 <div class="bg-darkbg border border-darkborder rounded-xl p-3">
+                                     <p class="text-[9px] text-gray-600 font-bold uppercase mb-1">Posição Y</p>
+                                     <input type="number" x-model.number="selectedElement.y" @input="limitCoordinates" class="w-full bg-transparent border-none p-0 text-sm font-mono text-gray-300 focus:ring-0">
+                                 </div>
                             </div>
+
+                            <!-- Dimensões para Elementos de Imagem -->
+                            <template x-if="selectedElement.type === 'logo' || selectedElement.type === 'assinatura'">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="bg-darkbg border border-darkborder rounded-xl p-3">
+                                        <p class="text-[9px] text-gray-600 font-bold uppercase mb-1">Largura (px)</p>
+                                        <input type="number" x-model.number="selectedElement.width" class="w-full bg-transparent border-none p-0 text-sm font-mono text-gray-300 focus:ring-0">
+                                    </div>
+                                    <div class="bg-darkbg border border-darkborder rounded-xl p-3">
+                                        <p class="text-[9px] text-gray-600 font-bold uppercase mb-1">Altura (px)</p>
+                                        <input type="number" x-model.number="selectedElement.height" class="w-full bg-transparent border-none p-0 text-sm font-mono text-gray-300 focus:ring-0">
+                                    </div>
+                                </div>
+                            </template>
 
                             <!-- Estilo de Texto (Só para Textos e Dinâmicos) -->
                             <template x-if="selectedElement.type === 'text' || selectedElement.type === 'dynamic'">
@@ -662,6 +687,7 @@ require_once 'includes/header.php';
             logoSrc: '<?= ($template_atual && $template_atual['logo_url']) ? htmlspecialchars($template_atual['logo_url']) : '' ?>',
             assinaturaSrc: '<?= ($template_atual && $template_atual['assinatura_url']) ? htmlspecialchars($template_atual['assinatura_url']) : '' ?>',
             dragInfo: { isDragging: false, el: null, startX: 0, startY: 0, initialX: 0, initialY: 0 },
+            resizeInfo: { isResizing: false, el: null, startX: 0, startY: 0, initialW: 0, initialH: 0 },
 
             init() {
                 // Remove qualquer outline/focus ao apertar Esc
@@ -746,7 +772,9 @@ require_once 'includes/header.php';
                     id: 'logo_' + Date.now(),
                     type: 'logo',
                     x: 20,
-                    y: 20
+                    y: 20,
+                    width: 120,
+                    height: 50
                 };
                 this.activeElements.push(newEl);
                 this.selectElement(newEl);
@@ -761,7 +789,9 @@ require_once 'includes/header.php';
                     id: 'assinatura_' + Date.now(),
                     type: 'assinatura',
                     x: 250,
-                    y: 210
+                    y: 210,
+                    width: 100,
+                    height: 40
                 };
                 this.activeElements.push(newEl);
                 this.selectElement(newEl);
@@ -855,6 +885,43 @@ require_once 'includes/header.php';
 
                 this.dragInfo.el.x = Math.max(0, Math.min(newX, canvasW - 20));
                 this.dragInfo.el.y = Math.max(0, Math.min(newY, canvasH - 15));
+            },
+
+            startResize(e, el) {
+                this.selectElement(el);
+                
+                if (el.width === undefined) el.width = el.type === 'logo' ? 120 : 100;
+                if (el.height === undefined) el.height = el.type === 'logo' ? 50 : 40;
+
+                this.resizeInfo.isResizing = true;
+                this.resizeInfo.el = el;
+                this.resizeInfo.startX = e.clientX;
+                this.resizeInfo.startY = e.clientY;
+                this.resizeInfo.initialW = el.width;
+                this.resizeInfo.initialH = el.height;
+
+                const moveHandler = (moveEvent) => this.onResize(moveEvent);
+                const upHandler = () => {
+                    this.resizeInfo.isResizing = false;
+                    document.removeEventListener('mousemove', moveHandler);
+                    document.removeEventListener('mouseup', upHandler);
+                };
+
+                document.addEventListener('mousemove', moveHandler);
+                document.addEventListener('mouseup', upHandler);
+            },
+
+            onResize(e) {
+                if (!this.resizeInfo.isResizing) return;
+                
+                const deltaX = e.clientX - this.resizeInfo.startX;
+                const deltaY = e.clientY - this.resizeInfo.startY;
+                
+                let newW = this.resizeInfo.initialW + deltaX;
+                let newH = this.resizeInfo.initialH + deltaY;
+
+                this.resizeInfo.el.width = Math.max(20, Math.min(newW, 400));
+                this.resizeInfo.el.height = Math.max(15, Math.min(newH, 250));
             }
         };
     }
