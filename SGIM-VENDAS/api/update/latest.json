@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.1.99: Auto-provisionamento silencioso de tabelas e colunas (self-healing)",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.99.zip",
-    "version":  "1.1.99",
+    "notes":  "v1.2.0: Correcao de tracking de versao do OTA e Auto-Recuperacao Ativa de banco em carteirinhas",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.2.0.zip",
+    "version":  "1.2.0",
     "date":  "2026-06-07",
-    "sha256":  "5bde62a094d74552bd7d5f907f541bbdbb96ca16db484b95e844289572129301"
+    "sha256":  "cc4653dacf50b00ae4f5da9442899a81f716aa7d85c2a63cc25d7aead41ef18f"
 }

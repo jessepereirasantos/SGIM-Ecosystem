@@ -17,9 +17,10 @@ $highest_version = '1.1.0'; // Base mínima
 if (is_dir($packagesDir)) {
     $files = scandir($packagesDir);
     foreach ($files as $file) {
-        if (preg_match('/sgim_release_([0-9]+\.[0-9]+\.[0-9]+)_/', $file, $matches)) {
-            if (version_compare($matches[1], $highest_version, '>')) {
-                $highest_version = $matches[1];
+        if (preg_match('/(?:sgim_release_([0-9]+\.[0-9]+\.[0-9]+)_|SGIM-CLIENTE-v([0-9]+\.[0-9]+\.[0-9]+)\.zip)/i', $file, $matches)) {
+            $ver = !empty($matches[1]) ? $matches[1] : $matches[2];
+            if (version_compare($ver, $highest_version, '>')) {
+                $highest_version = $ver;
             }
         }
     }

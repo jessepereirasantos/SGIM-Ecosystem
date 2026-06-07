@@ -83,16 +83,31 @@ $page_title = 'SGIM - Gestão de Carteirinhas';
 $current_page = 'carteirinhas';
 require_once 'includes/header.php';
 
-
 $membros = [];
 $db_error_msg = '';
 
 try {
-    // Busca os membros ativos do banco respeitando o escopo de congregação
     $scopeFilter = $access ? $access->getScopeFilter() : '';
     $membros = $pdo->query("SELECT id, nome, cpf, hash_carteirinha, carteirinha_valida_ate FROM membros WHERE status = 'Ativo' $scopeFilter ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    $db_error_msg = $e->getMessage();
+    if (strpos($e->getMessage(), 'hash_carteirinha') !== false || strpos($e->getMessage(), 'carteirinha_valida_ate') !== false) {
+        try {
+            // Tenta criar as colunas de forma resiliente
+            $pdo->exec("ALTER TABLE membros ADD COLUMN hash_carteirinha VARCHAR(64) DEFAULT NULL");
+            $pdo->exec("ALTER TABLE membros ADD COLUMN carteirinha_valida_ate DATE DEFAULT NULL");
+            try {
+                $pdo->exec("CREATE UNIQUE INDEX idx_hash_carteirinha ON membros (hash_carteirinha)");
+            } catch (Throwable $idxEx) {}
+            
+            // Repete a busca de membros
+            $scopeFilter = $access ? $access->getScopeFilter() : '';
+            $membros = $pdo->query("SELECT id, nome, cpf, hash_carteirinha, carteirinha_valida_ate FROM membros WHERE status = 'Ativo' $scopeFilter ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $ex) {
+            $db_error_msg = $ex->getMessage();
+        }
+    } else {
+        $db_error_msg = $e->getMessage();
+    }
 }
 ?>
 
