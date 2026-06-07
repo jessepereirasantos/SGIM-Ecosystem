@@ -73,6 +73,23 @@ class SharedHostingDriver implements ActivationDriverInterface {
                 file_put_contents($currentLink . '/index.php', "<?php require_once '$versionPath/index.php';");
             }
 
+            // 3.5. GARANTIR PONTES OPERACIONAIS PARA NOVOS ARQUIVOS PHP
+            $releaseFiles = glob($versionPath . '*.php');
+            if ($releaseFiles) {
+                foreach ($releaseFiles as $filePath) {
+                    $fileName = basename($filePath);
+                    $targetBridge = $this->basePath . $fileName;
+                    if (!file_exists($targetBridge)) {
+                        $bridgeContent = "<?php\n// AUTO-PONTE GERADA PELO OTA v2\nrequire_once __DIR__ . '/releases/current/' . basename(__FILE__);\n";
+                        if (@file_put_contents($targetBridge, $bridgeContent)) {
+                            $this->log("Ponte física criada para novo arquivo: $fileName");
+                        } else {
+                            $this->log("AVISO: Falha ao criar ponte para $fileName");
+                        }
+                    }
+                }
+            }
+
             // 4. LIMPEZA DE CACHE
             if (function_exists('opcache_reset')) @opcache_reset();
 
