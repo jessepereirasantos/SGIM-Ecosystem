@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.4.0: Adiciona redimensionamento visual de logos e assinaturas no Canva",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.4.0.zip",
-    "version":  "1.4.0",
+    "notes":  "v1.4.1: Adiciona link de Usuarios e Acessos ao menu lateral de Administracao",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.4.1.zip",
+    "version":  "1.4.1",
     "date":  "2026-06-07",
-    "sha256":  "d49e397a2c8ee32b9edb6c19e68df19a2afc37379b49a6974b9d9ff476e04fb6"
+    "sha256":  "2d1d0342a7c81610010f4c1e8ed7562af6c6569cba3946f9ddcd81778be844a2"
 }
