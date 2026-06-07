@@ -1,11 +1,4 @@
 <?php
-// AUTO-PONTE: Se existir uma versão mais nova ativa pelo OTA, desvia para ela
-$bridge = __DIR__ . '/releases/current/' . basename(__FILE__);
-if (file_exists($bridge) && strpos(__DIR__, 'releases') === false) {
-    require_once $bridge;
-    exit;
-}
-
 require_once 'config/database.php';
 
 $auto_run = isset($_GET['auto_run']) && $_GET['auto_run'] == 1;
@@ -35,7 +28,7 @@ try {
             $pdo->exec("ALTER TABLE sistema_novidades ADD COLUMN visto TINYINT(1) DEFAULT 0 AFTER descricao");
             logFix("✅ Coluna <b>visto</b> adicionada na tabela sistema_novidades.");
         }
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         logFix("⚠️ Falha ao verificar/ajustar sistema_novidades: " . $e->getMessage());
     }
 
@@ -64,7 +57,7 @@ try {
             $pdo->exec("CREATE UNIQUE INDEX idx_hash_carteirinha ON membros (hash_carteirinha)");
             logFix("✅ Índice único <b>idx_hash_carteirinha</b> criado na tabela membros.");
         }
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         logFix("⚠️ Falha ao verificar/ajustar membros: " . $e->getMessage());
     }
 
@@ -94,7 +87,7 @@ try {
             $pdo->exec("ALTER TABLE financeiro_transacoes ADD COLUMN deleted_at DATETIME DEFAULT NULL AFTER nome_identificado");
             logFix("✅ Coluna <b>deleted_at</b> adicionada em financeiro_transacoes.");
         }
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         logFix("⚠️ Falha ao verificar/ajustar financeiro_transacoes: " . $e->getMessage());
     }
 
@@ -120,7 +113,7 @@ try {
         $pdo->exec("INSERT IGNORE INTO cargo_permissoes (cargo_id, permissao_id)
                     SELECT 1, id FROM permissoes;");
         logFix("✅ Permissões mapeadas para o cargo Admin Total.");
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         logFix("⚠️ Falha ao atualizar permissões (RBAC): " . $e->getMessage());
     }
 
@@ -129,7 +122,7 @@ try {
         $stmtVer = $pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES ('versao_sistema', '1.1.95') ON DUPLICATE KEY UPDATE valor = '1.1.95'");
         $stmtVer->execute();
         logFix("✅ Versão do sistema no banco atualizada para <b>1.1.95</b>.");
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         logFix("⚠️ Falha ao atualizar versão no banco: " . $e->getMessage());
     }
 
@@ -147,7 +140,7 @@ try {
         echo "<br><p><a href='dashboard.php' style='color:#FFC107; font-weight:bold;'>Voltar para a Dashboard</a></p>";
     }
 
-} catch (Exception $e) {
+} catch (Throwable $e) {
     if ($auto_run) {
         header("Location: dashboard.php?db_sync_error=" . urlencode($e->getMessage()));
         exit;
