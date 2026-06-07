@@ -83,8 +83,8 @@ $page_title = 'SGIM - Gestão de Carteirinhas';
 $current_page = 'carteirinhas';
 require_once 'includes/header.php';
 
+
 $membros = [];
-$db_error = false;
 $db_error_msg = '';
 
 try {
@@ -92,34 +92,20 @@ try {
     $scopeFilter = $access ? $access->getScopeFilter() : '';
     $membros = $pdo->query("SELECT id, nome, cpf, hash_carteirinha, carteirinha_valida_ate FROM membros WHERE status = 'Ativo' $scopeFilter ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    $db_error = true;
     $db_error_msg = $e->getMessage();
 }
 ?>
 
-<?php if ($db_error): ?>
-    <div class="max-w-xl mx-auto my-12 bg-darkcard p-8 rounded-2xl border border-brand/20 shadow-2xl text-center space-y-6 animate-fade-in">
-        <div class="inline-flex p-4 bg-brand/10 rounded-full text-brand">
-            <span class="material-symbols-outlined text-4xl animate-pulse">database_alert</span>
-        </div>
-        <h3 class="text-xl font-bold text-white tracking-tight">Sincronização do Banco Requerida</h3>
-        <p class="text-xs text-gray-400 leading-relaxed">
-            Seu banco de dados de produção precisa ser atualizado para a versão <b>v1.1.95</b> para suportar as colunas de validade e o QR Code de carteirinhas.
-        </p>
-        <div class="p-4 bg-black/40 border border-darkborder rounded-xl text-left">
-            <p class="text-[10px] text-gray-500 font-mono uppercase tracking-wider mb-1">Diagnóstico Técnico:</p>
-            <p class="text-[11px] font-mono text-red-400 leading-normal break-all"><?= htmlspecialchars($db_error_msg) ?></p>
-        </div>
-        <div class="pt-4">
-            <a href="fix_columns.php?auto_run=1&redirect=carteirinha_digital.php" class="inline-flex items-center gap-2 px-8 py-4 bg-brand hover:bg-brand-dark text-black font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-brand/20">
-                <span class="material-symbols-outlined text-sm">sync</span>
-                Sincronizar Banco de Dados
-            </a>
-        </div>
-    </div>
-<?php else: ?>
-
 <div class="max-w-5xl mx-auto space-y-6">
+    <?php if (!empty($db_error_msg)): ?>
+        <div class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 flex flex-col gap-1 shadow-lg mb-6">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">database_alert</span>
+                <span class="text-xs font-bold uppercase tracking-wider">Erro ao ler dados de membros</span>
+            </div>
+            <p class="text-[11px] font-mono opacity-80"><?= htmlspecialchars($db_error_msg) ?></p>
+        </div>
+    <?php endif; ?>
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-darkcard p-6 rounded-xl border border-darkborder shadow-lg">
         <div>
             <h2 class="text-2xl font-black text-white tracking-tighter flex items-center gap-2">
@@ -248,8 +234,6 @@ try {
         alert('Link da carteirinha copiado para a área de transferência!');
     }
 </script>
-
-<?php endif; ?>
 
 <?php
 require_once 'includes/footer.php';

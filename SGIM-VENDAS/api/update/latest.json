@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.1.98: Adiciona cpanel_git_check.php para diagnostico remoto do cPanel e limpeza de opcache",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.98.zip",
-    "version":  "1.1.98",
+    "notes":  "v1.1.99: Auto-provisionamento silencioso de tabelas e colunas (self-healing)",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.1.99.zip",
+    "version":  "1.1.99",
     "date":  "2026-06-07",
-    "sha256":  "77dca88e521726051d352ae328abb564d509c163704792fa6d41d1b208c09160"
+    "sha256":  "5bde62a094d74552bd7d5f907f541bbdbb96ca16db484b95e844289572129301"
 }
