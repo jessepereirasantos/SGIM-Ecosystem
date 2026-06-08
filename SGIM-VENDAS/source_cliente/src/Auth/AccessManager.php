@@ -16,6 +16,7 @@ class AccessManager {
     public function __construct($pdo, $userId) {
         $this->pdo = $pdo;
         $this->userId = $userId;
+        $this->bootstrapPermissions();
         $this->loadUserContext();
         $this->ensureBridges();
     }
@@ -110,6 +111,34 @@ class AccessManager {
      * Garante de forma resiliente que todos os arquivos PHP do release atual
      * possuam suas pontes operacionais na raiz, eliminando erros 404 (OTA Safe).
      */
+    /**
+     * Auto-seeding de permissões críticas de usuários caso estejam ausentes no banco.
+     */
+    private function bootstrapPermissions() {
+        try {
+            // Garante que a permissão usuarios -> gerenciar existe na tabela
+            $stmt = $this->pdo->query("SELECT id FROM permissoes WHERE modulo = 'usuarios' AND acao = 'gerenciar' LIMIT 1");
+            if ($stmt && $stmt->fetch() === false) {
+                // Tenta inserir as permissões padrão de usuários
+                $sql = "INSERT IGNORE INTO permissoes (modulo, acao, descricao) VALUES 
+                        ('usuarios', 'visualizar', 'Visualizar Usuários'),
+                        ('usuarios', 'gerenciar', 'Gerenciar Usuários')";
+                $this->pdo->exec($sql);
+                
+                // Também garante que o cargo_id = 1 (Admin Total) receba essa permissão na tabela cargo_permissoes
+                $this->pdo->exec("INSERT IGNORE INTO cargo_permissoes (cargo_id, permissao_id) 
+                                  SELECT 1, id FROM permissoes 
+                                  WHERE modulo = 'usuarios'");
+            }
+        } catch (\Throwable $e) {
+            // Silencioso
+        }
+    }
+
+    /**
+     * Garante de forma resiliente que todos os arquivos PHP do release atual
+     * possuam suas pontes operacionais na raiz, eliminando erros 404 (OTA Safe).
+     */
     private function ensureBridges() {
         try {
             $basePath = realpath(__DIR__ . '/../../') . '/';
@@ -128,16 +157,16 @@ class AccessManager {
                         
                         // 1. Ponte em Minúsculo
                         $targetBridgeLower = $basePath . strtolower($fileName);
-                        if (!file_exists($targetBridgeLower)) {
-                            $bridgeContent = "<?php\n// AUTO-PONTE GERADA PELO ACCESSMANAGER (MINUSCULO)\nrequire_once __DIR__ . '/releases/current/' . basename(__FILE__);\n";
-                            @file_put_contents($targetBridgeLower, $bridgeContent);
+                        $bridgeContentLower = "<?php\n// AUTO-PONTE GERADA PELO ACCESSMANAGER (MINUSCULO)\nrequire_once __DIR__ . '/releases/current/' . basename(__FILE__);\n";
+                        if (!file_exists($targetBridgeLower) || strpos(@file_get_contents($targetBridgeLower), 'releases/current') === false) {
+                            @file_put_contents($targetBridgeLower, $bridgeContentLower);
                         }
                         
                         // 2. Ponte com Primeira Letra Maiúscula (Compatibilidade Case-Insensitive)
                         $targetBridgeUpper = $basePath . ucfirst(strtolower($fileName));
-                        if (!file_exists($targetBridgeUpper)) {
-                            $bridgeContent = "<?php\n// AUTO-PONTE GERADA PELO ACCESSMANAGER (MAIUSCULO)\nrequire_once __DIR__ . '/releases/current/' . basename(__FILE__);\n";
-                            @file_put_contents($targetBridgeUpper, $bridgeContent);
+                        $bridgeContentUpper = "<?php\n// AUTO-PONTE GERADA PELO ACCESSMANAGER (MAIUSCULO)\nrequire_once __DIR__ . '/releases/current/' . basename(__FILE__);\n";
+                        if (!file_exists($targetBridgeUpper) || strpos(@file_get_contents($targetBridgeUpper), 'releases/current') === false) {
+                            @file_put_contents($targetBridgeUpper, $bridgeContentUpper);
                         }
                     }
                 }

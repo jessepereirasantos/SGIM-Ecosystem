@@ -49,30 +49,42 @@ if ($access && !$access->isGlobal() && $usuario['congregacao_id'] != $access->ge
 // 2. PROCESSAMENTO DO FORMULÁRIO
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cargo_id = !empty($_POST['cargo_id']) ? intval($_POST['cargo_id']) : null;
-    if ($access && $access->isGlobal()) {
-        $congregacao_id = !empty($_POST['congregacao_id']) ? intval($_POST['congregacao_id']) : null;
-    } else {
+    if ($access && !$access->isGlobal()) {
         $congregacao_id = (int)$access->getCongregacaoId();
+        if ($cargo_id) {
+            $stmtCgCheck = $pdo->prepare("SELECT escopo FROM cargos WHERE id = ?");
+            $stmtCgCheck->execute([$cargo_id]);
+            $cgEscopo = $stmtCgCheck->fetchColumn();
+            if ($cgEscopo !== 'local') {
+                $erro = true;
+                $mensagem = "Erro: Usuários com escopo local não podem atribuir cargos globais.";
+            }
+        }
+    } else {
+        $congregacao_id = !empty($_POST['congregacao_id']) ? intval($_POST['congregacao_id']) : null;
     }
     $ativo = isset($_POST['ativo']) ? 1 : 0;
 
-    try {
-        $stmt = $pdo->prepare("UPDATE usuarios SET cargo_id = ?, congregacao_id = ?, ativo = ? WHERE id = ?");
-        $stmt->execute([$cargo_id, $congregacao_id, $ativo, $id]);
-        
-        header("Location: usuarios.php?sucesso=1");
-        exit;
-    } catch (Exception $e) {
-        $erro = true;
-        $mensagem = "Erro ao atualizar usuário: " . $e->getMessage();
+    if (!$erro) {
+        try {
+            $stmt = $pdo->prepare("UPDATE usuarios SET cargo_id = ?, congregacao_id = ?, ativo = ? WHERE id = ?");
+            $stmt->execute([$cargo_id, $congregacao_id, $ativo, $id]);
+            
+            header("Location: usuarios.php?sucesso=1");
+            exit;
+        } catch (Exception $e) {
+            $erro = true;
+            $mensagem = "Erro ao atualizar usuário: " . $e->getMessage();
+        }
     }
 }
 
 // 3. BUSCA CARGOS E CONGREGAÇÕES PARA OS SELECTS
-$cargos = $pdo->query("SELECT id, nome, escopo FROM cargos WHERE status = 'Ativo' ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
 if ($access && $access->isGlobal()) {
+    $cargos = $pdo->query("SELECT id, nome, escopo FROM cargos WHERE status = 'Ativo' ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
     $congregacoes = $pdo->query("SELECT id, nome FROM congregacoes WHERE status = 'Ativa' ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
 } else {
+    $cargos = $pdo->query("SELECT id, nome, escopo FROM cargos WHERE status = 'Ativo' AND escopo = 'local' ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
     $congregacoes = $pdo->query("SELECT id, nome FROM congregacoes WHERE id = " . (int)$access->getCongregacaoId() . " ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
 }
 
@@ -113,15 +125,22 @@ require_once 'includes/header.php';
 
             <div class="space-y-2">
                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest">Congregação Vinculada</label>
-                <select name="congregacao_id" class="w-full px-4 py-3 rounded-xl border border-darkborder bg-darkbg text-white focus:ring-2 focus:ring-brand outline-none appearance-none">
-                    <option value="">Sede / Ministério Global</option>
+                <select name="congregacao_id" <?= !$access->isGlobal() ? 'disabled' : '' ?> class="w-full px-4 py-3 rounded-xl border border-darkborder bg-darkbg text-white focus:ring-2 focus:ring-brand outline-none appearance-none <?= !$access->isGlobal() ? 'opacity-60 cursor-not-allowed' : '' ?>">
+                    <?php if ($access->isGlobal()): ?>
+                        <option value="">Sede / Ministério Global</option>
+                    <?php endif; ?>
                     <?php foreach ($congregacoes as $co): ?>
-                        <option value="<?= $co['id'] ?>" <?= ($usuario['congregacao_id'] == $co['id']) ? 'selected' : '' ?>>
+                        <option value="<?= $co['id'] ?>" <?= ($usuario['congregacao_id'] == $co['id'] || (!$access->isGlobal() && $access->getCongregacaoId() == $co['id'])) ? 'selected' : '' ?>>
                             <?= htmlspecialchars($co['nome']) ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
-                <p class="text-[10px] text-gray-500 italic">Para cargos com escopo LOCAL, este campo é obrigatório para filtrar os dados corretamente.</p>
+                <?php if (!$access->isGlobal()): ?>
+                    <input type="hidden" name="congregacao_id" value="<?= $access->getCongregacaoId() ?>"/>
+                <?php endif; ?>
+                <p class="text-[10px] text-gray-500 italic">
+                    <?= $access->isGlobal() ? 'Para cargos com escopo LOCAL, este campo é obrigatório para filtrar os dados corretamente.' : 'Você só pode gerenciar usuários vinculados à sua própria congregação.' ?>
+                </p>
             </div>
         </div>
 
