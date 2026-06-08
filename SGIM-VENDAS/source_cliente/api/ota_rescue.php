@@ -27,8 +27,53 @@ $log[] = "Pasta de Destino (Produção): $dstBase";
 if (!is_dir($srcBase)) {
     die("<h2 style='color:red'>Erro: Pasta de origem Git ($srcBase) não existe.</h2>");
 }
+// Busca dinâmica caso o destino padrão não exista
 if (!is_dir($dstBase)) {
-    die("<h2 style='color:red'>Erro: Pasta de destino ($dstBase) não existe.</h2>");
+    $candidatos = [
+        '/home1/hg9a3205/public_html/sgim-iade',
+        '/home1/hg9a3205/sgim-iade',
+        '/home1/hg9a3205/iadeeloha.com.br/sgim-iade',
+        '/home1/hg9a3205/public_html/sgim',
+        '/home1/hg9a3205/sgim',
+    ];
+    
+    foreach ($candidatos as $c) {
+        if (is_dir($c)) {
+            $dstBase = $c;
+            $log[] = "🔍 Pasta de destino encontrada dinamicamente: $dstBase";
+            break;
+        }
+    }
+}
+
+if (!is_dir($dstBase)) {
+    $diagnostico = "";
+    
+    $parent1 = '/home1/hg9a3205/public_html';
+    if (is_dir($parent1)) {
+        $files1 = scandir($parent1);
+        $diagnostico .= "<h3>Pastas em $parent1:</h3><ul>";
+        foreach ($files1 as $f) {
+            if ($f !== '.' && $f !== '..' && is_dir($parent1 . '/' . $f)) {
+                $diagnostico .= "<li>$f</li>";
+            }
+        }
+        $diagnostico .= "</ul>";
+    }
+    
+    $parent2 = '/home1/hg9a3205';
+    if (is_dir($parent2)) {
+        $files2 = scandir($parent2);
+        $diagnostico .= "<h3>Pastas em $parent2:</h3><ul>";
+        foreach ($files2 as $f) {
+            if ($f !== '.' && $f !== '..' && is_dir($parent2 . '/' . $f)) {
+                $diagnostico .= "<li>$f</li>";
+            }
+        }
+        $diagnostico .= "</ul>";
+    }
+    
+    die("<h2 style='color:red'>Erro: Pasta de destino ($dstBase) não existe.</h2>" . $diagnostico);
 }
 
 // 3. Detectar a pasta do Release Current
