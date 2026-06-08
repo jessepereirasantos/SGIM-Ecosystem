@@ -17,7 +17,7 @@ $theme = [
     'modo_padrao' => 'dark'
 ];
 
-$systemVersion = '1.1.62';
+$systemVersion = '1.4.9';
 
 // 2. REUTILIZAR CONEXÃO JÁ CARREGADA (Evita fatal error de redeclaração)
 // O database.php já foi incluído pela página principal (dashboard.php, membros.php, etc.)

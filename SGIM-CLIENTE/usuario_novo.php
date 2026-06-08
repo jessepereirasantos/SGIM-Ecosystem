@@ -161,7 +161,7 @@ if ($pdo) {
 }
 
 // ── Versão do sistema ────────────────────────────────────────────────────────
-$versao = '1.4.8';
+$versao = '1.4.9';
 ?>
 <!DOCTYPE html>
 <html class="dark" lang="pt-BR">

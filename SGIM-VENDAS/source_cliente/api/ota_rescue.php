@@ -1,261 +1,192 @@
 <?php
 /**
- * SGIM RESCUE - Cria usuario_novo.php no release atual
- * Acesse: /sgim-iade/api/ota_rescue.php
- * Remove este arquivo após uso bem-sucedido.
+ * SGIM FORCE DEPLOYER v1.4.9
+ * URL: /SGIM-CLIENTE/api/ota_rescue.php?token=sgim2026
+ * Sincroniza fisicamente os arquivos da v1.4.9 do Git para a pasta de produção ativa.
  */
-session_start();
 header('Content-Type: text/html; charset=utf-8');
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-// Segurança: apenas admin logado
-if (!isset($_SESSION['user_id'])) {
-    die('<h2 style="color:red">Acesso negado. Faça login primeiro.</h2>');
+// 1. Validação de Token
+$token = $_GET['token'] ?? '';
+if ($token !== 'sgim2026') {
+    die('<h2 style="color:red;font-family:Arial">Acesso negado. Token inválido.</h2>');
 }
 
-// Detecta o diretório raiz atual (releases/current ou raiz direta)
-$baseDir = realpath(__DIR__ . '/../');
-if (!$baseDir) {
-    die('<h2 style="color:red">Erro ao detectar diretório base.</h2>');
+$log = [];
+$ok = true;
+
+// 2. Mapeamento de Pastas no Servidor HostGator
+$srcBase = '/home1/hg9a3205/public_html/SGIM-CLIENTE';
+$dstBase = '/home1/hg9a3205/public_html/sgim-iade';
+
+$log[] = "Pasta de Origem (Git): $srcBase";
+$log[] = "Pasta de Destino (Produção): $dstBase";
+
+if (!is_dir($srcBase)) {
+    die("<h2 style='color:red'>Erro: Pasta de origem Git ($srcBase) não existe.</h2>");
+}
+if (!is_dir($dstBase)) {
+    die("<h2 style='color:red'>Erro: Pasta de destino ($dstBase) não existe.</h2>");
 }
 
-// Conteúdo completo e autocontido do usuario_novo.php
-$conteudo = <<<'PHPFILE'
-<?php
-session_start();
-if (!isset($_SESSION['user_id'])) { header('Location: login.php'); exit; }
+// 3. Detectar a pasta do Release Current
+$dstCurrent = $dstBase . '/releases/current';
+$log[] = "Pasta do Release Ativo (Current): $dstCurrent";
 
-require_once __DIR__ . '/config/database.php';
-require_once __DIR__ . '/src/autoload.php';
-
-if (!class_exists('SGIM\\Auth\\AccessManager')) {
-    $amPath = __DIR__ . '/src/Auth/AccessManager.php';
-    if (file_exists($amPath)) require_once $amPath;
-}
-$access = new \SGIM\Auth\AccessManager($pdo, $_SESSION['user_id']);
-
-if ($access && !$access->can('usuarios', 'gerenciar')) {
-    echo "<script>alert('Acesso Negado.'); window.location.href='usuarios.php';</script>"; exit;
-}
-
-$mensagem = ''; $erro = false;
-$nome = $email = $cargo_id = $congregacao_id = ''; $ativo = 1;
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nome = trim($_POST['nome'] ?? '');
-    $email = trim($_POST['email'] ?? '');
-    $senha = $_POST['senha'] ?? '';
-    $senha_confirm = $_POST['senha_confirm'] ?? '';
-    $cargo_id = !empty($_POST['cargo_id']) ? intval($_POST['cargo_id']) : null;
-    $ativo = isset($_POST['ativo']) ? 1 : 0;
-
-    if (!$access->isGlobal()) {
-        $congregacao_id = $access->getCongregacaoId();
-        if ($cargo_id) {
-            $st = $pdo->prepare("SELECT escopo FROM cargos WHERE id = ?");
-            $st->execute([$cargo_id]);
-            $esc = $st->fetchColumn();
-            if ($esc !== 'local') { $erro = true; $mensagem = 'Cargo global não permitido para escopo local.'; }
-        }
-    } else {
-        $congregacao_id = !empty($_POST['congregacao_id']) ? intval($_POST['congregacao_id']) : null;
-    }
-
-    if (!$erro) {
-        if (empty($nome) || empty($email) || empty($senha)) {
-            $erro = true; $mensagem = 'Nome, E-mail e Senha são obrigatórios.';
-        } elseif ($senha !== $senha_confirm) {
-            $erro = true; $mensagem = 'As senhas não coincidem.';
-        } elseif (strlen($senha) < 6) {
-            $erro = true; $mensagem = 'Senha deve ter pelo menos 6 caracteres.';
-        } else {
-            try {
-                $chk = $pdo->prepare("SELECT id FROM usuarios WHERE email = ?");
-                $chk->execute([$email]);
-                if ($chk->fetch()) {
-                    $erro = true; $mensagem = 'E-mail já cadastrado.';
-                } else {
-                    $hash = password_hash($senha, PASSWORD_DEFAULT);
-                    $ins = $pdo->prepare("INSERT INTO usuarios (nome, email, senha, cargo_id, congregacao_id, ativo) VALUES (?, ?, ?, ?, ?, ?)");
-                    $ins->execute([$nome, $email, $hash, $cargo_id, $congregacao_id, $ativo]);
-                    header("Location: usuarios.php?sucesso=1"); exit;
-                }
-            } catch (Exception $e) {
-                $erro = true; $mensagem = 'Erro: ' . $e->getMessage();
-            }
-        }
-    }
-}
-
-if ($access->isGlobal()) {
-    $cargos = $pdo->query("SELECT id, nome, escopo FROM cargos WHERE status = 'Ativo' ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
-    $congregacoes = $pdo->query("SELECT id, nome FROM congregacoes WHERE status = 'Ativa' ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
+// Se o releases/current existir, vamos usá-lo como alvo também
+$alvosDestino = [$dstBase];
+if (is_dir($dstCurrent)) {
+    $alvosDestino[] = $dstCurrent;
 } else {
-    $st2 = $pdo->query("SELECT id, nome, escopo FROM cargos WHERE status = 'Ativo' AND escopo = 'local' ORDER BY nome ASC");
-    $cargos = $st2->fetchAll(PDO::FETCH_ASSOC);
-    $st3 = $pdo->prepare("SELECT id, nome FROM congregacoes WHERE status = 'Ativa' AND id = ?");
-    $st3->execute([$access->getCongregacaoId()]);
-    $congregacoes = $st3->fetchAll(PDO::FETCH_ASSOC);
+    $log[] = "⚠️ Atenção: releases/current não é um diretório ou não existe. Copiando apenas para a raiz.";
 }
 
-$page_title = 'SGIM - Novo Usuário'; $current_page = 'usuarios';
-require_once __DIR__ . '/includes/header.php';
-?>
-<div class="max-w-4xl mx-auto space-y-6">
-    <div class="mb-8">
-        <h2 class="text-3xl font-bold text-white tracking-tight">Novo Usuário Administrativo</h2>
-        <p class="text-sm text-gray-500 mt-1">Cadastre as credenciais e defina os limites de acesso.</p>
-    </div>
-    <?php if ($mensagem): ?>
-    <div class="p-4 rounded-xl <?= $erro ? 'bg-red-500/10 border-red-500/20 text-red-500' : 'bg-green-500/10 border-green-500/20 text-green-400' ?> border flex items-center gap-3">
-        <span class="material-symbols-outlined"><?= $erro ? 'error' : 'check_circle' ?></span>
-        <p class="text-sm font-semibold"><?= htmlspecialchars($mensagem) ?></p>
-    </div>
-    <?php endif; ?>
-    <form method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div class="bg-darkcard rounded-2xl border border-darkborder p-8 shadow-xl space-y-6">
-            <h3 class="text-lg font-bold text-white border-b border-darkborder pb-4 flex items-center gap-2">
-                <span class="material-symbols-outlined text-brand">badge</span>Dados Cadastrais
-            </h3>
-            <div class="space-y-2">
-                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest">Nome Completo</label>
-                <input name="nome" value="<?= htmlspecialchars($nome) ?>" required
-                       class="w-full px-4 py-3 rounded-xl border border-darkborder bg-darkbg text-white focus:ring-2 focus:ring-brand outline-none"
-                       placeholder="Ex: Pastor João Silva" type="text"/>
-            </div>
-            <div class="space-y-2">
-                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest">E-mail de Login</label>
-                <input name="email" value="<?= htmlspecialchars($email) ?>" required
-                       class="w-full px-4 py-3 rounded-xl border border-darkborder bg-darkbg text-white focus:ring-2 focus:ring-brand outline-none"
-                       placeholder="Ex: pastorjoao@igreja.com" type="email"/>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div class="space-y-2">
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest">Senha</label>
-                    <input name="senha" required class="w-full px-4 py-3 rounded-xl border border-darkborder bg-darkbg text-white focus:ring-2 focus:ring-brand outline-none" placeholder="Mín. 6 chars" type="password"/>
-                </div>
-                <div class="space-y-2">
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest">Confirmar Senha</label>
-                    <input name="senha_confirm" required class="w-full px-4 py-3 rounded-xl border border-darkborder bg-darkbg text-white focus:ring-2 focus:ring-brand outline-none" placeholder="Mín. 6 chars" type="password"/>
-                </div>
-            </div>
-        </div>
-        <div class="bg-darkcard rounded-2xl border border-darkborder p-8 shadow-xl space-y-6">
-            <h3 class="text-lg font-bold text-white border-b border-darkborder pb-4 flex items-center gap-2">
-                <span class="material-symbols-outlined text-brand">rule</span>Vínculo e Atribuição
-            </h3>
-            <div class="space-y-2">
-                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest">Cargo / Função</label>
-                <select name="cargo_id" class="w-full px-4 py-3 rounded-xl border border-darkborder bg-darkbg text-white focus:ring-2 focus:ring-brand outline-none appearance-none">
-                    <option value="">Nenhum cargo atribuído</option>
-                    <?php foreach ($cargos as $c): ?>
-                    <option value="<?= $c['id'] ?>" <?= ($cargo_id == $c['id']) ? 'selected' : '' ?>><?= htmlspecialchars($c['nome']) ?> (<?= strtoupper($c['escopo']) ?>)</option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="space-y-2">
-                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest">Congregação Vinculada</label>
-                <?php if ($access->isGlobal()): ?>
-                <select name="congregacao_id" class="w-full px-4 py-3 rounded-xl border border-darkborder bg-darkbg text-white focus:ring-2 focus:ring-brand outline-none appearance-none">
-                    <option value="">Sede / Global</option>
-                    <?php foreach ($congregacoes as $co): ?>
-                    <option value="<?= $co['id'] ?>" <?= ($congregacao_id == $co['id']) ? 'selected' : '' ?>><?= htmlspecialchars($co['nome']) ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <?php else: ?>
-                <input type="hidden" name="congregacao_id" value="<?= $access->getCongregacaoId() ?>"/>
-                <div class="w-full px-4 py-3 rounded-xl border border-darkborder bg-darkbg text-gray-400 text-sm"><?= htmlspecialchars($congregacoes[0]['nome'] ?? 'Sua Congregação') ?> (fixo)</div>
-                <?php endif; ?>
-            </div>
-            <div class="flex items-center justify-between p-4 rounded-xl bg-darkbg border border-darkborder">
-                <div>
-                    <p class="text-sm font-bold text-white">Usuário Ativo</p>
-                    <p class="text-[10px] text-gray-500 uppercase tracking-wider">Permitir login no sistema</p>
-                </div>
-                <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" name="ativo" value="1" <?= $ativo ? 'checked' : '' ?> class="sr-only peer">
-                    <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand"></div>
-                </label>
-            </div>
-            <div class="pt-4 flex flex-col gap-4">
-                <button type="submit" class="w-full py-4 rounded-xl bg-brand hover:bg-brand-dark text-black font-black shadow-xl shadow-brand/10 transition-all uppercase tracking-widest text-xs">Cadastrar Usuário</button>
-                <a href="usuarios.php" class="w-full py-4 rounded-xl border border-darkborder text-gray-400 font-bold text-center hover:bg-white/5 transition-all uppercase tracking-widest text-xs">Cancelar</a>
-            </div>
-        </div>
-    </form>
-</div>
-<?php require_once __DIR__ . '/includes/footer.php'; ?>
-PHPFILE;
-
-// Caminhos alvos onde o arquivo precisa existir
-$alvos = [
-    $baseDir . '/usuario_novo.php',
+// 4. Lista de arquivos a serem copiados
+$arquivos = [
+    'usuarios.php',
+    'usuario_novo.php',
+    'usuario_editar.php',
+    'includes/header.php',
+    'src/Auth/AccessManager.php'
 ];
 
-// Tenta também criar no releases/current se existir como symlink real
-$releasesPath = realpath($baseDir . '/releases/current');
-if ($releasesPath && is_dir($releasesPath)) {
-    $alvos[] = $releasesPath . '/usuario_novo.php';
+// 5. Executar a cópia física dos arquivos
+foreach ($arquivos as $relPath) {
+    $srcFile = $srcBase . '/' . $relPath;
+    if (!file_exists($srcFile)) {
+        $log[] = "❌ Arquivo não encontrado na origem: $relPath";
+        $ok = false;
+        continue;
+    }
+
+    foreach ($alvosDestino as $destFolder) {
+        $dstFile = $destFolder . '/' . $relPath;
+        
+        // Garante que o diretório pai do arquivo exista
+        $dstDir = dirname($dstFile);
+        if (!is_dir($dstDir)) {
+            if (!@mkdir($dstDir, 0755, true)) {
+                $log[] = "❌ Falha ao criar diretório: $dstDir";
+                $ok = false;
+                continue;
+            }
+        }
+
+        // Copia o arquivo
+        if (@copy($srcFile, $dstFile)) {
+            $log[] = "✅ Copiado: $relPath → $dstFile";
+        } else {
+            $log[] = "❌ Falha ao copiar: $relPath → $dstFile";
+            $ok = false;
+        }
+    }
 }
 
-$resultados = [];
-foreach ($alvos as $alvo) {
-    $ok = file_put_contents($alvo, $conteudo);
-    $resultados[] = [
-        'arquivo' => $alvo,
-        'resultado' => $ok !== false ? '✅ CRIADO (' . $ok . ' bytes)' : '❌ FALHOU (sem permissão?)'
-    ];
+// 6. Conexão ao Banco de Dados do Cliente e Migração
+$dbPath = $dstBase . '/config/database.php';
+$dbConfigPath = $dstBase . '/config/db_config.php';
+$pdo = null;
+
+if (file_exists($dbPath)) {
+    try {
+        require_once $dbPath;
+    } catch (Throwable $e) {
+        $log[] = "⚠️ Erro ao incluir database.php: " . $e->getMessage();
+    }
 }
 
-// Verifica se conseguiu criar ao menos um
-$algumOk = false;
-foreach ($resultados as $r) {
-    if (strpos($r['resultado'], '✅') !== false) $algumOk = true;
+if ((!isset($pdo) || !$pdo instanceof PDO) && file_exists($dbConfigPath)) {
+    // Tenta conexão manual caso database.php falhe
+    $cfg = file_get_contents($dbConfigPath);
+    preg_match("/DB_HOST.*?['\"]([^'\"]+)['\"]/", $cfg, $mh);
+    preg_match("/DB_NAME.*?['\"]([^'\"]+)['\"]/", $cfg, $mn);
+    preg_match("/DB_USER.*?['\"]([^'\"]+)['\"]/", $cfg, $mu);
+    preg_match("/DB_PASS.*?['\"]([^'\"]+)['\"]/", $cfg, $mp);
+    if (!empty($mh[1]) && !empty($mn[1])) {
+        try {
+            $pdo = new PDO("mysql:host={$mh[1]};dbname={$mn[1]};charset=utf8mb4", $mu[1] ?? '', $mp[1] ?? '');
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $log[] = "✅ Conexão direta estabelecida com o banco de dados.";
+        } catch (Throwable $e) {
+            $log[] = "❌ Falha na conexão direta com o banco: " . $e->getMessage();
+        }
+    }
 }
+
+if (isset($pdo) && $pdo instanceof PDO) {
+    try {
+        // A. Forçar versão do sistema
+        $stmt = $pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES ('versao_sistema', '1.4.9') ON DUPLICATE KEY UPDATE valor = '1.4.9'");
+        $stmt->execute();
+        
+        $stmt2 = $pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES ('system_version', '1.4.9') ON DUPLICATE KEY UPDATE valor = '1.4.9'");
+        $stmt2->execute();
+        $log[] = "✅ Banco de dados updated para v1.4.9.";
+
+        // B. Garantir permissões de gestão de usuários
+        $pdo->exec("INSERT IGNORE INTO permissoes (modulo, acao, descricao) VALUES 
+                   ('usuarios', 'visualizar', 'Visualizar Usuários'),
+                   ('usuarios', 'gerenciar', 'Gerenciar Usuários')");
+        
+        $pdo->exec("INSERT IGNORE INTO cargo_permissoes (cargo_id, permissao_id) 
+                   SELECT 1, id FROM permissoes WHERE modulo = 'usuarios'");
+        $log[] = "✅ Permissões de usuários semeadas e vinculadas ao cargo 1.";
+
+    } catch (Throwable $e) {
+        $log[] = "❌ Erro nas operações do banco de dados: " . $e->getMessage();
+        $ok = false;
+    }
+} else {
+    $log[] = "❌ Não foi possível obter conexão PDO com o banco de dados do cliente.";
+    $ok = false;
+}
+
+// 7. Limpeza de Opcache
+if (function_exists('opcache_reset')) {
+    if (opcache_reset()) {
+        $log[] = "✅ Opcache resetado com sucesso.";
+    } else {
+        $log[] = "⚠️ Falha ao resetar opcache.";
+    }
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<title>SGIM Rescue - Criar usuario_novo.php</title>
+<title>SGIM Force Deployer</title>
 <style>
-    body { font-family: Arial, sans-serif; background: #0a0a0a; color: #eee; padding: 40px; }
-    h1 { color: #FFC107; } h2 { color: #eee; }
-    .ok { color: #22c55e; } .fail { color: #ef4444; }
-    .box { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; padding: 20px; margin: 20px 0; }
-    a { color: #FFC107; font-weight: bold; text-decoration: none; padding: 10px 20px; background: rgba(255,193,7,0.1); border: 1px solid rgba(255,193,7,0.3); border-radius: 6px; display: inline-block; margin-top: 10px; }
-    a:hover { background: rgba(255,193,7,0.2); }
+body { font-family: Arial, sans-serif; background: #050505; color: #eee; padding: 40px; max-width: 900px; margin: 0 auto; }
+h1 { color: #FFC107; margin-bottom: 30px; }
+.log { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; padding: 20px; font-family: monospace; font-size: 13px; line-height: 1.8; }
+.ok { color: #22c55e; } .fail { color: #ef4444; } .warn { color: #f59e0b; }
+.status { padding: 20px; border-radius: 8px; margin: 20px 0; font-size: 18px; font-weight: bold; }
+.status.success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: #22c55e; }
+.status.failure { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; }
 </style>
 </head>
 <body>
-<h1>🔧 SGIM Rescue - Criação de usuario_novo.php</h1>
+<h1>🔧 SGIM Force Deployer - v1.4.9</h1>
 
-<div class="box">
-    <h2>Resultado:</h2>
-    <?php foreach ($resultados as $r): ?>
-    <p class="<?= strpos($r['resultado'], '✅') !== false ? 'ok' : 'fail' ?>">
-        <?= $r['resultado'] ?><br>
-        <small style="color:#888"><?= htmlspecialchars($r['arquivo']) ?></small>
-    </p>
-    <?php endforeach; ?>
+<div class="status <?= $ok ? 'success' : 'failure' ?>">
+    <?= $ok ? '✅ OPERAÇÃO CONCLUÍDA COM SUCESSO' : '❌ ALGUMAS OPERAÇÕES FALHARAM' ?>
 </div>
 
-<?php if ($algumOk): ?>
-<div class="box">
-    <p class="ok">✅ <strong>Arquivo criado com sucesso!</strong> Agora você pode:</p>
-    <a href="../usuario_novo.php">Testar → Novo Usuário</a>
-    <a href="../usuarios.php">Voltar à lista de usuários</a>
+<div class="log">
+<?php foreach ($log as $line): ?>
+<div class="<?= strpos($line, '✅') !== false ? 'ok' : (strpos($line, '❌') !== false ? 'fail' : (strpos($line, '⚠️') !== false ? 'warn' : '')) ?>">
+    <?= htmlspecialchars($line) ?>
 </div>
-<?php else: ?>
-<div class="box">
-    <p class="fail">❌ <strong>Falha ao criar o arquivo.</strong> O servidor não tem permissão de escrita.</p>
-    <p>Diretório base detectado: <code><?= htmlspecialchars($baseDir) ?></code></p>
-    <p>Entre em contato com o suporte para criar o arquivo manualmente via cPanel.</p>
+<?php endforeach; ?>
+</div>
+
+<?php if ($ok): ?>
+<div style="margin-top:20px">
+    <p class="ok">O deploy dos arquivos da v1.4.9 foi concluído e o banco de dados foi sincronizado com as permissões de usuários!</p>
 </div>
 <?php endif; ?>
-
-<div class="box" style="margin-top: 30px;">
-    <p style="color:#888; font-size: 12px;">⚠️ <strong>Apague este arquivo após uso:</strong><br>
-    <code><?= htmlspecialchars(__FILE__) ?></code></p>
-</div>
 </body>
 </html>
