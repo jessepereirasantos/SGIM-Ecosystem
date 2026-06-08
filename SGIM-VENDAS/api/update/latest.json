@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.4.2: Auto-criacao de pontes fisicas para novos arquivos PHP no OTA",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.4.2.zip",
-    "version":  "1.4.2",
+    "notes":  "v1.4.4: Adiciona resiliencia passiva de auto-pontes (ensureBridges) no AccessManager",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.4.4.zip",
+    "version":  "1.4.4",
     "date":  "2026-06-07",
-    "sha256":  "8b35ad0c815f1e6a2c8fed11f17657ee4a44f795ff9e784f946722f414f1aced"
+    "sha256":  "9776091d7e9c09688ed84fc7784241f74284881119d2d62fcdaa9f6609c112cb"
 }

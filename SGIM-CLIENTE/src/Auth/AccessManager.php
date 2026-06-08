@@ -17,6 +17,7 @@ class AccessManager {
         $this->pdo = $pdo;
         $this->userId = $userId;
         $this->loadUserContext();
+        $this->ensureBridges();
     }
 
     /**
@@ -103,5 +104,46 @@ class AccessManager {
 
     public function isGlobal() {
         return $this->escopo === 'global';
+    }
+
+    /**
+     * Garante de forma resiliente que todos os arquivos PHP do release atual
+     * possuam suas pontes operacionais na raiz, eliminando erros 404 (OTA Safe).
+     */
+    private function ensureBridges() {
+        try {
+            $basePath = realpath(__DIR__ . '/../../') . '/';
+            $releasesPath = $basePath . 'releases/current/';
+            
+            if (is_dir($releasesPath)) {
+                $releaseFiles = glob($releasesPath . '*.php');
+                if ($releaseFiles) {
+                    foreach ($releaseFiles as $filePath) {
+                        $fileName = basename($filePath);
+                        
+                        // Ignora arquivos que não devem ter ponte na raiz
+                        if ($fileName === 'index.php' || $fileName === 'sw.js' || $fileName === 'cron_worker.php') {
+                            continue;
+                        }
+                        
+                        // 1. Ponte em Minúsculo
+                        $targetBridgeLower = $basePath . strtolower($fileName);
+                        if (!file_exists($targetBridgeLower)) {
+                            $bridgeContent = "<?php\n// AUTO-PONTE GERADA PELO ACCESSMANAGER (MINUSCULO)\nrequire_once __DIR__ . '/releases/current/' . basename(__FILE__);\n";
+                            @file_put_contents($targetBridgeLower, $bridgeContent);
+                        }
+                        
+                        // 2. Ponte com Primeira Letra Maiúscula (Compatibilidade Case-Insensitive)
+                        $targetBridgeUpper = $basePath . ucfirst(strtolower($fileName));
+                        if (!file_exists($targetBridgeUpper)) {
+                            $bridgeContent = "<?php\n// AUTO-PONTE GERADA PELO ACCESSMANAGER (MAIUSCULO)\nrequire_once __DIR__ . '/releases/current/' . basename(__FILE__);\n";
+                            @file_put_contents($targetBridgeUpper, $bridgeContent);
+                        }
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            // Silencioso
+        }
     }
 }
