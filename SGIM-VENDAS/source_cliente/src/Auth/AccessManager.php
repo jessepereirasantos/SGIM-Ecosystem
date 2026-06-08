@@ -41,8 +41,8 @@ class AccessManager {
             $this->congregacaoId = $data['congregacao_id'];
             $this->escopo        = $data['escopo'] ?? 'local';
 
-            // 🛡️ CHAVE DE FERRO: Se for o admin raiz (ID 1), forçamos o escopo global
-            if ($this->userId == 1) {
+            // 🛡️ CHAVE DE FERRO: Se for o admin raiz (ID 1) ou se o cargo for Admin Total (ID 1), forçamos o escopo global
+            if ($this->userId == 1 || $this->cargoId == 1) {
                 $this->escopo = 'global';
                 $this->cargoId = 1;
             }

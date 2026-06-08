@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.4.4: Adiciona resiliencia passiva de auto-pontes (ensureBridges) no AccessManager",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.4.4.zip",
-    "version":  "1.4.4",
-    "date":  "2026-06-07",
-    "sha256":  "9776091d7e9c09688ed84fc7784241f74284881119d2d62fcdaa9f6609c112cb"
+    "notes":  "v1.5.0: Correcao definitiva de usuarios, sidebar e copia fisica de raiz via OTA",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.5.0.zip",
+    "version":  "1.5.0",
+    "date":  "2026-06-08",
+    "sha256":  "22929aebb8ad359575d2129aba34a614892881b4d20ad042d35f133627b30c6d"
 }

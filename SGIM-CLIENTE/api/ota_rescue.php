@@ -168,7 +168,7 @@ if (isset($pdo) && $pdo instanceof PDO) {
         
         $stmt2 = $pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES ('system_version', '1.4.9') ON DUPLICATE KEY UPDATE valor = '1.4.9'");
         $stmt2->execute();
-        $log[] = "✅ Banco de dados atualizado para v1.4.9.";
+        $log[] = "✅ Banco de dados updated para v1.4.9.";
 
         // B. Garantir permissões de gestão de usuários
         $pdo->exec("INSERT IGNORE INTO permissoes (modulo, acao, descricao) VALUES 
