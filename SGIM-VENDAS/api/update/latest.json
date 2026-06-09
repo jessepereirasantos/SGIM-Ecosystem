@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.5.7: Correcao critica de caminhos de banco e calculo de raiz do ota_rescue",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.5.7.zip",
-    "version":  "1.5.7",
+    "notes":  "v1.5.8: Auto-cadastro expandido com foto, endereco completo e campos da carteirinha",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.5.8.zip",
+    "version":  "1.5.8",
     "date":  "2026-06-09",
-    "sha256":  "e994e45857844398c41199cd2f4e45d6f17923cb0fde47b3568dd80352ddabce"
+    "sha256":  "82372ad193ec8ab48112b19df165efca0002db6dcf7d52b14dfc55c19afca3cc"
 }

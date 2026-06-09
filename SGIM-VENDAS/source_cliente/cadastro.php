@@ -3,7 +3,7 @@ ob_start();
 session_start();
 require_once 'config/database.php';
 
-// Rota Pública de Auto-Cadastro de Membros
+// Rota Pública de Auto-Cadastro de Membros Completo
 $page_title = "Cadastro de Membro - SGIM";
 
 $sucesso = false;
@@ -19,23 +19,55 @@ if ($is_configured) {
         $congregacoes = $pdo->query("SELECT id, nome FROM congregacoes WHERE status = 'Ativa' ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
         $cargos = $pdo->query("SELECT id, nome FROM cargos WHERE status = 'Ativo' ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
     } catch (Exception $e) {
-        // Silencioso se as tabelas ainda não existirem ou houver falha
         error_log("Falha ao buscar opções de cadastro público: " . $e->getMessage());
     }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao']) && $_POST['acao'] === 'cadastro_publico') {
+    // 1. Dados Pessoais
     $nome = trim($_POST['nome'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $telefone = trim($_POST['telefone'] ?? '');
     $cpf = trim($_POST['cpf'] ?? '');
+    $rg = trim($_POST['rg'] ?? '');
     $data_nascimento = !empty($_POST['data_nascimento']) ? $_POST['data_nascimento'] : null;
     $genero = $_POST['genero'] ?? null;
     $estado_civil = $_POST['estado_civil'] ?? null;
+
+    // 2. Endereço
+    $cep = trim($_POST['cep'] ?? '');
+    $endereco = trim($_POST['endereco'] ?? '');
+    $numero = trim($_POST['numero'] ?? '');
+    $complemento = trim($_POST['complemento'] ?? '');
+    $bairro = trim($_POST['bairro'] ?? '');
+    $cidade = trim($_POST['cidade'] ?? '');
+    $estado = trim($_POST['estado'] ?? '');
+
+    // 3. Dados Eclesiásticos
     $congregacao_id = !empty($_POST['congregacao_id']) ? intval($_POST['congregacao_id']) : null;
     $cargo_id = !empty($_POST['cargo_id']) ? intval($_POST['cargo_id']) : null;
+    $data_conversao = !empty($_POST['data_conversao']) ? $_POST['data_conversao'] : null;
+    $data_batismo = !empty($_POST['data_batismo']) ? $_POST['data_batismo'] : null;
+
+    // 4. Upload de Foto
+    $foto = null;
+    if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
+        $upload_dir = 'uploads/membros/';
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0777, true);
+        }
+        $ext = strtolower(pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION));
+        $allowed_exts = ['jpg', 'jpeg', 'png', 'webp'];
+        
+        if (in_array($ext, $allowed_exts)) {
+            $file_name = uniqid() . '.' . $ext;
+            if (move_uploaded_file($_FILES['foto']['tmp_name'], $upload_dir . $file_name)) {
+                $foto = $file_name;
+            }
+        }
+    }
     
-    // Higienização e validação rápida
+    // Higienização e validação de obrigatórios
     if (empty($nome) || empty($telefone)) {
         $erro = true;
         $mensagem = "Nome Completo e WhatsApp/Telefone são campos obrigatórios.";
@@ -54,7 +86,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao']) && $_POST['ac
             $estados_civis_validos = ['Solteiro', 'Casado', 'Divorciado', 'Viúvo', 'Outro'];
             $estado_civil_db = null;
             if (!empty($estado_civil)) {
-                // Remove o "(a)" caso venha do select
                 $civil_clean = str_replace('(a)', '', $estado_civil);
                 if (in_array($civil_clean, $estados_civis_validos)) {
                     $estado_civil_db = $civil_clean;
@@ -79,26 +110,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao']) && $_POST['ac
                 }
             }
 
-            // Inserção na tabela membros com status 'Inativo'
-            $stmt = $pdo->prepare("INSERT INTO membros (nome, email, telefone, cpf, data_nascimento, genero, estado_civil, congregacao_id, cargo_id, status, data_cadastro) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Inativo', NOW())");
+            // Sincronização automática de colunas para evitar erros de banco legado do cliente
+            $checkCols = $pdo->query("SHOW COLUMNS FROM membros");
+            $cols = $checkCols->fetchAll(PDO::FETCH_COLUMN);
+            
+            if (!in_array('data_conversao', $cols)) {
+                $pdo->exec("ALTER TABLE membros ADD COLUMN data_conversao DATE AFTER data_batismo");
+            }
+            if (!in_array('foto', $cols)) {
+                $pdo->exec("ALTER TABLE membros ADD COLUMN foto VARCHAR(255) AFTER congregacao_id");
+            }
+
+            // Inserção na tabela membros com status 'Inativo' e todos os novos campos
+            $sqlInsert = "INSERT INTO membros (
+                nome, email, telefone, cpf, rg, data_nascimento, genero, estado_civil, 
+                cep, endereco, numero, complemento, bairro, cidade, estado, 
+                congregacao_id, cargo_id, data_conversao, data_batismo, foto, status, data_cadastro
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Inativo', NOW())";
+            
+            $stmt = $pdo->prepare($sqlInsert);
             $stmt->execute([
                 $nome, 
                 $email, 
                 $telefone, 
                 $cpf, 
+                $rg,
                 $data_nascimento, 
                 $genero_db, 
                 $estado_civil_db, 
+                $cep,
+                $endereco,
+                $numero,
+                $complemento,
+                $bairro,
+                $cidade,
+                $estado,
                 $congregacao_id, 
-                $cargo_id
+                $cargo_id,
+                $data_conversao,
+                $data_batismo,
+                $foto
             ]);
             
             $sucesso = true;
-            $mensagem = "Ficha cadastrada com sucesso! Suas informações foram enviadas para validação da secretaria.";
+            $mensagem = "Ficha cadastrada com sucesso! Suas informações e foto foram enviadas para validação da secretaria.";
         } catch (PDOException $e) {
             $erro = true;
             $mensagem = "Erro ao realizar cadastro. Por favor, verifique se os dados digitados estão corretos.";
-            error_log("Erro no auto-cadastro de membros: " . $e->getMessage());
+            error_log("Erro no auto-cadastro de membros completo: " . $e->getMessage());
         }
     }
 }
@@ -184,18 +243,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao']) && $_POST['ac
     </style>
 </head>
 <body class="bg-darkbg text-gray-100 font-sans p-4 md:p-8 selection:bg-brand/20 selection:text-brand">
-    <div class="max-w-2xl mx-auto my-6">
+    <div class="max-w-3xl mx-auto my-6">
         <!-- Header -->
         <div class="text-center mb-10">
             <div class="inline-flex p-4 bg-brand/10 rounded-2xl text-brand mb-4 hover:scale-105 transition-transform duration-300">
                 <span class="material-symbols-outlined text-4xl">church</span>
             </div>
-            <h1 class="text-3xl md:text-4xl font-bold font-display tracking-tight text-white uppercase">Ficha de Novo Membro</h1>
-            <p class="text-gray-400 mt-2 text-sm">Preencha o formulário abaixo para solicitar o seu cadastro no sistema.</p>
+            <h1 class="text-3xl md:text-4xl font-bold font-display tracking-tight text-white uppercase">Ficha Ministerial de Membro</h1>
+            <p class="text-gray-400 mt-2 text-sm font-medium">Preencha sua ficha completa para a emissão da sua carteirinha digital.</p>
         </div>
 
         <?php if ($mensagem): ?>
-            <div class="mb-8 p-5 rounded-2xl border <?= $erro ? 'bg-red-500/10 border-red-500/20 text-red-500' : 'bg-green-500/10 border-green-500/20 text-green-400' ?> flex items-center gap-4">
+            <div class="mb-8 p-5 rounded-2xl border <?= $erro ? 'bg-red-500/10 border-red-500/20 text-red-500' : 'bg-green-500/10 border-green-500/20 text-green-400' ?> flex items-center gap-4 animate-bounce">
                 <span class="material-symbols-outlined text-2xl"><?= $erro ? 'error_outline' : 'check_circle_outline' ?></span>
                 <p class="text-sm font-semibold leading-relaxed"><?= htmlspecialchars($mensagem) ?></p>
             </div>
@@ -210,14 +269,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao']) && $_POST['ac
         <?php endif; ?>
 
         <?php if (!$sucesso): ?>
-        <form method="POST" class="space-y-8">
+        <form method="POST" enctype="multipart/form-data" class="space-y-8">
             <input type="hidden" name="acao" value="cadastro_publico">
             
-            <!-- Seção 1: Dados Pessoais -->
+            <!-- Seção 1: Dados Pessoais & Foto -->
             <div class="bg-darkcard p-6 md:p-8 rounded-3xl border border-darkborder space-y-6 shadow-2xl">
                 <div class="flex items-center gap-3 text-brand border-b border-darkborder pb-4 mb-2">
                     <span class="material-symbols-outlined text-lg">person</span>
-                    <h2 class="text-xs font-bold uppercase tracking-widest font-display">1. Dados Pessoais</h2>
+                    <h2 class="text-xs font-bold uppercase tracking-widest font-display">1. Identificação & Foto</h2>
+                </div>
+
+                <!-- Campo de Foto com Preview -->
+                <div class="flex flex-col md:flex-row gap-6 items-center mb-6">
+                    <div class="relative group">
+                        <div id="photo-preview" class="size-32 rounded-3xl bg-darkbg border-2 border-dashed border-darkborder flex items-center justify-center overflow-hidden group-hover:border-brand transition-all">
+                            <span class="material-symbols-outlined text-gray-600 text-4xl">add_a_photo</span>
+                        </div>
+                        <input type="file" name="foto" id="foto-input" class="hidden" accept="image/*"/>
+                        <button type="button" onclick="document.getElementById('foto-input').click()" class="absolute -bottom-1 -right-1 size-9 bg-brand rounded-xl flex items-center justify-center text-black shadow-lg hover:scale-105 active:scale-95 transition-transform">
+                            <span class="material-symbols-outlined text-sm font-bold">edit</span>
+                        </button>
+                    </div>
+                    <div class="flex-1 space-y-1.5 text-center md:text-left">
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-wide">Sua Foto de Perfil</label>
+                        <p class="text-[11px] text-gray-500 leading-normal">Escolha uma foto clara com fundo neutro para exibição na sua carteirinha digital. (Formatos: JPG, PNG, WEBP).</p>
+                    </div>
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -232,13 +308,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao']) && $_POST['ac
                     </div>
                     
                     <div class="floating-input-container">
-                        <input name="telefone" id="telefone" required class="floating-input w-full bg-darkbg border border-darkborder rounded-2xl px-4 pt-5 pb-2 text-sm focus:ring-0 focus:border-brand outline-none" type="tel" placeholder=" ">
+                        <input name="telefone" id="telefone" required class="floating-input w-full bg-darkbg border border-darkborder rounded-2xl px-4 pt-5 pb-2 text-sm focus:ring-0 focus:border-brand outline-none" type="tel" placeholder=" " oninput="mascaraTelefone(this)">
                         <label for="telefone" class="floating-label">WhatsApp / Telefone</label>
                     </div>
 
                     <div class="floating-input-container">
-                        <input name="cpf" id="cpf" class="floating-input w-full bg-darkbg border border-darkborder rounded-2xl px-4 pt-5 pb-2 text-sm focus:ring-0 focus:border-brand outline-none" type="text" placeholder=" ">
+                        <input name="cpf" id="cpf" class="floating-input w-full bg-darkbg border border-darkborder rounded-2xl px-4 pt-5 pb-2 text-sm focus:ring-0 focus:border-brand outline-none font-mono" type="text" placeholder=" " oninput="mascaraCPF(this)">
                         <label for="cpf" class="floating-label">CPF</label>
+                    </div>
+
+                    <div class="floating-input-container">
+                        <input name="rg" id="rg" class="floating-input w-full bg-darkbg border border-darkborder rounded-2xl px-4 pt-5 pb-2 text-sm focus:ring-0 focus:border-brand outline-none font-mono" type="text" placeholder=" ">
+                        <label for="rg" class="floating-label">RG</label>
                     </div>
 
                     <div class="floating-input-container">
@@ -250,8 +331,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao']) && $_POST['ac
                         <label class="block text-[11px] font-bold text-gray-500 uppercase mb-2 tracking-wider">Gênero</label>
                         <select name="genero" class="w-full bg-darkbg border border-darkborder rounded-2xl px-4 py-3.5 text-sm text-gray-300 focus:ring-0 focus:border-brand outline-none appearance-none cursor-pointer">
                             <option value="">Selecione...</option>
-                            <option value="Masculino">Masculino</option>
-                            <option value="Feminino">Feminino</option>
+                            <option value="M">Masculino</option>
+                            <option value="F">Feminino</option>
                             <option value="Outro">Outro / Prefiro não declarar</option>
                         </select>
                     </div>
@@ -270,11 +351,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao']) && $_POST['ac
                 </div>
             </div>
 
-            <!-- Seção 2: Dados Congregacionais -->
+            <!-- Seção 2: Endereço Residencial (Com busca automática de CEP) -->
+            <div class="bg-darkcard p-6 md:p-8 rounded-3xl border border-darkborder space-y-6 shadow-2xl">
+                <div class="flex items-center gap-3 text-brand border-b border-darkborder pb-4 mb-2">
+                    <span class="material-symbols-outlined text-lg">home</span>
+                    <h2 class="text-xs font-bold uppercase tracking-widest font-display">2. Endereço Residencial</h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div class="floating-input-container">
+                        <input name="cep" id="cep" class="floating-input w-full bg-darkbg border border-darkborder rounded-2xl px-4 pt-5 pb-2 text-sm focus:ring-0 focus:border-brand outline-none font-mono" type="text" placeholder=" " oninput="mascaraCEP(this)" onblur="buscarCEP(this.value)">
+                        <label for="cep" class="floating-label">CEP (Busca Automática)</label>
+                    </div>
+                    
+                    <div class="md:col-span-2 floating-input-container">
+                        <input name="endereco" id="endereco" class="floating-input w-full bg-darkbg border border-darkborder rounded-2xl px-4 pt-5 pb-2 text-sm focus:ring-0 focus:border-brand outline-none" type="text" placeholder=" ">
+                        <label for="endereco" class="floating-label">Rua / Avenida</label>
+                    </div>
+
+                    <div class="floating-input-container">
+                        <input name="numero" id="numero" class="floating-input w-full bg-darkbg border border-darkborder rounded-2xl px-4 pt-5 pb-2 text-sm focus:ring-0 focus:border-brand outline-none" type="text" placeholder=" ">
+                        <label for="numero" class="floating-label">Número</label>
+                    </div>
+
+                    <div class="floating-input-container">
+                        <input name="complemento" id="complemento" class="floating-input w-full bg-darkbg border border-darkborder rounded-2xl px-4 pt-5 pb-2 text-sm focus:ring-0 focus:border-brand outline-none" type="text" placeholder=" ">
+                        <label for="complemento" class="floating-label">Complemento</label>
+                    </div>
+
+                    <div class="floating-input-container">
+                        <input name="bairro" id="bairro" class="floating-input w-full bg-darkbg border border-darkborder rounded-2xl px-4 pt-5 pb-2 text-sm focus:ring-0 focus:border-brand outline-none" type="text" placeholder=" ">
+                        <label for="bairro" class="floating-label">Bairro</label>
+                    </div>
+
+                    <div class="md:col-span-2 floating-input-container">
+                        <input name="cidade" id="cidade" class="floating-input w-full bg-darkbg border border-darkborder rounded-2xl px-4 pt-5 pb-2 text-sm focus:ring-0 focus:border-brand outline-none" type="text" placeholder=" ">
+                        <label for="cidade" class="floating-label">Cidade</label>
+                    </div>
+
+                    <div class="floating-input-container">
+                        <input name="estado" id="estado" maxlength="2" class="floating-input w-full bg-darkbg border border-darkborder rounded-2xl px-4 pt-5 pb-2 text-sm focus:ring-0 focus:border-brand outline-none uppercase font-bold" type="text" placeholder=" ">
+                        <label for="estado" class="floating-label">Estado (UF)</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção 3: Dados Eclesiásticos -->
             <div class="bg-darkcard p-6 md:p-8 rounded-3xl border border-darkborder space-y-6 shadow-2xl">
                 <div class="flex items-center gap-3 text-brand border-b border-darkborder pb-4 mb-2">
                     <span class="material-symbols-outlined text-lg">church</span>
-                    <h2 class="text-xs font-bold uppercase tracking-widest font-display">2. Vida Congregacional</h2>
+                    <h2 class="text-xs font-bold uppercase tracking-widest font-display">3. Vida Congregacional & Histórico</h2>
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -297,6 +423,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao']) && $_POST['ac
                             <?php endforeach; ?>
                         </select>
                     </div>
+
+                    <div class="floating-input-container">
+                        <input name="data_conversao" id="data_conversao" class="floating-input w-full bg-darkbg border border-darkborder rounded-2xl px-4 pt-5 pb-2 text-sm focus:ring-0 focus:border-brand outline-none [color-scheme:dark]" type="date" placeholder=" ">
+                        <label for="data_conversao" class="floating-label">Data de Conversão</label>
+                    </div>
+
+                    <div class="floating-input-container">
+                        <input name="data_batismo" id="data_batismo" class="floating-input w-full bg-darkbg border border-darkborder rounded-2xl px-4 pt-5 pb-2 text-sm focus:ring-0 focus:border-brand outline-none [color-scheme:dark]" type="date" placeholder=" ">
+                        <label for="data_batismo" class="floating-label">Data de Batismo nas Águas</label>
+                    </div>
                 </div>
             </div>
 
@@ -317,5 +453,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao']) && $_POST['ac
             &copy; <?= date('Y') ?> SGIM - Sistema de Gestão de Igrejas e Membros
         </footer>
     </div>
+
+    <!-- Scripts de Mascara e Consulta de CEP -->
+    <script>
+        // Preview de Foto
+        document.getElementById('foto-input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('photo-preview').innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover rounded-3xl">`;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Mascaras
+        function mascaraTelefone(i) {
+            let v = i.value.replace(/\D/g, "");
+            v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
+            v = v.replace(/(\d)(\d{4})$/, "$1-$2");
+            i.value = v;
+        }
+
+        function mascaraCPF(i) {
+            let v = i.value.replace(/\D/g, "");
+            i.setAttribute("maxlength", "14");
+            if (v.length > 9) {
+                v = v.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4");
+            } else if (v.length > 6) {
+                v = v.replace(/^(\d{3})(\d{3})(\d)/, "$1.$2.$3");
+            } else if (v.length > 3) {
+                v = v.replace(/^(\d{3})(\d)/, "$1.$2");
+            }
+            i.value = v;
+        }
+
+        function mascaraCEP(i) {
+            let v = i.value.replace(/\D/g, "");
+            i.setAttribute("maxlength", "9");
+            if (v.length > 5) {
+                v = v.replace(/^(\d{5})(\d)/, "$1-$2");
+            }
+            i.value = v;
+        }
+
+        // Consulta de CEP Inteligente via ViaCEP
+        function buscarCEP(cepVal) {
+            const cleanCep = cepVal.replace(/\D/g, "");
+            if (cleanCep.length === 8) {
+                fetch(`https://viacep.com.br/ws/${cleanCep}/json/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.erro) {
+                            document.getElementById('endereco').value = data.logradouro;
+                            document.getElementById('endereco').dispatchEvent(new Event('input'));
+
+                            document.getElementById('bairro').value = data.bairro;
+                            document.getElementById('bairro').dispatchEvent(new Event('input'));
+
+                            document.getElementById('cidade').value = data.localidade;
+                            document.getElementById('cidade').dispatchEvent(new Event('input'));
+
+                            document.getElementById('estado').value = data.uf;
+                            document.getElementById('estado').dispatchEvent(new Event('input'));
+
+                            // Foca no numero
+                            document.getElementById('numero').focus();
+                        }
+                    })
+                    .catch(err => console.error("Erro ao buscar CEP: ", err));
+            }
+        }
+    </script>
 </body>
 </html>
