@@ -1,14 +1,14 @@
 <?php
 /**
- * SGIM FORCE DEPLOYER v1.5.2
+ * SGIM FORCE DEPLOYER v1.5.3 (RELEASE RESCUE EDITION)
  * URL: /SGIM-CLIENTE/api/ota_rescue.php?token=sgim2026
- * Sincroniza fisicamente os arquivos da v1.5.2 do Git para a pasta de produção ativa.
+ * Sincroniza dinamicamente os arquivos da release ativa para a raiz de produção (contorna bloqueio de symlinks da HostGator).
  */
 header('Content-Type: text/html; charset=utf-8');
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// 1. Validação de Token
+// 1. Validação de Token de Segurança
 $token = $_GET['token'] ?? '';
 if ($token !== 'sgim2026') {
     die('<h2 style="color:red;font-family:Arial">Acesso negado. Token inválido.</h2>');
@@ -17,64 +17,66 @@ if ($token !== 'sgim2026') {
 $log = [];
 $ok = true;
 
-// 2. Mapeamento de Pastas no Servidor HostGator
-$srcBase = '/home1/hg9a3205/public_html/SGIM-CLIENTE';
-$dstBase = '/home1/hg9a3205/public_html'; // A raiz real do site detectada em produção
+// 2. Detecção Dinâmica de Pastas (Origem e Destino)
+$dirAtual = str_replace('\\', '/', __DIR__);
+$log[] = "Diretório do script ativo: $dirAtual";
 
-$log[] = "Pasta de Origem (Git): $srcBase";
-$log[] = "Pasta de Destino (Produção): $dstBase";
-
-if (!is_dir($srcBase)) {
-    die("<h2 style='color:red'>Erro: Pasta de origem Git ($srcBase) não existe.</h2>");
+if (strpos($dirAtual, '/releases/') !== false) {
+    // Modo: Executando de dentro da pasta de release baixada pelo OTA
+    // __DIR__ é .../releases/v1.5.3/api
+    $srcBase = dirname(__DIR__); // .../releases/v1.5.3
+    $dstBase = dirname(dirname(dirname(__DIR__))); // .../ (raiz do site)
+    $log[] = "✅ Modo: Executando de dentro da release ativa.";
+} else {
+    // Modo: Fallback para desenvolvimento local ou deploy direto via Git
+    $srcBase = '/home1/hg9a3205/public_html/SGIM-CLIENTE';
+    $dstBase = '/home1/hg9a3205/public_html';
+    
+    // Fallback de desenvolvimento local
+    if (!is_dir($srcBase)) {
+        $srcBase = realpath(__DIR__ . '/../');
+        $dstBase = dirname($srcBase);
+    }
+    $log[] = "⚠️ Modo: Fallback de Git/Desenvolvimento.";
 }
 
-// Busca dinâmica de redundância caso o destino padrão mude
-if (!is_dir($dstBase) || !file_exists($dstBase . '/config/database.php')) {
+// Limpa barras invertidas para consistência
+$srcBase = str_replace('\\', '/', $srcBase);
+$dstBase = str_replace('\\', '/', $dstBase);
+
+$log[] = "Origem (Arquivos Novos): $srcBase";
+$log[] = "Destino (Raiz do Site): $dstBase";
+
+if (!is_dir($srcBase)) {
+    die("<h2 style='color:red'>Erro: Pasta de origem ($srcBase) não existe.</h2>");
+}
+
+if (!is_dir($dstBase)) {
+    // Tenta encontrar a raiz dinamicamente
     $candidatos = [
         '/home1/hg9a3205/public_html',
         '/home1/hg9a3205/public_html/sgim-iade',
-        '/home1/hg9a3205/sgim-iade',
-        '/home1/hg9a3205/iadeeloha.com.br/sgim-iade',
     ];
-    
     foreach ($candidatos as $c) {
-        if (is_dir($c) && (file_exists($c . '/config/database.php') || file_exists($c . '/config/db_config.php'))) {
+        if (is_dir($c)) {
             $dstBase = $c;
-            $log[] = "🔍 Pasta de destino encontrada dinamicamente: $dstBase";
             break;
         }
     }
 }
 
 if (!is_dir($dstBase)) {
-    $diagnostico = "";
-    
-    $parent1 = '/home1/hg9a3205/public_html';
-    if (is_dir($parent1)) {
-        $files1 = scandir($parent1);
-        $diagnostico .= "<h3>Pastas em $parent1:</h3><ul>";
-        foreach ($files1 as $f) {
-            if ($f !== '.' && $f !== '..' && is_dir($parent1 . '/' . $f)) {
-                $diagnostico .= "<li>$f</li>";
-            }
-        }
-        $diagnostico .= "</ul>";
-    }
-    
-    die("<h2 style='color:red'>Erro: Pasta de destino ($dstBase) não existe.</h2>" . $diagnostico);
+    die("<h2 style='color:red'>Erro: Pasta de destino ($dstBase) não existe.</h2>");
 }
 
-// 3. Detectar a pasta do Release Current
-$dstCurrent = $dstBase . '/releases/current';
-$log[] = "Pasta do Release Ativo (Current): $dstCurrent";
-
-// Se o releases/current existir, copiamos para ele também
+// 3. Destinos para Cópia (Copia para a Raiz e para releases/current/ por redundância)
 $alvosDestino = [$dstBase];
-if (is_dir($dstCurrent)) {
+$dstCurrent = $dstBase . '/releases/current';
+if (is_dir($dstCurrent) && str_replace('\\', '/', realpath($dstCurrent)) !== $srcBase) {
     $alvosDestino[] = $dstCurrent;
 }
 
-// 4. Lista de arquivos a serem copiados
+// 4. Arquivos Críticos para Sincronização Física na Raiz
 $arquivos = [
     'usuarios.php',
     'usuario_novo.php',
@@ -83,11 +85,11 @@ $arquivos = [
     'src/Auth/AccessManager.php'
 ];
 
-// 5. Executar a cópia física dos arquivos
+// 5. Executar Sincronização de Arquivos
 foreach ($arquivos as $relPath) {
     $srcFile = $srcBase . '/' . $relPath;
     if (!file_exists($srcFile)) {
-        $log[] = "❌ Arquivo não encontrado na origem: $relPath";
+        $log[] = "❌ Arquivo de origem não encontrado: $relPath";
         $ok = false;
         continue;
     }
@@ -95,11 +97,11 @@ foreach ($arquivos as $relPath) {
     foreach ($alvosDestino as $destFolder) {
         $dstFile = $destFolder . '/' . $relPath;
         
-        // Garante que o diretório pai do arquivo exista
+        // Garante subdiretórios
         $dstDir = dirname($dstFile);
         if (!is_dir($dstDir)) {
             if (!@mkdir($dstDir, 0755, true)) {
-                $log[] = "❌ Falha ao criar diretório: $dstDir";
+                $log[] = "❌ Falha ao criar pasta: $dstDir";
                 $ok = false;
                 continue;
             }
@@ -107,7 +109,7 @@ foreach ($arquivos as $relPath) {
 
         // Copia o arquivo
         if (@copy($srcFile, $dstFile)) {
-            $log[] = "✅ Copiado: $relPath → $dstFile";
+            $log[] = "✅ Sincronizado: $relPath → $dstFile";
         } else {
             $log[] = "❌ Falha ao copiar: $relPath → $dstFile";
             $ok = false;
@@ -115,7 +117,7 @@ foreach ($arquivos as $relPath) {
     }
 }
 
-// 6. Conexão ao Banco de Dados do Cliente e Migração
+// 6. Conexão ao Banco de Dados e Forçar Versão v1.5.3
 $dbPath = $dstBase . '/config/database.php';
 $dbConfigPath = $dstBase . '/config/db_config.php';
 $pdo = null;
@@ -124,7 +126,7 @@ if (file_exists($dbPath)) {
     try {
         require_once $dbPath;
     } catch (Throwable $e) {
-        $log[] = "⚠️ Erro ao incluir database.php: " . $e->getMessage();
+        $log[] = "⚠️ Erro ao carregar database.php: " . $e->getMessage();
     }
 }
 
@@ -148,19 +150,18 @@ if ((!isset($pdo) || !$pdo instanceof PDO) && file_exists($dbConfigPath)) {
 if (isset($pdo) && $pdo instanceof PDO) {
     try {
         // A. Forçar versão do sistema
-        $stmt = $pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES ('versao_sistema', '1.5.2') ON DUPLICATE KEY UPDATE valor = '1.5.2'");
+        $stmt = $pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES ('versao_sistema', '1.5.3') ON DUPLICATE KEY UPDATE valor = '1.5.3'");
         $stmt->execute();
         
-        $stmt2 = $pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES ('system_version', '1.5.2') ON DUPLICATE KEY UPDATE valor = '1.5.2'");
+        $stmt2 = $pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES ('system_version', '1.5.3') ON DUPLICATE KEY UPDATE valor = '1.5.3'");
         $stmt2->execute();
-        $log[] = "✅ Banco de dados atualizado para v1.5.2.";
+        $log[] = "✅ Banco de dados atualizado para v1.5.3.";
 
         // B. Garantir permissões de gestão de usuários no banco do cliente
         $pdo->exec("INSERT IGNORE INTO permissoes (modulo, acao, descricao) VALUES 
                    ('usuarios', 'visualizar', 'Visualizar Usuários'),
                    ('usuarios', 'gerenciar', 'Gerenciar Usuários')");
         
-        // Dá permissão para o cargo 1
         $pdo->exec("INSERT IGNORE INTO cargo_permissoes (cargo_id, permissao_id) 
                    SELECT 1, id FROM permissoes WHERE modulo = 'usuarios'");
         $log[] = "✅ Permissões de usuários semeadas no banco do cliente.";
@@ -187,7 +188,7 @@ if (function_exists('opcache_reset')) {
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<title>SGIM Force Deployer</title>
+<title>SGIM Force Deployer - v1.5.3</title>
 <style>
 body { font-family: Arial, sans-serif; background: #050505; color: #eee; padding: 40px; max-width: 900px; margin: 0 auto; }
 h1 { color: #FFC107; margin-bottom: 30px; }
@@ -199,7 +200,7 @@ h1 { color: #FFC107; margin-bottom: 30px; }
 </style>
 </head>
 <body>
-<h1>🔧 SGIM Force Deployer - v1.5.2</h1>
+<h1>🔧 SGIM Force Deployer - v1.5.3 (Release Edition)</h1>
 
 <div class="status <?= $ok ? 'success' : 'failure' ?>">
     <?= $ok ? '✅ OPERAÇÃO CONCLUÍDA COM SUCESSO' : '❌ ALGUMAS OPERAÇÕES FALHARAM' ?>
@@ -215,7 +216,7 @@ h1 { color: #FFC107; margin-bottom: 30px; }
 
 <?php if ($ok): ?>
 <div style="margin-top:20px">
-    <p class="ok">O deploy físico dos arquivos da v1.5.2 foi concluído com sucesso!</p>
+    <p class="ok">O resgate físico dos arquivos da release v1.5.3 para a raiz de produção foi concluído com sucesso!</p>
 </div>
 <?php endif; ?>
 </body>
