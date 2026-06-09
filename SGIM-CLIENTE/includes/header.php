@@ -1,6 +1,6 @@
 <?php
 /**
- * SGIM CLIENT - GLOBAL HEADER v1.5.3 (EDITOR CANVA CARTEIRINHAS)
+ * SGIM CLIENT - GLOBAL HEADER v1.5.4 (EDITOR CANVA CARTEIRINHAS)
  */
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -335,9 +335,6 @@ $unreadCount = 0;
             <div>
                 <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Administração</p>
                 <div class="space-y-1">
-                    <?php if (!$access || $access->can('usuarios', 'visualizar')): ?><a href="usuarios.php"
-                            class="sidebar-item <?= ($current_page == 'usuarios') ? 'active' : '' ?>"><span
-                                class="material-symbols-outlined">manage_accounts</span><span>Usuários e Acessos</span></a><?php endif; ?>
                     <?php if (!$access || $access->can('configuracoes', 'visualizar')): ?><a href="configuracoes.php"
                             class="sidebar-item <?= ($current_page == 'configuracoes') ? 'active' : '' ?>"><span
                                 class="material-symbols-outlined">settings</span><span>Configurações</span></a><?php endif; ?>

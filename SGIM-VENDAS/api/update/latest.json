@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.5.3: Reconstrucao de usuarios com resgate dinamico v1.5.3",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.5.3.zip",
-    "version":  "1.5.3",
+    "notes":  "v1.5.4: Remocao e limpeza completa da funcionalidade de usuarios",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.5.4.zip",
+    "version":  "1.5.4",
     "date":  "2026-06-09",
-    "sha256":  "93bb766490ed4943ae2594d98e34ef2c57c544ce82547fac0ce0c50a077c18c9"
+    "sha256":  "faeaba845bdb342dcb306f3971862140b494e4b908f18a9d19cb98d511e36bc0"
 }

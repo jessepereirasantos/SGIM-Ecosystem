@@ -28,7 +28,7 @@ class AccessManager {
         if (!$this->userId) return;
 
         // Busca dados do usuário e seu cargo
-        $sql = "SELECT u.congregacao_id, u.cargo_id, c.escopo, c.nome as cargo_nome 
+        $sql = "SELECT u.congregacao_id, u.cargo_id, c.escopo 
                 FROM usuarios u 
                 LEFT JOIN cargos c ON u.cargo_id = c.id 
                 WHERE u.id = ?";
@@ -40,16 +40,9 @@ class AccessManager {
             $this->cargoId       = $data['cargo_id'];
             $this->congregacaoId = $data['congregacao_id'];
             $this->escopo        = $data['escopo'] ?? 'local';
-            
-            $cargoNome           = isset($data['cargo_nome']) ? mb_strtoupper(trim($data['cargo_nome'])) : '';
-            $cargoNomeClean      = str_replace(
-                ['Á', 'À', 'Â', 'Ã', 'É', 'È', 'Ê', 'Í', 'Ì', 'Î', 'Ó', 'Ò', 'Ô', 'Õ', 'Ú', 'Ù', 'Û', 'Ç'],
-                ['A', 'A', 'A', 'A', 'E', 'E', 'E', 'I', 'I', 'I', 'O', 'O', 'O', 'O', 'U', 'U', 'U', 'C'],
-                $cargoNome
-            );
 
-            // 🛡️ CHAVE DE FERRO: Se for o admin raiz (ID 1), o cargo for Admin Total (ID 1) ou se o nome do cargo limpo for igual a ADMIN TOTAL, ADMINISTRADOR TOTAL ou ADMINISTRADOR, forçamos o escopo global
-            if ($this->userId == 1 || $this->cargoId == 1 || $cargoNomeClean === 'ADMIN TOTAL' || $cargoNomeClean === 'ADMINISTRADOR TOTAL' || $cargoNomeClean === 'ADMINISTRADOR') {
+            // 🛡️ CHAVE DE FERRO: Se for o admin raiz (ID 1) ou se o cargo for Admin Total (ID 1), forçamos o escopo global
+            if ($this->userId == 1 || $this->cargoId == 1) {
                 $this->escopo = 'global';
                 $this->cargoId = 1;
             }
