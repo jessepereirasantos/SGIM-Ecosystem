@@ -6,15 +6,22 @@ if (session_status() === PHP_SESSION_NONE) {
 
 $pdo = null;
 
-// Tenta localizar a configuração de banco de dados (Busca recursiva robusta)
-$possible_configs = [
-    __DIR__ . '/db_config.php',
-    dirname(__DIR__) . '/db_config.php',
-    dirname(dirname(__DIR__)) . '/db_config.php',
-    dirname(dirname(dirname(__DIR__))) . '/db_config.php',
-    __DIR__ . '/../db_config.php',
-    '/home1/hg9a3205/public_html/sgim-iade/db_config.php' // Fallback absoluto para HostGator
-];
+// Tenta localizar a configuração de banco de dados (Busca dinâmica recursiva para cima)
+$possible_configs = [];
+$curr_dir = str_replace('\\', '/', __DIR__);
+for ($i = 0; $i < 6; $i++) {
+    $cfg_p1 = $curr_dir . '/db_config.php';
+    $cfg_p2 = $curr_dir . '/config/db_config.php';
+    if (file_exists($cfg_p1)) $possible_configs[] = $cfg_p1;
+    if (file_exists($cfg_p2)) $possible_configs[] = $cfg_p2;
+    $parent_dir = dirname($curr_dir);
+    if ($parent_dir === $curr_dir) break;
+    $curr_dir = $parent_dir;
+}
+
+// Fallback estático adicional para redundância
+$possible_configs[] = '/home1/jessep71/public_html/db_config.php';
+$possible_configs[] = '/home1/jessep71/public_html/config/db_config.php';
 
 foreach ($possible_configs as $config_path) {
     if (file_exists($config_path)) {

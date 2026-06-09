@@ -23,17 +23,17 @@ $log[] = "Diretório do script ativo: $dirAtual";
 
 if (strpos($dirAtual, '/releases/') !== false) {
     // Modo: Executando de dentro da pasta de release baixada pelo OTA
-    $srcBase = dirname(__DIR__); // Ex: .../releases/v1.5.5
-    $dstBase = dirname(dirname(dirname(__DIR__))); // Ex: .../ (raiz do site)
+    $srcBase = dirname(__DIR__); 
+    $dstBase = dirname(dirname(dirname(__DIR__))); 
     $log[] = "✅ Modo: Executando de dentro da release ativa.";
 } else {
-    // Modo: Fallback para desenvolvimento local ou deploy direto via Git
-    $srcBase = '/home1/hg9a3205/public_html/SGIM-CLIENTE';
-    $dstBase = '/home1/hg9a3205/public_html';
+    // Modo: Fallback para desenvolvimento local ou deploy direto via Git na raiz
+    $srcBase = str_replace('\\', '/', dirname(__DIR__));
+    $dstBase = $srcBase;
     
-    // Fallback de desenvolvimento local
-    if (!is_dir($srcBase)) {
-        $srcBase = realpath(__DIR__ . '/../');
+    // Se estiver em subpasta SGIM-CLIENTE ou SGIM-VENDAS
+    $baseName = basename($srcBase);
+    if ($baseName === 'SGIM-CLIENTE' || $baseName === 'SGIM-VENDAS') {
         $dstBase = dirname($srcBase);
     }
     $log[] = "⚠️ Modo: Fallback de Git/Desenvolvimento.";
@@ -130,19 +130,32 @@ if (file_exists($dbPath)) {
     }
 }
 
-if ((!isset($pdo) || !$pdo instanceof PDO) && file_exists($dbConfigPath)) {
-    $cfg = file_get_contents($dbConfigPath);
-    preg_match("/DB_HOST.*?['\"]([^'\"]+)['\"]/", $cfg, $mh);
-    preg_match("/DB_NAME.*?['\"]([^'\"]+)['\"]/", $cfg, $mn);
-    preg_match("/DB_USER.*?['\"]([^'\"]+)['\"]/", $cfg, $mu);
-    preg_match("/DB_PASS.*?['\"]([^'\"]+)['\"]/", $cfg, $mp);
-    if (!empty($mh[1]) && !empty($mn[1])) {
+if (!isset($pdo) || !$pdo instanceof PDO) {
+    $possible_db_configs = [
+        $dstBase . '/config/db_config.php',
+        $dstBase . '/db_config.php',
+        $dstBase . '/../db_config.php',
+        dirname($dstBase) . '/db_config.php',
+    ];
+    foreach ($possible_db_configs as $cfg_path) {
+        if (file_exists($cfg_path)) {
+            @include $cfg_path;
+            if (isset($pdo) && $pdo instanceof PDO) {
+                $log[] = "✅ Conexão direta estabelecida por inclusão de $cfg_path.";
+                break;
+            }
+        }
+    }
+}
+
+if (!isset($pdo) || !$pdo instanceof PDO) {
+    if (isset($host) && isset($dbname)) {
         try {
-            $pdo = new PDO("mysql:host={$mh[1]};dbname={$mn[1]};charset=utf8mb4", $mu[1] ?? '', $mp[1] ?? '');
+            $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user ?? '', $pass ?? '');
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $log[] = "✅ Conexão direta estabelecida com o banco de dados.";
+            $log[] = "✅ Conexão direta criada usando variáveis de banco importadas.";
         } catch (Throwable $e) {
-            $log[] = "❌ Falha na conexão direta com o banco: " . $e->getMessage();
+            $log[] = "❌ Falha ao conectar usando variáveis de banco importadas: " . $e->getMessage();
         }
     }
 }

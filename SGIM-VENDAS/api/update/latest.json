@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.5.6: Auto-cadastro publico de membros sob /cadastro e correcoes de ENUMs",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.5.6.zip",
-    "version":  "1.5.6",
+    "notes":  "v1.5.7: Correcao critica de caminhos de banco e calculo de raiz do ota_rescue",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.5.7.zip",
+    "version":  "1.5.7",
     "date":  "2026-06-09",
-    "sha256":  "e479813ca93d021e2f6f34d22829383b5ea6e2841f4168d9c14fa6cce43104cb"
+    "sha256":  "e994e45857844398c41199cd2f4e45d6f17923cb0fde47b3568dd80352ddabce"
 }
