@@ -1,6 +1,6 @@
 <?php
 /**
- * SGIM CLIENT - GLOBAL HEADER v1.5.1 (EDITOR CANVA CARTEIRINHAS)
+ * SGIM CLIENT - GLOBAL HEADER v1.5.2 (EDITOR CANVA CARTEIRINHAS)
  */
 if (session_status() === PHP_SESSION_NONE) {
     session_start();

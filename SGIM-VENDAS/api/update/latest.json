@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.5.1: Remocao de aba de testes e correcao de copier de raiz v1.5.1",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.5.1.zip",
-    "version":  "1.5.1",
+    "notes":  "v1.5.2: Reconstrucao da aba de usuarios, modal inline e correcao do AccessManager e ota_rescue",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.5.2.zip",
+    "version":  "1.5.2",
     "date":  "2026-06-09",
-    "sha256":  "27efdd6a7446229f226c5f6e6613b5013f1d50463a78f6023ddfa648221937f5"
+    "sha256":  "9671280541ba501081a09ccb48b5145bd0dd18273c725a82e45c00e3c615b0a3"
 }

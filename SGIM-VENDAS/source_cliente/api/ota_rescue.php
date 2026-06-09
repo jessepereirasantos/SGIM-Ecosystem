@@ -1,8 +1,8 @@
 <?php
 /**
- * SGIM FORCE DEPLOYER v1.4.9
+ * SGIM FORCE DEPLOYER v1.5.2
  * URL: /SGIM-CLIENTE/api/ota_rescue.php?token=sgim2026
- * Sincroniza fisicamente os arquivos da v1.4.9 do Git para a pasta de produção ativa.
+ * Sincroniza fisicamente os arquivos da v1.5.2 do Git para a pasta de produção ativa.
  */
 header('Content-Type: text/html; charset=utf-8');
 error_reporting(E_ALL);
@@ -19,7 +19,7 @@ $ok = true;
 
 // 2. Mapeamento de Pastas no Servidor HostGator
 $srcBase = '/home1/hg9a3205/public_html/SGIM-CLIENTE';
-$dstBase = '/home1/hg9a3205/public_html/sgim-iade';
+$dstBase = '/home1/hg9a3205/public_html'; // A raiz real do site detectada em produção
 
 $log[] = "Pasta de Origem (Git): $srcBase";
 $log[] = "Pasta de Destino (Produção): $dstBase";
@@ -27,18 +27,18 @@ $log[] = "Pasta de Destino (Produção): $dstBase";
 if (!is_dir($srcBase)) {
     die("<h2 style='color:red'>Erro: Pasta de origem Git ($srcBase) não existe.</h2>");
 }
-// Busca dinâmica caso o destino padrão não exista
-if (!is_dir($dstBase)) {
+
+// Busca dinâmica de redundância caso o destino padrão mude
+if (!is_dir($dstBase) || !file_exists($dstBase . '/config/database.php')) {
     $candidatos = [
+        '/home1/hg9a3205/public_html',
         '/home1/hg9a3205/public_html/sgim-iade',
         '/home1/hg9a3205/sgim-iade',
         '/home1/hg9a3205/iadeeloha.com.br/sgim-iade',
-        '/home1/hg9a3205/public_html/sgim',
-        '/home1/hg9a3205/sgim',
     ];
     
     foreach ($candidatos as $c) {
-        if (is_dir($c)) {
+        if (is_dir($c) && (file_exists($c . '/config/database.php') || file_exists($c . '/config/db_config.php'))) {
             $dstBase = $c;
             $log[] = "🔍 Pasta de destino encontrada dinamicamente: $dstBase";
             break;
@@ -61,18 +61,6 @@ if (!is_dir($dstBase)) {
         $diagnostico .= "</ul>";
     }
     
-    $parent2 = '/home1/hg9a3205';
-    if (is_dir($parent2)) {
-        $files2 = scandir($parent2);
-        $diagnostico .= "<h3>Pastas em $parent2:</h3><ul>";
-        foreach ($files2 as $f) {
-            if ($f !== '.' && $f !== '..' && is_dir($parent2 . '/' . $f)) {
-                $diagnostico .= "<li>$f</li>";
-            }
-        }
-        $diagnostico .= "</ul>";
-    }
-    
     die("<h2 style='color:red'>Erro: Pasta de destino ($dstBase) não existe.</h2>" . $diagnostico);
 }
 
@@ -80,12 +68,10 @@ if (!is_dir($dstBase)) {
 $dstCurrent = $dstBase . '/releases/current';
 $log[] = "Pasta do Release Ativo (Current): $dstCurrent";
 
-// Se o releases/current existir, vamos usá-lo como alvo também
+// Se o releases/current existir, copiamos para ele também
 $alvosDestino = [$dstBase];
 if (is_dir($dstCurrent)) {
     $alvosDestino[] = $dstCurrent;
-} else {
-    $log[] = "⚠️ Atenção: releases/current não é um diretório ou não existe. Copiando apenas para a raiz.";
 }
 
 // 4. Lista de arquivos a serem copiados
@@ -143,7 +129,6 @@ if (file_exists($dbPath)) {
 }
 
 if ((!isset($pdo) || !$pdo instanceof PDO) && file_exists($dbConfigPath)) {
-    // Tenta conexão manual caso database.php falhe
     $cfg = file_get_contents($dbConfigPath);
     preg_match("/DB_HOST.*?['\"]([^'\"]+)['\"]/", $cfg, $mh);
     preg_match("/DB_NAME.*?['\"]([^'\"]+)['\"]/", $cfg, $mn);
@@ -163,21 +148,22 @@ if ((!isset($pdo) || !$pdo instanceof PDO) && file_exists($dbConfigPath)) {
 if (isset($pdo) && $pdo instanceof PDO) {
     try {
         // A. Forçar versão do sistema
-        $stmt = $pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES ('versao_sistema', '1.4.9') ON DUPLICATE KEY UPDATE valor = '1.4.9'");
+        $stmt = $pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES ('versao_sistema', '1.5.2') ON DUPLICATE KEY UPDATE valor = '1.5.2'");
         $stmt->execute();
         
-        $stmt2 = $pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES ('system_version', '1.4.9') ON DUPLICATE KEY UPDATE valor = '1.4.9'");
+        $stmt2 = $pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES ('system_version', '1.5.2') ON DUPLICATE KEY UPDATE valor = '1.5.2'");
         $stmt2->execute();
-        $log[] = "✅ Banco de dados updated para v1.4.9.";
+        $log[] = "✅ Banco de dados atualizado para v1.5.2.";
 
-        // B. Garantir permissões de gestão de usuários
+        // B. Garantir permissões de gestão de usuários no banco do cliente
         $pdo->exec("INSERT IGNORE INTO permissoes (modulo, acao, descricao) VALUES 
                    ('usuarios', 'visualizar', 'Visualizar Usuários'),
                    ('usuarios', 'gerenciar', 'Gerenciar Usuários')");
         
+        // Dá permissão para o cargo 1
         $pdo->exec("INSERT IGNORE INTO cargo_permissoes (cargo_id, permissao_id) 
                    SELECT 1, id FROM permissoes WHERE modulo = 'usuarios'");
-        $log[] = "✅ Permissões de usuários semeadas e vinculadas ao cargo 1.";
+        $log[] = "✅ Permissões de usuários semeadas no banco do cliente.";
 
     } catch (Throwable $e) {
         $log[] = "❌ Erro nas operações do banco de dados: " . $e->getMessage();
@@ -196,7 +182,6 @@ if (function_exists('opcache_reset')) {
         $log[] = "⚠️ Falha ao resetar opcache.";
     }
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -214,7 +199,7 @@ h1 { color: #FFC107; margin-bottom: 30px; }
 </style>
 </head>
 <body>
-<h1>🔧 SGIM Force Deployer - v1.4.9</h1>
+<h1>🔧 SGIM Force Deployer - v1.5.2</h1>
 
 <div class="status <?= $ok ? 'success' : 'failure' ?>">
     <?= $ok ? '✅ OPERAÇÃO CONCLUÍDA COM SUCESSO' : '❌ ALGUMAS OPERAÇÕES FALHARAM' ?>
@@ -230,7 +215,7 @@ h1 { color: #FFC107; margin-bottom: 30px; }
 
 <?php if ($ok): ?>
 <div style="margin-top:20px">
-    <p class="ok">O deploy dos arquivos da v1.4.9 foi concluído e o banco de dados foi sincronizado com as permissões de usuários!</p>
+    <p class="ok">O deploy físico dos arquivos da v1.5.2 foi concluído com sucesso!</p>
 </div>
 <?php endif; ?>
 </body>
