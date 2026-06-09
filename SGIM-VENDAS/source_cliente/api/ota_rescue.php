@@ -1,8 +1,8 @@
 <?php
 /**
- * SGIM FORCE DEPLOYER v1.5.4 (CLEANUP EDITION)
+ * SGIM FORCE DEPLOYER v1.5.5 (RELEASE RESCUE EDITION)
  * URL: /SGIM-CLIENTE/api/ota_rescue.php?token=sgim2026
- * Remove fisicamente todos os arquivos de usuários em produção e atualiza o sistema para a v1.5.4 limpa.
+ * Sincroniza dinamicamente os arquivos da release ativa para a raiz de produção (contorna bloqueio de symlinks da HostGator).
  */
 header('Content-Type: text/html; charset=utf-8');
 error_reporting(E_ALL);
@@ -17,18 +17,21 @@ if ($token !== 'sgim2026') {
 $log = [];
 $ok = true;
 
-// 2. Detecção Dinâmica de Pastas
+// 2. Detecção Dinâmica de Pastas (Origem e Destino)
 $dirAtual = str_replace('\\', '/', __DIR__);
 $log[] = "Diretório do script ativo: $dirAtual";
 
 if (strpos($dirAtual, '/releases/') !== false) {
-    $srcBase = dirname(__DIR__); // Ex: .../releases/v1.5.4
+    // Modo: Executando de dentro da pasta de release baixada pelo OTA
+    $srcBase = dirname(__DIR__); // Ex: .../releases/v1.5.5
     $dstBase = dirname(dirname(dirname(__DIR__))); // Ex: .../ (raiz do site)
     $log[] = "✅ Modo: Executando de dentro da release ativa.";
 } else {
+    // Modo: Fallback para desenvolvimento local ou deploy direto via Git
     $srcBase = '/home1/hg9a3205/public_html/SGIM-CLIENTE';
     $dstBase = '/home1/hg9a3205/public_html';
     
+    // Fallback de desenvolvimento local
     if (!is_dir($srcBase)) {
         $srcBase = realpath(__DIR__ . '/../');
         $dstBase = dirname($srcBase);
@@ -36,6 +39,7 @@ if (strpos($dirAtual, '/releases/') !== false) {
     $log[] = "⚠️ Modo: Fallback de Git/Desenvolvimento.";
 }
 
+// Limpa barras invertidas para consistência
 $srcBase = str_replace('\\', '/', $srcBase);
 $dstBase = str_replace('\\', '/', $dstBase);
 
@@ -63,61 +67,55 @@ if (!is_dir($dstBase)) {
     die("<h2 style='color:red'>Erro: Pasta de destino ($dstBase) não existe.</h2>");
 }
 
+// 3. Destinos para Cópia (Copia para a Raiz e para releases/current/ por redundância)
 $alvosDestino = [$dstBase];
 $dstCurrent = $dstBase . '/releases/current';
 if (is_dir($dstCurrent) && str_replace('\\', '/', realpath($dstCurrent)) !== $srcBase) {
     $alvosDestino[] = $dstCurrent;
 }
 
-// 3. Arquivos a serem deletados fisicamente em produção (Limpeza)
-$arquivosDeletar = [
+// 4. Arquivos Críticos para Sincronização Física na Raiz (Nova v1.5.5)
+$arquivos = [
     'usuarios.php',
     'usuario_novo.php',
-    'usuario_editar.php'
-];
-
-// 4. Arquivos a serem sincronizados (Estrutura e Sidebar limpos)
-$arquivosCopiar = [
+    'usuario_editar.php',
     'includes/header.php',
     'src/Auth/AccessManager.php'
 ];
 
-// 5. Executar Deleção Física
-foreach ($arquivosDeletar as $relPath) {
+// 5. Executar Sincronização de Arquivos
+foreach ($arquivos as $relPath) {
+    $srcFile = $srcBase . '/' . $relPath;
+    if (!file_exists($srcFile)) {
+        $log[] = "❌ Arquivo de origem não encontrado: $relPath";
+        $ok = false;
+        continue;
+    }
+
     foreach ($alvosDestino as $destFolder) {
         $dstFile = $destFolder . '/' . $relPath;
-        if (file_exists($dstFile)) {
-            if (@unlink($dstFile)) {
-                $log[] = "✅ Removido fisicamente: $dstFile";
-            } else {
-                $log[] = "❌ Falha ao remover: $dstFile";
+        
+        // Garante subdiretórios
+        $dstDir = dirname($dstFile);
+        if (!is_dir($dstDir)) {
+            if (!@mkdir($dstDir, 0755, true)) {
+                $log[] = "❌ Falha ao criar pasta: $dstDir";
                 $ok = false;
+                continue;
             }
+        }
+
+        // Copia o arquivo
+        if (@copy($srcFile, $dstFile)) {
+            $log[] = "✅ Sincronizado: $relPath → $dstFile";
         } else {
-            $log[] = "ℹ️ Arquivo não existia no destino: $relPath";
+            $log[] = "❌ Falha ao copiar: $relPath → $dstFile";
+            $ok = false;
         }
     }
 }
 
-// 6. Executar Sincronização dos Arquivos Limpos
-foreach ($arquivosCopiar as $relPath) {
-    $srcFile = $srcBase . '/' . $relPath;
-    if (file_exists($srcFile)) {
-        foreach ($alvosDestino as $destFolder) {
-            $dstFile = $destFolder . '/' . $relPath;
-            $dstDir = dirname($dstFile);
-            if (!is_dir($dstDir)) @mkdir($dstDir, 0755, true);
-            if (@copy($srcFile, $dstFile)) {
-                $log[] = "✅ Sincronizado: $relPath → $dstFile";
-            } else {
-                $log[] = "❌ Falha ao copiar: $relPath → $dstFile";
-                $ok = false;
-            }
-        }
-    }
-}
-
-// 7. Conexão ao Banco de Dados e Atualização de Versão
+// 6. Conexão ao Banco de Dados e Forçar Versão v1.5.5
 $dbPath = $dstBase . '/config/database.php';
 $dbConfigPath = $dstBase . '/config/db_config.php';
 $pdo = null;
@@ -149,12 +147,23 @@ if ((!isset($pdo) || !$pdo instanceof PDO) && file_exists($dbConfigPath)) {
 
 if (isset($pdo) && $pdo instanceof PDO) {
     try {
-        $stmt = $pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES ('versao_sistema', '1.5.4') ON DUPLICATE KEY UPDATE valor = '1.5.4'");
+        // A. Forçar versão do sistema
+        $stmt = $pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES ('versao_sistema', '1.5.5') ON DUPLICATE KEY UPDATE valor = '1.5.5'");
         $stmt->execute();
         
-        $stmt2 = $pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES ('system_version', '1.5.4') ON DUPLICATE KEY UPDATE valor = '1.5.4'");
+        $stmt2 = $pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES ('system_version', '1.5.5') ON DUPLICATE KEY UPDATE valor = '1.5.5'");
         $stmt2->execute();
-        $log[] = "✅ Banco de dados atualizado para v1.5.4.";
+        $log[] = "✅ Banco de dados atualizado para v1.5.5.";
+
+        // B. Garantir permissões de gestão de usuários no banco do cliente
+        $pdo->exec("INSERT IGNORE INTO permissoes (modulo, acao, descricao) VALUES 
+                   ('usuarios', 'visualizar', 'Visualizar Usuários'),
+                   ('usuarios', 'gerenciar', 'Gerenciar Usuários')");
+        
+        $pdo->exec("INSERT IGNORE INTO cargo_permissoes (cargo_id, permissao_id) 
+                   SELECT 1, id FROM permissoes WHERE modulo = 'usuarios'");
+        $log[] = "✅ Permissões de usuários semeadas no banco do cliente.";
+
     } catch (Throwable $e) {
         $log[] = "❌ Erro nas operações do banco de dados: " . $e->getMessage();
         $ok = false;
@@ -164,7 +173,7 @@ if (isset($pdo) && $pdo instanceof PDO) {
     $ok = false;
 }
 
-// 8. Limpeza de Opcache
+// 7. Limpeza de Opcache
 if (function_exists('opcache_reset')) {
     if (opcache_reset()) {
         $log[] = "✅ Opcache resetado com sucesso.";
@@ -177,7 +186,7 @@ if (function_exists('opcache_reset')) {
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<title>SGIM Cleanup Deployer - v1.5.4</title>
+<title>SGIM Force Deployer - v1.5.5</title>
 <style>
 body { font-family: Arial, sans-serif; background: #050505; color: #eee; padding: 40px; max-width: 900px; margin: 0 auto; }
 h1 { color: #FFC107; margin-bottom: 30px; }
@@ -189,10 +198,10 @@ h1 { color: #FFC107; margin-bottom: 30px; }
 </style>
 </head>
 <body>
-<h1>🔧 SGIM Cleanup Deployer - v1.5.4</h1>
+<h1>🔧 SGIM Force Deployer - v1.5.5 (Release Edition)</h1>
 
 <div class="status <?= $ok ? 'success' : 'failure' ?>">
-    <?= $ok ? '✅ LIMPEZA DE ARQUIVOS CONCLUÍDA COM SUCESSO' : '❌ ALGUMAS OPERAÇÕES DE LIMPEZA FALHARAM' ?>
+    <?= $ok ? '✅ OPERAÇÃO CONCLUÍDA COM SUCESSO' : '❌ ALGUMAS OPERAÇÕES FALHARAM' ?>
 </div>
 
 <div class="log">
@@ -205,7 +214,7 @@ h1 { color: #FFC107; margin-bottom: 30px; }
 
 <?php if ($ok): ?>
 <div style="margin-top:20px">
-    <p class="ok">Todos os arquivos de usuários antigos foram apagados fisicamente de produção e o sidebar foi limpo!</p>
+    <p class="ok">O resgate físico dos arquivos da release v1.5.5 para a raiz de produção foi concluído com sucesso!</p>
 </div>
 <?php endif; ?>
 </body>

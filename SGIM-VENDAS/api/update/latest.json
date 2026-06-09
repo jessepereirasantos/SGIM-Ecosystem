@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.5.4: Remocao e limpeza completa da funcionalidade de usuarios",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.5.4.zip",
-    "version":  "1.5.4",
+    "notes":  "v1.5.5: Reconstrucao de usuarios RBAC v1.5.5 com visual Obsidian Gold e anti-autofill",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.5.5.zip",
+    "version":  "1.5.5",
     "date":  "2026-06-09",
-    "sha256":  "faeaba845bdb342dcb306f3971862140b494e4b908f18a9d19cb98d511e36bc0"
+    "sha256":  "93ccc20d4c642104f2ae3eed12fb96228442a3d29dec835889ba2a67e0d803ac"
 }
