@@ -21,6 +21,19 @@ if (!isset($pdo) || $pdo === null) {
     exit;
 }
 
+// 🛡️ Inicializa o AccessManager para proteção de rota
+if (!class_exists('SGIM\\Auth\\AccessManager')) {
+    $amPath = __DIR__ . '/src/Auth/AccessManager.php';
+    if (file_exists($amPath)) require_once $amPath;
+}
+$access = new \SGIM\Auth\AccessManager($pdo, $_SESSION['user_id']);
+
+// Apenas administradores do Ministério (Global) podem gerenciar os modelos de carteirinha
+if (!$access || !$access->isGlobal()) {
+    echo "<script>alert('Acesso Negado: Apenas administradores globais do Ministério podem gerenciar modelos de carteirinhas.'); window.location.href='dashboard.php';</script>";
+    exit;
+}
+
 use App\Controllers\CarteirinhaController;
 
 $controller = new CarteirinhaController($pdo);

@@ -74,7 +74,7 @@ if (is_dir($dstCurrent) && str_replace('\\', '/', realpath($dstCurrent)) !== $sr
     $alvosDestino[] = $dstCurrent;
 }
 
-// 4. Arquivos Críticos para Sincronização Física na Raiz (Nova v1.5.6)
+// 4. Arquivos Críticos para Sincronização Física na Raiz (Nova v1.5.9)
 $arquivos = [
     'usuarios.php',
     'usuario_novo.php',
@@ -82,7 +82,16 @@ $arquivos = [
     'cadastro.php',
     'cadastro_publico.php',
     'includes/header.php',
-    'src/Auth/AccessManager.php'
+    'src/Auth/AccessManager.php',
+    'eventos.php',
+    'evento_novo.php',
+    'carteirinha_digital.php',
+    'carteirinha_editor.php',
+    'cargo_editar.php',
+    'cargo_novo.php',
+    'transacao_nova.php',
+    'membro_novo.php',
+    'rescue_rbac.php'
 ];
 
 // 5. Executar Sincronização de Arquivos
@@ -163,21 +172,28 @@ if (!isset($pdo) || !$pdo instanceof PDO) {
 if (isset($pdo) && $pdo instanceof PDO) {
     try {
         // A. Forçar versão do sistema
-        $stmt = $pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES ('versao_sistema', '1.5.6') ON DUPLICATE KEY UPDATE valor = '1.5.6'");
+        $stmt = $pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES ('versao_sistema', '1.5.9') ON DUPLICATE KEY UPDATE valor = '1.5.9'");
         $stmt->execute();
         
-        $stmt2 = $pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES ('system_version', '1.5.6') ON DUPLICATE KEY UPDATE valor = '1.5.6'");
+        $stmt2 = $pdo->prepare("INSERT INTO configuracoes (chave, valor) VALUES ('system_version', '1.5.9') ON DUPLICATE KEY UPDATE valor = '1.5.9'");
         $stmt2->execute();
-        $log[] = "✅ Banco de dados atualizado para v1.5.6.";
+        $log[] = "✅ Banco de dados atualizado para v1.5.9.";
 
-        // B. Garantir permissões de gestão de usuários no banco do cliente
+        // B. Garantir todas as permissões críticas no banco do cliente
         $pdo->exec("INSERT IGNORE INTO permissoes (modulo, acao, descricao) VALUES 
                    ('usuarios', 'visualizar', 'Visualizar Usuários'),
-                   ('usuarios', 'gerenciar', 'Gerenciar Usuários')");
+                   ('usuarios', 'gerenciar', 'Gerenciar Usuários'),
+                   ('membros', 'criar', 'Criar Membros'),
+                   ('membros', 'cadastrar', 'Cadastrar Membros'),
+                   ('financeiro', 'lancar', 'Lançar Transações'),
+                   ('financeiro', 'cadastrar', 'Cadastrar Transações'),
+                   ('carteirinhas', 'visualizar', 'Visualizar Carteirinhas'),
+                   ('carteirinhas', 'gerenciar', 'Gerenciar Carteirinhas')");
         
         $pdo->exec("INSERT IGNORE INTO cargo_permissoes (cargo_id, permissao_id) 
-                   SELECT 1, id FROM permissoes WHERE modulo = 'usuarios'");
-        $log[] = "✅ Permissões de usuários semeadas no banco do cliente.";
+                   SELECT 1, id FROM permissoes 
+                   WHERE modulo IN ('usuarios', 'membros', 'financeiro', 'carteirinhas')");
+        $log[] = "✅ Matriz de permissões críticas semeadas no banco do cliente.";
 
     } catch (Throwable $e) {
         $log[] = "❌ Erro nas operações do banco de dados: " . $e->getMessage();
@@ -201,7 +217,7 @@ if (function_exists('opcache_reset')) {
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<title>SGIM Force Deployer - v1.5.6</title>
+<title>SGIM Force Deployer - v1.5.9</title>
 <style>
 body { font-family: Arial, sans-serif; background: #050505; color: #eee; padding: 40px; max-width: 900px; margin: 0 auto; }
 h1 { color: #FFC107; margin-bottom: 30px; }
@@ -213,7 +229,7 @@ h1 { color: #FFC107; margin-bottom: 30px; }
 </style>
 </head>
 <body>
-<h1>🔧 SGIM Force Deployer - v1.5.5 (Release Edition)</h1>
+<h1>🔧 SGIM Force Deployer - v1.5.9 (Release Edition)</h1>
 
 <div class="status <?= $ok ? 'success' : 'failure' ?>">
     <?= $ok ? '✅ OPERAÇÃO CONCLUÍDA COM SUCESSO' : '❌ ALGUMAS OPERAÇÕES FALHARAM' ?>

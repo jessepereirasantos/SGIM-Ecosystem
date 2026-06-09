@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.5.8: Auto-cadastro expandido com foto, endereco completo e campos da carteirinha",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.5.8.zip",
-    "version":  "1.5.8",
+    "notes":  "v1.5.9: Melhorias de permissividade RBAC e escopos de secretario, tesoureiro e pastor locais",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.5.9.zip",
+    "version":  "1.5.9",
     "date":  "2026-06-09",
-    "sha256":  "82372ad193ec8ab48112b19df165efca0002db6dcf7d52b14dfc55c19afca3cc"
+    "sha256":  "09f75a6e7feae847b5580de4de3819bb1e4958f93d726de9e8f91f819b4c04f0"
 }

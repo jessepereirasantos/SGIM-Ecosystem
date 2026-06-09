@@ -14,13 +14,14 @@ try {
 
     // 2. MATRIZ GRANULAR DE PERMISSÕES
     $modulos = [
-        'membros'       => ['visualizar', 'criar', 'editar', 'excluir', 'relatorio'],
-        'financeiro'    => ['visualizar', 'lancar', 'estornar', 'relatorio'],
+        'membros'       => ['visualizar', 'criar', 'cadastrar', 'editar', 'excluir', 'relatorio'],
+        'financeiro'    => ['visualizar', 'lancar', 'cadastrar', 'estornar', 'relatorio'],
         'usuarios'      => ['visualizar', 'gerenciar', 'logs'],
         'congregacoes'  => ['visualizar', 'gerenciar'],
         'departamentos' => ['visualizar', 'gerenciar'],
         'eventos'       => ['visualizar', 'gerenciar'],
         'comunicacao'   => ['visualizar', 'enviar'],
+        'carteirinhas'  => ['visualizar', 'gerenciar'],
         'configuracoes' => ['visualizar', 'sistema', 'backup'],
         'atualizacoes'  => ['visualizar', 'executar']
     ];

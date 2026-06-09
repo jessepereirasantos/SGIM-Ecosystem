@@ -7,6 +7,18 @@ if (!isset($_SESSION['user_id'])) {
 
 require_once 'config/database.php';
 
+// 🛡️ Inicializa o AccessManager para proteção de rota antecipada
+if (!class_exists('SGIM\\Auth\\AccessManager')) {
+    $amPath = __DIR__ . '/src/Auth/AccessManager.php';
+    if (file_exists($amPath)) require_once $amPath;
+}
+$access = new \SGIM\Auth\AccessManager($pdo, $_SESSION['user_id']);
+
+if ($access && !$access->can('eventos', 'gerenciar')) {
+    echo "<script>alert('Acesso Negado: Você não tem permissão para gerenciar eventos.'); window.location.href='eventos.php';</script>";
+    exit;
+}
+
 // Auto-patch do banco de dados para o Módulo de Eventos Professional
 try {
     // Unificar nomes de colunas
@@ -60,8 +72,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mensagem = "O Título do evento e a Data de Início são obrigatórios.";
     } else {
         try {
-            $stmt = $pdo->prepare("INSERT INTO eventos (titulo, descricao, data_inicio, data_fim, local, status, banner_url, publico) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$titulo, $descricao, $data_inicio, $data_fim, $local, $status, $banner_url, $publico]);
+            $congregacao_id = ($access && !$access->isGlobal()) ? $access->getCongregacaoId() : null;
+            $stmt = $pdo->prepare("INSERT INTO eventos (titulo, descricao, data_inicio, data_fim, local, status, banner_url, publico, congregacao_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$titulo, $descricao, $data_inicio, $data_fim, $local, $status, $banner_url, $publico, $congregacao_id]);
             
             header("Location: eventos.php?sucesso=1");
             exit;

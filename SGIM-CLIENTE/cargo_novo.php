@@ -209,19 +209,33 @@ require_once 'includes/header.php';
                 break;
             case 'pastor_local':
                 checks.forEach(c => {
-                    if (['membros', 'financeiro', 'eventos', 'carteirinhas', 'departamentos', 'comunicacao'].includes(c.dataset.modulo)) c.checked = true;
+                    const m = c.dataset.modulo;
+                    const a = c.dataset.acao;
+                    if (m === 'membros' && ['visualizar', 'criar', 'cadastrar', 'editar', 'relatorio'].includes(a)) c.checked = true;
+                    if (m === 'financeiro' && ['visualizar', 'lancar', 'cadastrar', 'estornar', 'relatorio'].includes(a)) c.checked = true;
+                    if (m === 'eventos') c.checked = true;
+                    if (m === 'carteirinhas' && a === 'visualizar') c.checked = true;
+                    if (m === 'atualizacoes' && a === 'visualizar') c.checked = true;
                 });
                 escopo.value = 'local';
                 break;
             case 'secretario_local':
                 checks.forEach(c => {
-                    if (['membros', 'eventos', 'carteirinhas', 'departamentos', 'comunicacao'].includes(c.dataset.modulo)) c.checked = true;
+                    const m = c.dataset.modulo;
+                    const a = c.dataset.acao;
+                    if (m === 'membros' && ['visualizar', 'criar', 'cadastrar', 'editar'].includes(a)) c.checked = true;
+                    if (m === 'eventos') c.checked = true;
+                    if (m === 'carteirinhas' && a === 'visualizar') c.checked = true;
+                    if (m === 'atualizacoes' && a === 'visualizar') c.checked = true;
                 });
                 escopo.value = 'local';
                 break;
             case 'tesoureiro_local':
                 checks.forEach(c => {
-                    if (['financeiro'].includes(c.dataset.modulo)) c.checked = true;
+                    const m = c.dataset.modulo;
+                    const a = c.dataset.acao;
+                    if (m === 'financeiro' && ['visualizar', 'lancar', 'cadastrar', 'estornar', 'relatorio'].includes(a)) c.checked = true;
+                    if (m === 'atualizacoes' && a === 'visualizar') c.checked = true;
                 });
                 escopo.value = 'local';
                 break;

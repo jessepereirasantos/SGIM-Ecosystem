@@ -1,6 +1,6 @@
 <?php
 /**
- * SGIM CLIENT - GLOBAL HEADER v1.5.8 (EDITOR CANVA CARTEIRINHAS)
+ * SGIM CLIENT - GLOBAL HEADER v1.5.9 (EDITOR CANVA CARTEIRINHAS)
  */
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -305,16 +305,20 @@ $unreadCount = 0;
             <?php endif; ?>
 
             <!-- GRUPO: SECRETARIA -->
-            <?php if (!$access || $access->can('comunicacao', 'visualizar')): ?>
+            <?php if (!$access || $access->can('carteirinhas', 'visualizar') || $access->can('comunicacao', 'visualizar')): ?>
                 <div>
                     <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Secretaria</p>
                     <div class="space-y-1">
-                        <a href="carteirinha_digital.php"
-                            class="sidebar-item <?= ($current_page == 'carteirinhas') ? 'active' : '' ?>"><span
-                                class="material-symbols-outlined">badge</span><span>Carteirinhas</span></a>
-                        <a href="whatsapp.php"
-                            class="sidebar-item <?= ($current_page == 'whatsapp') ? 'active' : '' ?>"><span
-                                class="material-symbols-outlined">chat_bubble</span><span>WhatsApp</span></a>
+                        <?php if (!$access || $access->can('carteirinhas', 'visualizar')): ?>
+                            <a href="carteirinha_digital.php"
+                                class="sidebar-item <?= ($current_page == 'carteirinhas') ? 'active' : '' ?>"><span
+                                    class="material-symbols-outlined">badge</span><span>Carteirinhas</span></a>
+                        <?php endif; ?>
+                        <?php if (!$access || $access->can('comunicacao', 'visualizar')): ?>
+                            <a href="whatsapp.php"
+                                class="sidebar-item <?= ($current_page == 'whatsapp') ? 'active' : '' ?>"><span
+                                    class="material-symbols-outlined">chat_bubble</span><span>WhatsApp</span></a>
+                        <?php endif; ?>
                     </div>
                 </div>
             <?php endif; ?>

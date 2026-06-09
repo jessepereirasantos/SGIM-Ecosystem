@@ -14,6 +14,18 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
+// 🛡️ Inicializa o AccessManager para proteção de rota antecipada
+if (!class_exists('SGIM\\Auth\\AccessManager')) {
+    $amPath = __DIR__ . '/src/Auth/AccessManager.php';
+    if (file_exists($amPath)) require_once $amPath;
+}
+$access = new \SGIM\Auth\AccessManager($pdo, $_SESSION['user_id']);
+
+if ($access && !$access->can('eventos', 'visualizar')) {
+    echo "<script>alert('Acesso Negado: Você não tem permissão para ver Eventos.'); window.location.href='dashboard.php';</script>";
+    exit;
+}
+
 // Fetch statistics
 $mes_atual = date('m');
 $ano_atual = date('Y');
@@ -21,19 +33,21 @@ $ano_atual = date('Y');
 $is_sqlite = ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite');
 
 try {
+    $scopeFilter = $access ? $access->getScopeFilter() : '';
+
     if ($is_sqlite) {
-        $stmtCount = $pdo->query("SELECT COUNT(*) FROM eventos WHERE strftime('%m', data_inicio) = '{$mes_atual}' AND strftime('%Y', data_inicio) = '{$ano_atual}'");
-        $stmtNext = $pdo->query("SELECT titulo, data_inicio, local FROM eventos WHERE data_inicio >= datetime('now') AND status = 'Agendado' ORDER BY data_inicio ASC LIMIT 1");
+        $stmtCount = $pdo->query("SELECT COUNT(*) FROM eventos WHERE strftime('%m', data_inicio) = '{$mes_atual}' AND strftime('%Y', data_inicio) = '{$ano_atual}' $scopeFilter");
+        $stmtNext = $pdo->query("SELECT titulo, data_inicio, local FROM eventos WHERE data_inicio >= datetime('now') AND status = 'Agendado' $scopeFilter ORDER BY data_inicio ASC LIMIT 1");
     } else {
-        $stmtCount = $pdo->query("SELECT COUNT(*) FROM eventos WHERE MONTH(data_inicio) = {$mes_atual} AND YEAR(data_inicio) = {$ano_atual}");
-        $stmtNext = $pdo->query("SELECT titulo, data_inicio, local FROM eventos WHERE data_inicio >= NOW() AND status = 'Agendado' ORDER BY data_inicio ASC LIMIT 1");
+        $stmtCount = $pdo->query("SELECT COUNT(*) FROM eventos WHERE MONTH(data_inicio) = {$mes_atual} AND YEAR(data_inicio) = {$ano_atual} $scopeFilter");
+        $stmtNext = $pdo->query("SELECT titulo, data_inicio, local FROM eventos WHERE data_inicio >= NOW() AND status = 'Agendado' $scopeFilter ORDER BY data_inicio ASC LIMIT 1");
     }
 
     $eventos_mes = $stmtCount ? $stmtCount->fetchColumn() : 0;
     $proximo_evento = $stmtNext ? $stmtNext->fetch(PDO::FETCH_ASSOC) : null;
 
     // Fetch eventos list
-    $stmtEventos = $pdo->query("SELECT * FROM eventos ORDER BY data_inicio ASC");
+    $stmtEventos = $pdo->query("SELECT * FROM eventos WHERE 1=1 $scopeFilter ORDER BY data_inicio ASC");
     $eventos = $stmtEventos ? $stmtEventos->fetchAll(PDO::FETCH_ASSOC) : [];
 } catch (Throwable $t) {
     error_log("Eventos Data Error: " . $t->getMessage());
@@ -100,10 +114,12 @@ require_once __DIR__ . '/includes/header.php';
                 <h2 class="text-xl font-black text-white">Agenda de Atividades</h2>
                 <p class="text-xs text-gray-500 uppercase tracking-wider">Gestão centralizada de cultos, reuniões e congressos</p>
             </div>
+            <?php if ($access && $access->can('eventos', 'gerenciar')): ?>
             <a href="evento_novo.php" class="bg-brand hover:bg-yellow-500 text-black px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2 shadow-xl shadow-brand/10">
                 <span class="material-symbols-outlined text-sm">add</span>
                 Novo Evento
             </a>
+            <?php endif; ?>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
@@ -154,12 +170,16 @@ require_once __DIR__ . '/includes/header.php';
                             </td>
                             <td class="px-6 py-4 text-right">
                                 <div class="flex items-center justify-end gap-2">
+                                    <?php if ($access && $access->can('eventos', 'gerenciar')): ?>
                                     <button class="p-2 text-gray-500 hover:text-brand transition-all hover:bg-brand/10 rounded-lg">
                                         <span class="material-symbols-outlined text-[20px]">edit</span>
                                     </button>
                                     <button class="p-2 text-gray-500 hover:text-red-500 transition-all hover:bg-red-500/10 rounded-lg">
                                         <span class="material-symbols-outlined text-[20px]">delete</span>
                                     </button>
+                                    <?php else: ?>
+                                    <span class="text-xs text-gray-600 font-bold uppercase">Apenas Leitura</span>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                         </tr>

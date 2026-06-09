@@ -33,7 +33,7 @@ if ($id) {
         exit;
     }
 } else {
-    if (!$access->can('membros', 'cadastrar')) {
+    if (!$access->can('membros', 'criar') && !$access->can('membros', 'cadastrar')) {
         echo "<script>alert('Acesso Negado: Você não tem permissão para cadastrar membros.'); window.location.href='membros.php';</script>";
         exit;
     }

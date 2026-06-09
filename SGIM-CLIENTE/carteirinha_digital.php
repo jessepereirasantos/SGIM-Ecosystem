@@ -130,7 +130,7 @@ try {
             <p class="text-xs text-gray-500 uppercase font-bold tracking-widest mt-1">Controle de Validade, Emissão e QR Codes do Ministério</p>
         </div>
         <div>
-            <?php if ($access && $access->can('carteirinhas', 'gerenciar')): ?>
+            <?php if ($access && $access->isGlobal()): ?>
             <a href="carteirinha_editor.php" class="flex items-center gap-2 px-6 py-3 bg-brand hover:bg-brand-dark text-black rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-brand/20 transition-all">
                 <span class="material-symbols-outlined text-base">palette</span>
                 Gerenciar Modelos (Canva)

@@ -123,20 +123,22 @@ class AccessManager {
      */
     private function bootstrapPermissions() {
         try {
-            // Garante que a permissão usuarios -> gerenciar existe na tabela
-            $stmt = $this->pdo->query("SELECT id FROM permissoes WHERE modulo = 'usuarios' AND acao = 'gerenciar' LIMIT 1");
-            if ($stmt && $stmt->fetch() === false) {
-                // Tenta inserir as permissões padrão de usuários
-                $sql = "INSERT IGNORE INTO permissoes (modulo, acao, descricao) VALUES 
-                        ('usuarios', 'visualizar', 'Visualizar Usuários'),
-                        ('usuarios', 'gerenciar', 'Gerenciar Usuários')";
-                $this->pdo->exec($sql);
-                
-                // Também garante que o cargo_id = 1 (Admin Total) receba essa permissão na tabela cargo_permissoes
-                $this->pdo->exec("INSERT IGNORE INTO cargo_permissoes (cargo_id, permissao_id) 
-                                  SELECT 1, id FROM permissoes 
-                                  WHERE modulo = 'usuarios'");
-            }
+            // Tenta inserir as permissões padrão essenciais para evitar inconsistências
+            $sql = "INSERT IGNORE INTO permissoes (modulo, acao, descricao) VALUES 
+                    ('usuarios', 'visualizar', 'Visualizar Usuários'),
+                    ('usuarios', 'gerenciar', 'Gerenciar Usuários'),
+                    ('membros', 'criar', 'Criar Membros'),
+                    ('membros', 'cadastrar', 'Cadastrar Membros'),
+                    ('financeiro', 'lancar', 'Lançar Transações'),
+                    ('financeiro', 'cadastrar', 'Cadastrar Transações'),
+                    ('carteirinhas', 'visualizar', 'Visualizar Carteirinhas'),
+                    ('carteirinhas', 'gerenciar', 'Gerenciar Carteirinhas')";
+            $this->pdo->exec($sql);
+            
+            // Também garante que o cargo_id = 1 (Admin Total) receba todas essas permissões na tabela cargo_permissoes
+            $this->pdo->exec("INSERT IGNORE INTO cargo_permissoes (cargo_id, permissao_id) 
+                              SELECT 1, id FROM permissoes 
+                              WHERE modulo IN ('usuarios', 'membros', 'financeiro', 'carteirinhas')");
         } catch (\Throwable $e) {
             // Silencioso
         }

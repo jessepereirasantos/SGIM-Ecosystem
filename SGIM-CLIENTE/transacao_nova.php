@@ -22,7 +22,7 @@ if (!class_exists('SGIM\\Auth\\AccessManager')) {
 $access = new \SGIM\Auth\AccessManager($pdo, $_SESSION['user_id']);
 
 // Validação antecipada de gravação
-if ($access && !$access->can('financeiro', 'cadastrar')) {
+if ($access && !$access->can('financeiro', 'lancar') && !$access->can('financeiro', 'cadastrar')) {
     echo "<script>alert('Acesso Negado: Você não tem permissão para lançar transações.'); window.location.href='financeiro.php';</script>";
     exit;
 }
