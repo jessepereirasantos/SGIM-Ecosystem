@@ -281,6 +281,53 @@ if ($pdo) {
 </div>
 <?php endif; ?>
 
+<?php
+// Captador Inteligente de URL de Cadastro Público
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+$domain = $_SERVER['HTTP_HOST'];
+$scriptName = $_SERVER['SCRIPT_NAME']; 
+$subDir = dirname($scriptName);
+$subDir = ($subDir === '/' || $subDir === '\\') ? '' : $subDir;
+$cadastroUrl = $protocol . $domain . $subDir . '/cadastro';
+?>
+<!-- Bloco de Link de Auto-Cadastro Público (Obsidian Gold/Amber) -->
+<div class="mb-6 p-5 rounded-xl bg-gradient-to-r from-brand/10 to-transparent border border-darkborder flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg shadow-black/40">
+    <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-brand/10 rounded-xl flex items-center justify-center text-brand border border-brand/20">
+            <span class="material-symbols-outlined text-2xl">person_add</span>
+        </div>
+        <div>
+            <h4 class="text-white font-bold text-sm">Ficha de Auto-Cadastro de Membros</h4>
+            <p class="text-slate-400 text-xs">Compartilhe este link com novos membros para que eles preencham o próprio cadastro.</p>
+        </div>
+    </div>
+    <div class="flex items-center w-full sm:w-auto bg-darkbg border border-darkborder rounded-xl px-4 py-2 justify-between gap-3 max-w-md">
+        <span class="text-xs text-brand truncate font-mono select-all" id="url-cadastro"><?= htmlspecialchars($cadastroUrl) ?></span>
+        <button onclick="copiarUrlCadastro()" class="text-gray-400 hover:text-brand transition-colors p-1 flex items-center justify-center" title="Copiar Link">
+            <span class="material-symbols-outlined text-sm" id="copiar-icon">content_copy</span>
+        </button>
+    </div>
+</div>
+
+<script>
+function copiarUrlCadastro() {
+    const urlText = document.getElementById('url-cadastro').innerText;
+    navigator.clipboard.writeText(urlText).then(() => {
+        const icon = document.getElementById('copiar-icon');
+        icon.textContent = 'check';
+        icon.classList.remove('text-gray-400');
+        icon.classList.add('text-green-400');
+        setTimeout(() => {
+            icon.textContent = 'content_copy';
+            icon.classList.remove('text-green-400');
+            icon.classList.add('text-gray-400');
+        }, 2000);
+    }).catch(err => {
+        console.error('Falha ao copiar link: ', err);
+    });
+}
+</script>
+
 <!-- Stats Cards -->
 <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
     <!-- Saúde Financeira -->

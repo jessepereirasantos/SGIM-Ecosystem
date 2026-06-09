@@ -147,7 +147,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <span class="material-symbols-outlined text-sm">arrow_back</span>
                     Voltar ao Portal
                 </a>
-                <a href="cadastro_publico.php" class="text-brand hover:underline">
+                <a href="cadastro" class="text-brand hover:underline">
                     Quero me Cadastrar
                 </a>
             </div>

@@ -110,7 +110,7 @@ if ($is_configured) {
                 <p class="text-sm text-gray-400 leading-relaxed font-medium">
                     Deseja fazer parte da nossa família digital? Inicie sua jornada ministerial preenchendo sua ficha online.
                 </p>
-                <a href="cadastro_publico.php" class="w-full bg-brand hover:bg-yellow-500 text-black font-black py-5 rounded-2xl shadow-xl shadow-brand/10 transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-3 active:scale-95">
+                <a href="cadastro" class="w-full bg-brand hover:bg-yellow-500 text-black font-black py-5 rounded-2xl shadow-xl shadow-brand/10 transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-3 active:scale-95">
                     <span class="material-symbols-outlined text-lg">edit_note</span>
                     Preencher Ficha Ministerial
                 </a>

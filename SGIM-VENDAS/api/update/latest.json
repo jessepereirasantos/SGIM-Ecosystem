@@ -1,7 +1,7 @@
 ﻿{
-    "notes":  "v1.5.5: Reconstrucao de usuarios RBAC v1.5.5 com visual Obsidian Gold e anti-autofill",
-    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.5.5.zip",
-    "version":  "1.5.5",
+    "notes":  "v1.5.6: Auto-cadastro publico de membros sob /cadastro e correcoes de ENUMs",
+    "url":  "https://escolateologicaeloha.com.br/api/update/packages/SGIM-CLIENTE-v1.5.6.zip",
+    "version":  "1.5.6",
     "date":  "2026-06-09",
-    "sha256":  "93ccc20d4c642104f2ae3eed12fb96228442a3d29dec835889ba2a67e0d803ac"
+    "sha256":  "e479813ca93d021e2f6f34d22829383b5ea6e2841f4168d9c14fa6cce43104cb"
 }
