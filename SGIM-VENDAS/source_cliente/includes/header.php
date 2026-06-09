@@ -1,6 +1,6 @@
 <?php
 /**
- * SGIM CLIENT - GLOBAL HEADER v1.5.0 (EDITOR CANVA CARTEIRINHAS)
+ * SGIM CLIENT - GLOBAL HEADER v1.5.1 (EDITOR CANVA CARTEIRINHAS)
  */
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -315,9 +315,6 @@ $unreadCount = 0;
                         <a href="whatsapp.php"
                             class="sidebar-item <?= ($current_page == 'whatsapp') ? 'active' : '' ?>"><span
                                 class="material-symbols-outlined">chat_bubble</span><span>WhatsApp</span></a>
-                        <a href="#"
-                            class="sidebar-item <?= ($current_page == 'teste') ? 'active' : '' ?>"><span
-                                class="material-symbols-outlined">science</span><span>Teste-OTA-OK</span></a>
                     </div>
                 </div>
             <?php endif; ?>

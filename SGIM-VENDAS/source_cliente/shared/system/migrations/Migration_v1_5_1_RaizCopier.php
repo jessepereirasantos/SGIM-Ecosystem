@@ -4,7 +4,7 @@ namespace SGIM\OTA\Migrations;
 use Exception;
 use PDO;
 
-class Migration_v1_5_0_RaizCopier {
+class Migration_v1_5_1_RaizCopier {
     /**
      * Executa a migração física dos arquivos do release para a raiz do site do cliente.
      * Isso resolve o problema de servidores cPanel onde o document root aponta para a raiz
@@ -14,7 +14,7 @@ class Migration_v1_5_0_RaizCopier {
         $basePath = realpath(__DIR__ . '/../../../');
         $logFile = $basePath . '/shared/system/logs/migrations.log';
         
-        $this->log($logFile, "Iniciando migração física de raiz...");
+        $this->log($logFile, "Iniciando migração física de raiz (v1.5.1)...");
 
         if (!$basePath) {
             throw new Exception("Falha ao detectar a raiz do site no Copier.");
